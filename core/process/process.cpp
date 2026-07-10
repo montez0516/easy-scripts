@@ -1,5 +1,6 @@
 #include "process.hpp"
 #include "utils.hpp"
+#include "../ipc/unnamedPipeChannel.hpp"
 
 #include <windows.h>
 #include <utility>
@@ -49,9 +50,13 @@ Process::Process(const fs::path &executable, const std::vector<std::string> &arg
 
 void Process::start()
 {
+    pipe = new UnnamedPipeChannel();
+
     STARTUPINFOW si{};
     PROCESS_INFORMATION pi{};
     si.cb = sizeof(si);
+    si.hStdInput = pipe->stdinPipe->getRead();
+    si.hStdOutput = pipe->stdoutPipe->getWrite();
 
     std::wstring command = buildCommandLine();
 
