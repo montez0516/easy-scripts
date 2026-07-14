@@ -3,6 +3,7 @@
 
 #include <filesystem>
 #include <vector>
+#include <iostream>
 
 namespace fs = std::filesystem;
 
@@ -15,4 +16,5 @@ void PythonRuntime::run(const std::string &file, std::vector<std::string> &args)
 
     process = new Process(PYTHON, args);
     process->start();
+    process->wait();
 }

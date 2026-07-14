@@ -19,7 +19,6 @@ UnnamedPipe::UnnamedPipe()
     }
     writeHandle = hWrite;
     readHandle = hRead;
-    SetHandleInformation(hWrite, HANDLE_FLAG_INHERIT, 0);
 }
 
 UnnamedPipe::~UnnamedPipe()
@@ -31,7 +30,10 @@ UnnamedPipe::~UnnamedPipe()
 std::string UnnamedPipe::read()
 {
     if (readHandle == nullptr)
+    {
+        std::cerr << "readHandle is null" << std::endl;
         return "";
+    }
 
     std::string output;
 
@@ -48,9 +50,14 @@ std::string UnnamedPipe::read()
 
 void UnnamedPipe::write(const std::string &data)
 {
-    if (writeHandle == nullptr || data.empty())
+    if (writeHandle == nullptr)
+    {
+        std::cerr << "writeHandle is null" << std::endl;
         return;
+    }
 
+    if (data.empty())
+        return;
     DWORD bytesWritten = 0;
 
     WriteFile(writeHandle, data.data(), data.size(), &bytesWritten, NULL);
@@ -64,4 +71,22 @@ HANDLE UnnamedPipe::getRead() const
 HANDLE UnnamedPipe::getWrite() const
 {
     return writeHandle;
+}
+
+void UnnamedPipe::closeRead()
+{
+    if (readHandle != nullptr && readHandle != INVALID_HANDLE_VALUE)
+    {
+        CloseHandle(readHandle);
+        readHandle = nullptr;
+    }
+}
+
+void UnnamedPipe::closeWrite()
+{
+    if (writeHandle != nullptr && writeHandle != INVALID_HANDLE_VALUE)
+    {
+        CloseHandle(writeHandle);
+        writeHandle = nullptr;
+    }
 }

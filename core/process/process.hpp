@@ -15,12 +15,18 @@ private:
     fs::path exe;
     std::vector<std::string> args;
     std::wstring buildCommandLine();
-    UnnamedPipeChannel *pipe;
+    UnnamedPipeChannel *pipe = nullptr;
+
+    STARTUPINFOW startupInfo{};
+    PROCESS_INFORMATION processInformation{};
 
 public:
     Process(const fs::path &executable, const std::vector<std::string> &arguments);
     void start();
     void stop();
+    std::string read();
+    void wait();
+    void write(std::string &);
 };
 
 #endif

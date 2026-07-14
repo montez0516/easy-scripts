@@ -17,9 +17,11 @@ public:
 
     std::string read();
     void write(const std::string &);
-
     HANDLE getRead() const;
     HANDLE getWrite() const;
+
+    void closeRead();
+    void closeWrite();
 };
 
 #endif

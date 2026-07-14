@@ -8,7 +8,13 @@ main.cpp
 core/process/process.cpp
 core/runner/engine/runnerEngine.cpp 
 core/runner/runtime/runtimes/pythonRuntime.cpp
+core/runner/runtime/runtimes/defaultRuntime.cpp
 core/runner/runtime/runtimeManager.cpp
+core/ipc/namedPipe.cpp
+core/ipc/namedPipeChannel.cpp
+core/ipc/unnamedPipe.cpp
+core/ipc/unnamedPipeChannel.cpp
 )
 
-target_include_directories(runner INTERFACE core/process core/runner core/runner/engine core/runner/runtime core/runner/runtime/runtimes)
+
+target_include_directories(runner INTERFACE core/process core/runner core/runner/engine core/runner/runtime core/runner/runtime/runtimes core/ipc)
