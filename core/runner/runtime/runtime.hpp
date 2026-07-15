@@ -13,7 +13,7 @@ private:
     Process *process;
 
 public:
-    virtual void run(const std::string &file, std::vector<std::string> &args) = 0;
+    virtual void run(const std::string &file, std::vector<std::string> args) = 0;
 };
 
 #endif

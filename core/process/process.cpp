@@ -9,7 +9,7 @@
 
 namespace fs = std::filesystem;
 
-std::wstring GetError()
+static std::wstring GetError()
 {
     DWORD errorMessageID = ::GetLastError();
     if (errorMessageID == 0)
@@ -44,13 +44,16 @@ std::wstring GetError()
     return message;
 }
 
-Process::Process(const fs::path &executable, const std::vector<std::string> &arguments) : exe(std::move(executable)), args(std::move(arguments))
+Process::Process(fs::path executable, std::vector<std::string> arguments) : exe(std::move(executable)), args(std::move(arguments))
 {
 }
 
 void Process::start()
 {
     pipe = new UnnamedPipeChannel();
+
+    startupInfo = {};
+    processInformation = {};
 
     startupInfo.cb = sizeof(startupInfo);
     startupInfo.dwFlags = STARTF_USESTDHANDLES;
@@ -63,9 +66,16 @@ void Process::start()
 
     std::wstring command = buildCommandLine();
 
+    LPVOID environmentBlock = nullptr;
+
+    if (environment.has_value())
+    {
+        environmentBlock = environment->data();
+    }
+
     std::wcout << "Running Command: " << command << std::endl;
 
-    if (!CreateProcessW(NULL, command.data(), NULL, NULL, TRUE, 0, NULL, NULL, &startupInfo, &processInformation))
+    if (!CreateProcessW(NULL, command.data(), NULL, NULL, TRUE, CREATE_UNICODE_ENVIRONMENT, environmentBlock, NULL, &startupInfo, &processInformation))
     {
         std::wcerr << "CreateProcessW failed." << GetError() << std::endl;
     }
@@ -110,4 +120,56 @@ void Process::wait()
 
     processInformation.hProcess = nullptr;
     processInformation.hThread = nullptr;
+}
+
+static std::map<std::wstring, std::wstring> getCurrentEnvironment()
+{
+    std::map<std::wstring, std::wstring> variables;
+
+    LPWCH currentEnvironment = GetEnvironmentStringsW();
+
+    if (currentEnvironment == nullptr)
+        return variables;
+
+    for (const wchar_t *current = currentEnvironment; *current != L'\0'; current += std::wcslen(current) + 1)
+    {
+        std::wstring entry(current);
+
+        std::size_t separator = entry[0] == L'=' ? entry.find(L'=', 1) : entry.find(L'=');
+
+        if (separator != std::wstring::npos)
+        {
+            variables.emplace(entry.substr(0, separator), entry.substr(separator + 1));
+        }
+    }
+
+    FreeEnvironmentStringsW(currentEnvironment);
+    return variables;
+}
+
+void Process::setEnvironment(
+    const std::map<std::wstring, std::wstring> &overrides)
+{
+    std::map<std::wstring, std::wstring> variables = getCurrentEnvironment();
+
+    for (const auto &[name, value] : overrides)
+        variables[name] = value;
+
+    std::vector<wchar_t> block;
+
+    for (const auto &[name, value] : variables)
+    {
+        const std::wstring entry = name + L"=" + value;
+
+        block.insert(block.end(), entry.begin(), entry.end());
+        block.push_back(L'\0');
+    }
+
+    block.push_back(L'\0');
+    environment = std::move(block);
+}
+
+void Process::clearEnvironment()
+{
+    environment.reset();
 }
