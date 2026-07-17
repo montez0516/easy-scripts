@@ -30,10 +30,14 @@ void Engine::initialize()
 
 void Engine::run(const std::string &language, const std::string &file, std::string &args)
 {
+    std::cout << "Finding runtime for langauge " << language << std::endl;
     Runtime *runtime = runtimeManager->getRuntime(language);
 
     if (runtime == nullptr)
+    {
+        std::cerr << "No runtime found " << language << std::endl;
         return;
+    }
 
     std::cout << std::filesystem::absolute(file) << std::endl;
 

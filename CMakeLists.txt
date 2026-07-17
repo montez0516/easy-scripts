@@ -11,9 +11,7 @@ core/runner/runtime/runtimes/pythonRuntime.cpp
 core/runner/runtime/runtimes/defaultRuntime.cpp
 core/runner/runtime/runtimeManager.cpp
 core/ipc/namedPipe.cpp
-core/ipc/namedPipeChannel.cpp
 core/ipc/unnamedPipe.cpp
-core/ipc/unnamedPipeChannel.cpp
 )
 
 

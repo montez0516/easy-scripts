@@ -13,7 +13,7 @@ private:
     Process *process;
 
 public:
-    void run(const std::string &file, std::vector<std::string> &args) override;
+    void run(const std::string &file, std::vector<std::string> args) override;
 };
 
 #endif

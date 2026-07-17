@@ -2,6 +2,7 @@
 #include <string>
 #include <iostream>
 #include "unnamedPipe.hpp"
+#include "../process/utils.hpp"
 
 UnnamedPipe::UnnamedPipe()
 {
@@ -29,7 +30,7 @@ UnnamedPipe::~UnnamedPipe()
 
 std::string UnnamedPipe::read()
 {
-    if (readHandle == nullptr)
+    if (readHandle == nullptr || readHandle == INVALID_HANDLE_VALUE)
     {
         std::cerr << "readHandle is null" << std::endl;
         return "";
@@ -41,7 +42,9 @@ std::string UnnamedPipe::read()
     DWORD bytesRead = 0;
 
     if (!ReadFile(readHandle, buffer, sizeof(buffer), &bytesRead, NULL))
+    {
         return "";
+    }
 
     output.append(buffer, bytesRead);
 
@@ -77,6 +80,7 @@ void UnnamedPipe::closeRead()
 {
     if (readHandle != nullptr && readHandle != INVALID_HANDLE_VALUE)
     {
+        std::cout << "Closing read handle" << std::endl;
         CloseHandle(readHandle);
         readHandle = nullptr;
     }
@@ -86,6 +90,7 @@ void UnnamedPipe::closeWrite()
 {
     if (writeHandle != nullptr && writeHandle != INVALID_HANDLE_VALUE)
     {
+        std::cout << "Closing write handle" << std::endl;
         CloseHandle(writeHandle);
         writeHandle = nullptr;
     }

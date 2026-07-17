@@ -1,6 +1,5 @@
 #include "process.hpp"
 #include "utils.hpp"
-#include "../ipc/unnamedPipeChannel.hpp"
 
 #include <windows.h>
 #include <utility>
@@ -9,60 +8,28 @@
 
 namespace fs = std::filesystem;
 
-static std::wstring GetError()
-{
-    DWORD errorMessageID = ::GetLastError();
-    if (errorMessageID == 0)
-    {
-        return L"No error occurred.";
-    }
-
-    LPWSTR messageBuffer = nullptr;
-
-    // Ask Win32 to give us the string representation of that error ID
-    size_t size = FormatMessageW(
-        FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
-        NULL,
-        errorMessageID,
-        MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
-        (LPWSTR)&messageBuffer,
-        0,
-        NULL);
-
-    // Copy the message into a std::wstring
-    std::wstring message(messageBuffer, size);
-
-    // Free the Win32 allocated buffer
-    LocalFree(messageBuffer);
-
-    // Strip trailing newlines if present
-    if (!message.empty() && message.back() == L'\n')
-        message.pop_back();
-    if (!message.empty() && message.back() == L'\r')
-        message.pop_back();
-
-    return message;
-}
-
 Process::Process(fs::path executable, std::vector<std::string> arguments) : exe(std::move(executable)), args(std::move(arguments))
 {
 }
 
 void Process::start()
 {
-    pipe = new UnnamedPipeChannel();
 
     startupInfo = {};
     processInformation = {};
 
     startupInfo.cb = sizeof(startupInfo);
     startupInfo.dwFlags = STARTF_USESTDHANDLES;
-    startupInfo.hStdInput = pipe->stdinPipe->getRead();
-    startupInfo.hStdOutput = pipe->stdoutPipe->getWrite();
-    startupInfo.hStdError = pipe->stdoutPipe->getWrite();
 
-    SetHandleInformation(pipe->stdinPipe->getWrite(), HANDLE_FLAG_INHERIT, 0);
-    SetHandleInformation(pipe->stdoutPipe->getRead(), HANDLE_FLAG_INHERIT, 0);
+    stdinPipe = new UnnamedPipe();
+    stdoutPipe = new UnnamedPipe();
+
+    startupInfo.hStdInput = stdinPipe->getRead();
+    startupInfo.hStdOutput = stdoutPipe->getWrite();
+    startupInfo.hStdError = stdoutPipe->getWrite();
+
+    SetHandleInformation(stdinPipe->getWrite(), HANDLE_FLAG_INHERIT, 0);
+    SetHandleInformation(stdoutPipe->getRead(), HANDLE_FLAG_INHERIT, 0);
 
     std::wstring command = buildCommandLine();
 
@@ -80,20 +47,26 @@ void Process::start()
         std::wcerr << "CreateProcessW failed." << GetError() << std::endl;
     }
 
-    pipe->stdinPipe->closeRead();
-    pipe->stdoutPipe->closeWrite();
+    stdinPipe->closeRead();
+    stdoutPipe->closeWrite();
 }
 
 std::string Process::read()
 {
-    return pipe->stdoutPipe->read();
+    if (stdoutPipe == nullptr)
+    {
+        std::cerr << "child stdout pipe is null cannot read" << std::endl;
+        return "";
+    }
+    std::cout << "Reading from child stdout pipe" << std::endl;
+    return stdoutPipe->read();
 }
 
 void Process::write(std::string &data)
 {
     if (!data.ends_with('\n'))
         data += '\n';
-    pipe->stdinPipe->write(data);
+    stdinPipe->write(data);
 }
 
 std::wstring Process::buildCommandLine()
@@ -120,6 +93,8 @@ void Process::wait()
 
     processInformation.hProcess = nullptr;
     processInformation.hThread = nullptr;
+    delete stdinPipe;
+    delete stdoutPipe;
 }
 
 static std::map<std::wstring, std::wstring> getCurrentEnvironment()
@@ -129,7 +104,10 @@ static std::map<std::wstring, std::wstring> getCurrentEnvironment()
     LPWCH currentEnvironment = GetEnvironmentStringsW();
 
     if (currentEnvironment == nullptr)
+    {
+        std::cerr << "Could not find Environment" << std::endl;
         return variables;
+    }
 
     for (const wchar_t *current = currentEnvironment; *current != L'\0'; current += std::wcslen(current) + 1)
     {

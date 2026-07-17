@@ -8,7 +8,7 @@
 #include <optional>
 #include <map>
 
-#include "../ipc/unnamedPipeChannel.hpp"
+#include "../ipc/unnamedPipe.hpp"
 
 namespace fs = std::filesystem;
 
@@ -18,7 +18,9 @@ private:
     fs::path exe;
     std::vector<std::string> args;
     std::wstring buildCommandLine();
-    UnnamedPipeChannel *pipe = nullptr;
+
+    UnnamedPipe *stdinPipe = nullptr;
+    UnnamedPipe *stdoutPipe = nullptr;
 
     STARTUPINFOW startupInfo{};
     PROCESS_INFORMATION processInformation{};
