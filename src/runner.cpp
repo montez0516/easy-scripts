@@ -1,13 +1,17 @@
 #include <filesystem>
 #include <string>
+#include <iostream>
+#include <source_location>
+
 #include "core/runner/runtime/runtimeManager.hpp"
 #include "core/runner/engine/runnerEngine.h"
-#include <iostream>
+#include "spdlog/spdlog.h"
 
 namespace fs = std::filesystem;
 
 int main(int argc, char **argv)
 {
+    spdlog::info("TEST FIRST PRINT {}", std::source_location::current());
     Engine *engine = new Engine;
     engine->initialize();
 
