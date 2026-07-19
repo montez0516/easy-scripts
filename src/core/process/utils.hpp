@@ -45,30 +45,83 @@ inline static std::wstring toWstring(const std::string &str)
     if (str.empty())
         return {};
 
-    int size = MultiByteToWideChar(
+    const int requiredSize = MultiByteToWideChar(
         CP_UTF8,
-        0,
-        str.c_str(),
-        -1,
+        MB_ERR_INVALID_CHARS,
+        str.data(),
+        static_cast<int>(str.size()),
         nullptr,
         0);
 
-    std::wstring result(size, L'\0');
+    if (requiredSize == 0)
+    {
+        throw std::runtime_error(
+            "MultiByteToWideChar size calculation failed");
+    }
 
-    MultiByteToWideChar(
+    std::wstring result(
+        static_cast<std::size_t>(requiredSize),
+        L'\0');
+
+    const int convertedSize = MultiByteToWideChar(
         CP_UTF8,
-        0,
-        str.c_str(),
-        -1,
+        MB_ERR_INVALID_CHARS,
+        str.data(),
+        static_cast<int>(str.size()),
         result.data(),
-        size);
+        requiredSize);
+
+    if (convertedSize == 0)
+    {
+        throw std::runtime_error(
+            "MultiByteToWideChar conversion failed");
+    }
 
     return result;
 }
 
-inline static std::string quoteArgument(std::string str)
+static std::wstring quoteWindowsArgument(const std::wstring &argument)
 {
-    return "\"" + str + "\"";
+    if (argument.empty())
+        return L"\"\"";
+
+    const bool requiresQuotes =
+        argument.find_first_of(L" \t\n\v\"") != std::wstring::npos;
+
+    if (!requiresQuotes)
+        return argument;
+
+    std::wstring result = L"\"";
+    std::size_t backslashes = 0;
+
+    for (wchar_t character : argument)
+    {
+        if (character == L'\\')
+        {
+            ++backslashes;
+            continue;
+        }
+
+        if (character == L'"')
+        {
+            // Backslashes before a quote must be doubled,
+            // and the quote itself must be escaped.
+            result.append(backslashes * 2 + 1, L'\\');
+            result.push_back(L'"');
+            backslashes = 0;
+            continue;
+        }
+
+        result.append(backslashes, L'\\');
+        backslashes = 0;
+        result.push_back(character);
+    }
+
+    // Backslashes before the closing quote must be doubled.
+    result.append(backslashes * 2, L'\\');
+    result.push_back(L'"');
+
+    return result;
 }
 
 #endif

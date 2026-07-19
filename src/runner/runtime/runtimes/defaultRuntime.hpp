@@ -4,7 +4,7 @@
 #include <vector>
 #include <string>
 
-#include "../../../process/process.hpp"
+#include "../../../core/process/process.hpp"
 #include "../runtime.hpp"
 
 class DefaultRuntime : public Runtime

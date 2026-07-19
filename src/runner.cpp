@@ -1,17 +1,16 @@
 #include <filesystem>
 #include <string>
 #include <iostream>
-#include <source_location>
 
-#include "core/runner/runtime/runtimeManager.hpp"
-#include "core/runner/engine/runnerEngine.h"
+#include "runner/engine/runnerEngine.hpp"
 #include "spdlog/spdlog.h"
 
 namespace fs = std::filesystem;
 
 int main(int argc, char **argv)
 {
-    spdlog::info("TEST FIRST PRINT {}", std::source_location::current());
+    spdlog::info("Runner.exe {}", argc);
+
     Engine *engine = new Engine;
     engine->initialize();
 
@@ -22,6 +21,12 @@ int main(int argc, char **argv)
     if (argc < 3)
     {
         std::cerr << "Not enough arguments detected" << std::endl;
+
+        for (int i = 0; i < argc; i++)
+        {
+            std::cout << argv[i] << " ";
+        }
+        std::cout << std::endl;
         return 1;
     }
     language = argv[1];

@@ -2,6 +2,9 @@
 #define SCRIPT_H
 
 #include <filesystem>
+#include <vector>
+#include <string>
+
 #include "nlohmann/json.hpp"
 
 typedef struct scriptinfo
@@ -13,6 +16,8 @@ typedef struct scriptinfo
 
 } ScriptInfo;
 
+class ScriptManager;
+
 class Script
 {
 private:
@@ -21,7 +26,12 @@ private:
     ScriptInfo info;
     void parseInfo();
 
+    ScriptManager *manager = nullptr;
+
 public:
-    Script(std::filesystem::path scriptDir);
+    Script(std::filesystem::path scriptDir, ScriptManager *m);
+    void initialize();
+    void run(std::vector<std::string> args);
+    void stop();
 };
 #endif

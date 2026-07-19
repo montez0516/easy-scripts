@@ -5,7 +5,7 @@
 #include <iostream>
 #include <filesystem>
 
-#include "runnerEngine.h"
+#include "runnerEngine.hpp"
 #include "../runtime/runtimes/pythonRuntime.hpp"
 #include "../runtime/runtimes/defaultRuntime.hpp"
 

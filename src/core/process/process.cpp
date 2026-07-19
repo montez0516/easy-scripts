@@ -71,14 +71,12 @@ void Process::write(std::string &data)
 
 std::wstring Process::buildCommandLine()
 {
-    std::wstring cmd;
-
-    cmd += exe.wstring();
+    std::wstring cmd = quoteWindowsArgument(exe.wstring());
 
     for (const auto &arg : args)
     {
         cmd += L' ';
-        cmd += toWstring(quoteArgument(arg));
+        cmd += quoteWindowsArgument(toWstring(arg));
     }
 
     return cmd;
@@ -86,6 +84,11 @@ std::wstring Process::buildCommandLine()
 
 void Process::wait()
 {
+    if (processInformation.hProcess == nullptr)
+    {
+        throw std::runtime_error("hProcess handle null");
+    }
+
     WaitForSingleObject(processInformation.hProcess, INFINITE);
 
     CloseHandle(processInformation.hProcess);
