@@ -58,12 +58,16 @@ std::string Process::read()
         std::cerr << "child stdout pipe is null cannot read" << std::endl;
         return "";
     }
-    std::cout << "Reading from child stdout pipe" << std::endl;
     return stdoutPipe->read();
 }
 
 void Process::write(std::string &data)
 {
+    if (stdinPipe == nullptr)
+    {
+        std::cerr << "Child stdin pipe is null cannot write" << std::endl;
+        return;
+    }
     if (!data.ends_with('\n'))
         data += '\n';
     stdinPipe->write(data);

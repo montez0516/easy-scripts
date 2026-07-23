@@ -44,13 +44,6 @@ void Script::parseInfo()
     info.scriptFile = dir / file;
     info.icon = dir / "icon.png";
 
-    std::filesystem::path env = dir / "env";
-
-    if (std::filesystem::exists(env))
-    {
-        info.hasEnv = true;
-    }
-
     spdlog::info("{}: \n{}\n{}\n{}\n{}\n", info.metaData["name"].get<std::string>(), dir.string(), info.scriptFile.string(), info.icon.string(), info.metaData.dump());
 }
 

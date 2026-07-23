@@ -12,8 +12,6 @@ typedef struct scriptinfo
     std::filesystem::path scriptFile;
     std::filesystem::path icon;
     nlohmann::json metaData;
-    bool hasEnv;
-
 } ScriptInfo;
 
 class ScriptManager;

@@ -80,7 +80,6 @@ void UnnamedPipe::closeRead()
 {
     if (readHandle != nullptr && readHandle != INVALID_HANDLE_VALUE)
     {
-        std::cout << "Closing read handle" << std::endl;
         CloseHandle(readHandle);
         readHandle = nullptr;
     }
@@ -90,7 +89,6 @@ void UnnamedPipe::closeWrite()
 {
     if (writeHandle != nullptr && writeHandle != INVALID_HANDLE_VALUE)
     {
-        std::cout << "Closing write handle" << std::endl;
         CloseHandle(writeHandle);
         writeHandle = nullptr;
     }
