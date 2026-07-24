@@ -21,21 +21,27 @@ private:
 
     UnnamedPipe *stdinPipe = nullptr;
     UnnamedPipe *stdoutPipe = nullptr;
+    UnnamedPipe *stderrPipe = nullptr;
 
     STARTUPINFOW startupInfo{};
     PROCESS_INFORMATION processInformation{};
     std::optional<std::vector<wchar_t>> environment;
+    std::wstring cwd;
 
 public:
     Process(fs::path executable, std::vector<std::string> arguments);
     void start();
     void stop();
+    DWORD wait();
     std::string read();
-    void wait();
     void write(std::string &);
+    std::string error();
 
     void setEnvironment(const std::map<std::wstring, std::wstring> &variables);
     void clearEnvironment();
+
+    void setCurrentDirectory(const std::wstring &dir);
+    void clearCurrentDirectory();
 };
 
 #endif

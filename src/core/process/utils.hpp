@@ -80,6 +80,21 @@ inline static std::wstring toWstring(const std::string &str)
     return result;
 }
 
+inline std::string toString(const std::wstring &wstr)
+{
+    if (wstr.empty())
+        return {};
+
+    int sizeNeeded = WideCharToMultiByte(CP_UTF8, 0, wstr.data(), (int)wstr.size(), nullptr, 0, nullptr, nullptr);
+    if (sizeNeeded == 0)
+        return {};
+
+    std::string str(sizeNeeded, 0);
+    WideCharToMultiByte(CP_UTF8, 0, wstr.data(), (int)wstr.size(), str.data(), sizeNeeded, nullptr, nullptr);
+
+    return str;
+}
+
 static std::wstring quoteWindowsArgument(const std::wstring &argument)
 {
     if (argument.empty())

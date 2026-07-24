@@ -6,6 +6,8 @@
 #include <filesystem>
 #include <iostream>
 
+#include "spdlog/spdlog.h"
+
 namespace fs = std::filesystem;
 
 Process::Process(fs::path executable, std::vector<std::string> arguments) : exe(std::move(executable)), args(std::move(arguments))
@@ -23,13 +25,15 @@ void Process::start()
 
     stdinPipe = new UnnamedPipe();
     stdoutPipe = new UnnamedPipe();
+    stderrPipe = new UnnamedPipe();
 
     startupInfo.hStdInput = stdinPipe->getRead();
     startupInfo.hStdOutput = stdoutPipe->getWrite();
-    startupInfo.hStdError = stdoutPipe->getWrite();
+    startupInfo.hStdError = stderrPipe->getWrite();
 
     SetHandleInformation(stdinPipe->getWrite(), HANDLE_FLAG_INHERIT, 0);
     SetHandleInformation(stdoutPipe->getRead(), HANDLE_FLAG_INHERIT, 0);
+    SetHandleInformation(stderrPipe->getRead(), HANDLE_FLAG_INHERIT, 0);
 
     std::wstring command = buildCommandLine();
 
@@ -42,13 +46,23 @@ void Process::start()
 
     std::wcout << "Running Command: " << command << std::endl;
 
-    if (!CreateProcessW(NULL, command.data(), NULL, NULL, TRUE, CREATE_UNICODE_ENVIRONMENT, environmentBlock, NULL, &startupInfo, &processInformation))
+    if (!CreateProcessW(NULL,
+                        command.data(),
+                        NULL,
+                        NULL,
+                        TRUE,
+                        CREATE_UNICODE_ENVIRONMENT,
+                        environmentBlock,
+                        cwd.empty() ? NULL : cwd.c_str(),
+                        &startupInfo,
+                        &processInformation))
     {
         std::wcerr << "CreateProcessW failed." << GetError() << std::endl;
     }
 
     stdinPipe->closeRead();
     stdoutPipe->closeWrite();
+    stderrPipe->closeWrite();
 }
 
 std::string Process::read()
@@ -86,7 +100,7 @@ std::wstring Process::buildCommandLine()
     return cmd;
 }
 
-void Process::wait()
+DWORD Process::wait()
 {
     if (processInformation.hProcess == nullptr)
     {
@@ -95,6 +109,14 @@ void Process::wait()
 
     WaitForSingleObject(processInformation.hProcess, INFINITE);
 
+    DWORD exitCode = 0;
+
+    if (!GetExitCodeProcess(processInformation.hProcess, &exitCode))
+    {
+        spdlog::error("GetExitCodeProcess failed ({})", toString(GetError()));
+    }
+    spdlog::info("Process exited with code:: {}", exitCode);
+
     CloseHandle(processInformation.hProcess);
     CloseHandle(processInformation.hThread);
 
@@ -102,6 +124,9 @@ void Process::wait()
     processInformation.hThread = nullptr;
     delete stdinPipe;
     delete stdoutPipe;
+    delete stderrPipe;
+
+    return exitCode;
 }
 
 static std::map<std::wstring, std::wstring> getCurrentEnvironment()
@@ -157,4 +182,19 @@ void Process::setEnvironment(
 void Process::clearEnvironment()
 {
     environment.reset();
+}
+
+void Process::setCurrentDirectory(const std::wstring &dir)
+{
+    cwd = dir;
+}
+
+void Process::clearCurrentDirectory()
+{
+    cwd.clear();
+}
+
+std::string Process::error()
+{
+    return stderrPipe->read();
 }

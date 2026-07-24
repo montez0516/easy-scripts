@@ -5,6 +5,8 @@
 #include <vector>
 #include <iostream>
 
+#include "spdlog/spdlog.h"
+
 namespace fs = std::filesystem;
 
 const fs::path PYTHON = fs::path("../bin") / "python" / "python.exe";
@@ -13,10 +15,21 @@ void PythonRuntime::run(const std::string &file, std::vector<std::string> args)
 {
     std::cout << "Creating python runtime for file " << file << std::endl;
 
-    args.insert(args.begin(), fs::absolute(file).string());
+    fs::path abs_file = fs::absolute(file);
+    fs::path parent_dir = fs::absolute(file).parent_path();
 
-    process = new Process(PYTHON, args);
+    args.insert(args.begin(), abs_file.string());
+
+    fs::path exe = PYTHON;
+
+    if (fs::exists(parent_dir / "venv"))
+        exe = parent_dir / "venv" / "Scripts" / "python.exe";
+
+    spdlog::info("{} {}", exe.string(), abs_file.string());
+
+    process = new Process(exe, args);
+    process->setCurrentDirectory(parent_dir.wstring());
     process->start();
     std::cout << process->read() << std::endl;
-    process->wait();
+    exit(process->wait());
 }
