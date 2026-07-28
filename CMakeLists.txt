@@ -45,20 +45,21 @@ FetchContent_Declare(
     json
     GIT_REPOSITORY https://github.com/nlohmann/json.git
     GIT_TAG v3.12.0
-)
-
-set(JSON_BUILD_STATIC ON CACHE INTERNAL "")
-FetchContent_MakeAvailable(json)
-
-add_executable(script
-src/main.cpp
-src/core/main/scriptManager.cpp
-src/core/main/script.cpp
-src/core/process/process.cpp
-src/core/ipc/unnamedPipe.cpp
-)
-
-target_include_directories(script INTERFACE 
+    )
+    
+    set(JSON_BUILD_STATIC ON CACHE INTERNAL "")
+    FetchContent_MakeAvailable(json)
+    
+    add_executable(script
+    src/main.cpp
+    src/core/main/scriptManager.cpp
+    src/core/main/script.cpp
+    src/core/process/process.cpp
+    src/core/ipc/namedPipe.cpp
+    src/core/ipc/unnamedPipe.cpp
+    )
+    
+    target_include_directories(script INTERFACE 
 src/core/main
 src/core/main/engine
 src/core/process

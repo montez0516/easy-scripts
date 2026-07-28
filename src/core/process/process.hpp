@@ -7,6 +7,7 @@
 #include <windows.h>
 #include <optional>
 #include <map>
+#include <thread>
 
 #include "../ipc/unnamedPipe.hpp"
 
@@ -15,22 +16,26 @@ namespace fs = std::filesystem;
 class Process
 {
 private:
-    fs::path exe;
-    std::vector<std::string> args;
-    std::wstring buildCommandLine();
-
     UnnamedPipe *stdinPipe = nullptr;
     UnnamedPipe *stdoutPipe = nullptr;
     UnnamedPipe *stderrPipe = nullptr;
 
+    fs::path exe;
+    std::vector<std::string> args;
     STARTUPINFOW startupInfo{};
     PROCESS_INFORMATION processInformation{};
     std::optional<std::vector<wchar_t>> environment;
     std::wstring cwd;
+    DWORD exitCode = 0;
+
+    std::thread thread;
+
+    std::wstring buildCommandLine();
+    void t_wait();
 
 public:
     Process(fs::path executable, std::vector<std::string> arguments);
-    void start();
+    bool start();
     void stop();
     DWORD wait();
     std::string read();

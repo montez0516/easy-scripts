@@ -4,14 +4,18 @@
 #include <windows.h>
 #include <string>
 
+#define PIPENAME "\\\\.\\pipe\\easyscripts"
+
 class NamedPipe
 {
 private:
-    HANDLE pipeHandle = nullptr;
+    HANDLE pipeHandle = INVALID_HANDLE_VALUE;
 
 public:
-    NamedPipe();
     ~NamedPipe();
+
+    bool create(const std::string &name = PIPENAME);
+    bool connect(const std::string &name = PIPENAME);
 
     std::string read();
     void write(const std::string &);

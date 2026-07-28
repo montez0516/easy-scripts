@@ -1,35 +1,59 @@
 #include <windows.h>
 #include <string>
 #include <iostream>
+#include <spdlog/spdlog.h>
 
 #include "namedPipe.hpp"
 
-#define PIPENAME "\\\\.\\pipe\\easyscripts"
+NamedPipe::~NamedPipe()
+{
+    if (pipeHandle != INVALID_HANDLE_VALUE)
+    {
+        FlushFileBuffers(pipeHandle);
+        DisconnectNamedPipe(pipeHandle);
+        CloseHandle(pipeHandle);
+    }
+}
 
-NamedPipe::NamedPipe()
+bool NamedPipe::create(const std::string &name)
 {
     pipeHandle = CreateNamedPipe(TEXT(PIPENAME), PIPE_ACCESS_DUPLEX, PIPE_TYPE_MESSAGE | PIPE_READMODE_MESSAGE | PIPE_WAIT, PIPE_UNLIMITED_INSTANCES, 512, 512, 0, NULL);
 
     if (pipeHandle == INVALID_HANDLE_VALUE)
     {
-        std::cerr << "Failed to create pipe: " << GetLastError() << std::endl;
+        spdlog::error("NamedPipe(create): Failed to create pipe. Error: {}\n", GetLastError());
+        return false;
     }
+    return true;
 }
 
-NamedPipe::~NamedPipe()
+bool NamedPipe::connect(const std::string &name)
 {
-    if (pipeHandle == nullptr)
-        return;
+    pipeHandle = CreateFile(
+        TEXT(PIPENAME),
+        GENERIC_READ | GENERIC_WRITE,
+        0,
+        NULL,
+        OPEN_EXISTING,
+        0,
+        NULL);
 
-    FlushFileBuffers(pipeHandle);
-    DisconnectNamedPipe(pipeHandle);
-    CloseHandle(pipeHandle);
+    if (pipeHandle == INVALID_HANDLE_VALUE)
+    {
+        spdlog::error("NamedPipe(connect): Failed to connect to pipe. Error: {}\n", GetLastError());
+        return false;
+    }
+
+    return true;
 }
 
 std::string NamedPipe::read()
 {
-    if (pipeHandle == nullptr)
+    if (pipeHandle == nullptr || pipeHandle == INVALID_HANDLE_VALUE)
+    {
+        spdlog::error("NamedPipe(read): pipeHandle is NULL");
         return "";
+    }
     if (ConnectNamedPipe(pipeHandle, NULL) || GetLastError() == ERROR_PIPE_CONNECTED)
     {
         std::string output;
@@ -47,17 +71,17 @@ std::string NamedPipe::read()
 
 void NamedPipe::write(const std::string &data)
 {
-    if (pipeHandle == nullptr)
+    if (pipeHandle == nullptr || pipeHandle == INVALID_HANDLE_VALUE)
+    {
+        spdlog::error("NamedPipe(write): pipeHandle is NULL");
         return;
+    }
 
     if (ConnectNamedPipe(pipeHandle, NULL) || GetLastError() == ERROR_PIPE_CONNECTED)
     {
-        DWORD bytesToWrite = sizeof(data);
+        DWORD bytesToWrite = static_cast<DWORD>(data.size());
         DWORD bytesWritten = 0;
 
         WriteFile(pipeHandle, data.data(), bytesToWrite, &bytesWritten, NULL);
-
-        FlushFileBuffers(pipeHandle);
-        DisconnectNamedPipe(pipeHandle);
     }
 }

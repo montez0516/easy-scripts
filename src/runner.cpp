@@ -1,42 +1,39 @@
 #include <filesystem>
 #include <string>
 #include <iostream>
+#include <thread>
+#include <chrono>
+#include <fstream>
 
 #include "runner/engine/runnerEngine.hpp"
 #include "spdlog/spdlog.h"
+#include "core/ipc/namedPipe.hpp"
 
 namespace fs = std::filesystem;
 
-int main(int argc, char **argv)
+int main()
 {
-    spdlog::info("Runner.exe {}", argc);
+    NamedPipe *pipe = new NamedPipe();
+
+    if (!pipe->connect(""))
+    {
+        spdlog::critical("runner(main): NamedPipe failed to connect.");
+        return 1;
+    }
 
     Engine *engine = new Engine;
     engine->initialize();
 
-    std::string language;
-    std::string file;
-    std::string args;
+    std::ofstream file("file.txt");
 
-    if (argc < 3)
-    {
-        std::cerr << "Not enough arguments detected" << std::endl;
-
-        for (int i = 0; i < argc; i++)
+    std::thread([pipe, engine]()
+                {
+        while(true)
         {
-            std::cout << argv[i] << " ";
-        }
-        std::cout << std::endl;
-        return 1;
-    }
-    language = argv[1];
-    file = argv[2];
+            std::string payload = pipe->read();
+            spdlog::info("runner(main): Message from main application in runner: {}", payload);
+            std::this_thread::sleep_for(std::chrono::milliseconds(500));
+        } });
 
-    if (argc >= 4)
-        args = argv[3];
-
-    std::cout << "Running plugin " << language << " " << file << " " << args << std::endl;
-
-    engine->run(language, file, args);
     return 0;
 }

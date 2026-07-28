@@ -34,6 +34,8 @@ void Script::parseInfo()
 
     info.metaData = json::parse(metaFile);
 
+    metaFile.close();
+
     std::string language = info.metaData["language"];
 
     std::string file = "main.exe";
@@ -43,7 +45,6 @@ void Script::parseInfo()
 
     info.scriptFile = dir / file;
     info.icon = dir / "icon.png";
-
     spdlog::info("{}: \n{}\n{}\n{}\n{}\n", info.metaData["name"].get<std::string>(), dir.string(), info.scriptFile.string(), info.icon.string(), info.metaData.dump());
 }
 

@@ -5,6 +5,7 @@
 #include <utility>
 #include <filesystem>
 #include <iostream>
+#include <thread>
 
 #include "spdlog/spdlog.h"
 
@@ -14,7 +15,7 @@ Process::Process(fs::path executable, std::vector<std::string> arguments) : exe(
 {
 }
 
-void Process::start()
+bool Process::start()
 {
 
     startupInfo = {};
@@ -57,12 +58,16 @@ void Process::start()
                         &startupInfo,
                         &processInformation))
     {
-        std::wcerr << "CreateProcessW failed." << GetError() << std::endl;
+        spdlog::error("Process(start): CreateProcessW failed {}", toString(GetError()));
+        return false;
     }
 
     stdinPipe->closeRead();
     stdoutPipe->closeWrite();
     stderrPipe->closeWrite();
+
+    thread = std::thread(&Process::t_wait, this);
+    return true;
 }
 
 std::string Process::read()
@@ -100,7 +105,7 @@ std::wstring Process::buildCommandLine()
     return cmd;
 }
 
-DWORD Process::wait()
+void Process::t_wait()
 {
     if (processInformation.hProcess == nullptr)
     {
@@ -109,11 +114,9 @@ DWORD Process::wait()
 
     WaitForSingleObject(processInformation.hProcess, INFINITE);
 
-    DWORD exitCode = 0;
-
     if (!GetExitCodeProcess(processInformation.hProcess, &exitCode))
     {
-        spdlog::error("GetExitCodeProcess failed ({})", toString(GetError()));
+        spdlog::error("Process(t_wait): GetExitCodeProcess failed ({})", toString(GetError()));
     }
     spdlog::info("Process exited with code:: {}", exitCode);
 
@@ -125,7 +128,11 @@ DWORD Process::wait()
     delete stdinPipe;
     delete stdoutPipe;
     delete stderrPipe;
+}
 
+DWORD Process::wait()
+{
+    thread.join();
     return exitCode;
 }
 

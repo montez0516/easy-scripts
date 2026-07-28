@@ -7,8 +7,24 @@
 #include "script.hpp"
 #include "../process/process.hpp"
 
-void ScriptManager::initialize(const std::filesystem::path &scriptFolder)
+ScriptManager::ScriptManager()
 {
+    pipe = new NamedPipe();
+}
+
+bool ScriptManager::initialize(const std::filesystem::path &scriptFolder)
+{
+    if (!pipe->create())
+    {
+        spdlog::critical("scriptManager(): NamedPipe failed to create.");
+        delete pipe;
+        pipe = nullptr;
+        return false;
+    }
+
+    runner = new Process(std::filesystem::absolute("./runner.exe"), {});
+    runner->start();
+
     for (const auto &entry : std::filesystem::directory_iterator(scriptFolder))
     {
         if (entry.is_directory())
@@ -17,14 +33,19 @@ void ScriptManager::initialize(const std::filesystem::path &scriptFolder)
             scripts.push_back(script);
         }
     }
+    return true;
 }
 
 void ScriptManager::run(const std::string &language, const std::filesystem::path &scriptFile, const std::vector<std::string> &args)
 {
+    if (pipe == nullptr)
+    {
+        spdlog::critical("ScriptManager(run): pipe is NULL");
+        return;
+    }
+
     std::string s_args = std::accumulate(args.begin(), args.end(), std::string(""), [](const std::string &a, const std::string &b)
                                          { return a.empty() ? b : a + " " + b; });
 
-    Process process(std::filesystem::absolute("runner.exe"), {language, std::filesystem::absolute(scriptFile).string()});
-    process.start();
-    process.wait();
+    pipe->write(language);
 }
