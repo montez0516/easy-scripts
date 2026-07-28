@@ -3,7 +3,7 @@
 #include <chrono>
 #include <spdlog/spdlog.h>
 
-#include "core/main/scriptManager.hpp"
+#include "main/scriptManager.hpp"
 
 int main()
 {

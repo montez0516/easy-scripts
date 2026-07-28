@@ -7,7 +7,7 @@
 
 #include "spdlog/spdlog.h"
 #include "script.hpp"
-#include "../process/process.hpp"
+#include "../core/process/process.hpp"
 
 ScriptManager::ScriptManager()
 {

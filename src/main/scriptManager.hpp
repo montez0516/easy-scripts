@@ -4,9 +4,9 @@
 #include <filesystem>
 #include <vector>
 
-#include "../process/process.hpp"
+#include "../core/process/process.hpp"
 #include "script.hpp"
-#include "../ipc/namedPipe.hpp"
+#include "../core/ipc/namedPipe.hpp"
 
 class ScriptManager
 {

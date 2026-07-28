@@ -51,16 +51,15 @@ project(script)
 
 add_executable(script
 src/main.cpp
-src/core/main/scriptManager.cpp
-src/core/main/script.cpp
+src/main/scriptManager.cpp
+src/main/script.cpp
 src/core/process/process.cpp
 src/core/ipc/namedPipe.cpp
 src/core/ipc/unnamedPipe.cpp
 )
 
 target_include_directories(script INTERFACE 
-src/core/main
-src/core/main/engine
+src/main
 src/core/process
 src/core/ipc
 )
