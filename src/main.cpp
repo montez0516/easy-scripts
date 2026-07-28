@@ -5,7 +5,7 @@
 
 int main()
 {
-
+    spdlog::set_level(spdlog::level::debug);
     spdlog::info("MAIN.exe");
     ScriptManager *manager = new ScriptManager();
     manager->initialize(std::filesystem::path("../scripts"));

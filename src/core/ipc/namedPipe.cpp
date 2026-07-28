@@ -40,7 +40,7 @@ bool NamedPipe::connect(const std::string &name)
 
     if (pipeHandle == INVALID_HANDLE_VALUE)
     {
-        spdlog::error("NamedPipe(connect): Failed to connect to pipe. Error: {}\n", GetLastError());
+        spdlog::critical("NamedPipe(connect): Failed to connect to pipe. Error: {}\n", GetLastError());
         return false;
     }
 
@@ -51,7 +51,7 @@ std::string NamedPipe::read()
 {
     if (pipeHandle == nullptr || pipeHandle == INVALID_HANDLE_VALUE)
     {
-        spdlog::error("NamedPipe(read): pipeHandle is NULL");
+        spdlog::critical("NamedPipe(read): pipeHandle is NULL");
         return "";
     }
     if (ConnectNamedPipe(pipeHandle, NULL) || GetLastError() == ERROR_PIPE_CONNECTED)
@@ -73,7 +73,7 @@ void NamedPipe::write(const std::string &data)
 {
     if (pipeHandle == nullptr || pipeHandle == INVALID_HANDLE_VALUE)
     {
-        spdlog::error("NamedPipe(write): pipeHandle is NULL");
+        spdlog::critical("NamedPipe(write): pipeHandle is NULL");
         return;
     }
 

@@ -30,22 +30,40 @@ void Script::initialize()
 
 void Script::parseInfo()
 {
-    std::ifstream metaFile(dir / "meta.json");
+    std::filesystem::path metaPath = dir / "meta.json";
+    if (std::filesystem::exists(metaPath))
+    {
+        try
 
-    info.metaData = json::parse(metaFile);
+        {
+            std::ifstream metaFile(metaPath);
 
-    metaFile.close();
+            info.metaData = json::parse(metaFile);
 
-    std::string language = info.metaData["language"];
+            metaFile.close();
+        }
+        catch (const json::type_error &e)
+        {
+            spdlog::error("Script(parseInfo): Failed to parse meta json: {}\n", e.what());
+        }
+    }
+    else
+    {
+        spdlog::debug("Script(parseInfo): no metadata file found: {}\n", metaPath.string());
+        info.metaData = json();
+        info.metaData["name"] = dir.stem();
+    }
 
-    std::string file = "main.exe";
+    std::vector<std::string> script_extensions = {".py", ".exe"};
 
-    if (language == "python")
-        file = "main.py";
+    for (const auto &ext : script_extensions)
+    {
+        std::filesystem::path filename = dir / ("main" + ext);
+        if (std::filesystem::exists(filename))
+            info.scriptFile = filename;
+    }
 
-    info.scriptFile = dir / file;
-    info.icon = dir / "icon.png";
-    spdlog::info("{}: \n{}\n{}\n{}\n{}\n", info.metaData["name"].get<std::string>(), dir.string(), info.scriptFile.string(), info.icon.string(), info.metaData.dump());
+    spdlog::info("{}: \n{}\n{}\n{}\n", info.metaData.value<std::string>("name", ""), dir.string(), info.scriptFile.string(), info.metaData.dump());
 }
 
 void Script::run(std::vector<std::string> args)

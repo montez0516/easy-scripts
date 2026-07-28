@@ -14,16 +14,16 @@ ScriptManager::ScriptManager()
 
 bool ScriptManager::initialize(const std::filesystem::path &scriptFolder)
 {
-    if (!pipe->create())
-    {
-        spdlog::critical("scriptManager(): NamedPipe failed to create.");
-        delete pipe;
-        pipe = nullptr;
-        return false;
-    }
+    // if (!pipe->create())
+    // {
+    //     spdlog::critical("scriptManager(): NamedPipe failed to create.");
+    //     delete pipe;
+    //     pipe = nullptr;
+    //     return false;
+    // }
 
-    runner = new Process(std::filesystem::absolute("./runner.exe"), {});
-    runner->start();
+    // runner = new Process(std::filesystem::absolute("./runner.exe"), {});
+    // runner->start();
 
     for (const auto &entry : std::filesystem::directory_iterator(scriptFolder))
     {
