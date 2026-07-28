@@ -7,13 +7,6 @@
 
 #include "nlohmann/json.hpp"
 
-typedef struct scriptinfo
-{
-    std::filesystem::path scriptFile;
-    std::filesystem::path icon;
-    nlohmann::json metaData;
-} ScriptInfo;
-
 class ScriptManager;
 
 class Script
@@ -21,10 +14,16 @@ class Script
 private:
     std::filesystem::path dir;
 
-    ScriptInfo info;
-    void parseInfo();
+    std::filesystem::path scriptFile;
+    std::filesystem::path icon;
+    nlohmann::json metaData;
 
     ScriptManager *manager = nullptr;
+
+    void parseInfo();
+    void loadMetaData();
+    void findScriptFile();
+    void logInfo();
 
 public:
     Script(std::filesystem::path scriptDir, ScriptManager *m);

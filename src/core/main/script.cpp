@@ -22,7 +22,7 @@ void Script::initialize()
 {
     parseInfo();
 
-    if (info.metaData["type"] == "service")
+    if (metaData["type"] == "service")
     {
         run({});
     }
@@ -30,45 +30,47 @@ void Script::initialize()
 
 void Script::parseInfo()
 {
+    loadMetaData();
+    findScriptFile();
+    logInfo();
+}
+
+void Script::loadMetaData()
+{
+
     std::filesystem::path metaPath = dir / "meta.json";
-    if (std::filesystem::exists(metaPath))
+
+    if (!std::filesystem::exists(metaPath))
     {
-        try
-
-        {
-            std::ifstream metaFile(metaPath);
-
-            info.metaData = json::parse(metaFile);
-
-            metaFile.close();
-        }
-        catch (const json::type_error &e)
-        {
-            spdlog::error("Script(parseInfo): Failed to parse meta json: {}\n", e.what());
-        }
-    }
-    else
-    {
-        spdlog::debug("Script(parseInfo): no metadata file found: {}\n", metaPath.string());
-        info.metaData = json();
-        info.metaData["name"] = dir.stem();
+        metaData["name"] = dir.stem();
+        return;
     }
 
+    std::ifstream metaFile(metaPath);
+    metaData = nlohmann::json::parse(metaFile);
+    metaFile.close();
+}
+
+void Script::findScriptFile()
+{
     std::vector<std::string> script_extensions = {".py", ".exe"};
 
     for (const auto &ext : script_extensions)
     {
         std::filesystem::path filename = dir / ("main" + ext);
         if (std::filesystem::exists(filename))
-            info.scriptFile = filename;
+            scriptFile = filename;
     }
+}
 
-    spdlog::info("{}: \n{}\n{}\n{}\n", info.metaData.value<std::string>("name", ""), dir.string(), info.scriptFile.string(), info.metaData.dump());
+void Script::logInfo()
+{
+    spdlog::debug("{}: {} {} \n{}\n", metaData.value<std::string>("name", ""), dir.string(), scriptFile.string(), metaData.dump(2));
 }
 
 void Script::run(std::vector<std::string> args)
 {
-    if (!std::filesystem::exists(info.scriptFile))
+    if (!std::filesystem::exists(scriptFile))
         return;
-    manager->run(info.metaData["language"], info.scriptFile, args);
+    manager->run(metaData["language"], scriptFile, args);
 }
