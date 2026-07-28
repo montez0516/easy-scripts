@@ -14,6 +14,15 @@ FetchContent_Declare(
 set(SPDLOG_BUILD_STATIC ON CACHE INTERNAL "")
 FetchContent_MakeAvailable(spdlog)
 
+FetchContent_Declare(
+json
+GIT_REPOSITORY https://github.com/nlohmann/json.git
+GIT_TAG v3.12.0
+)
+
+set(JSON_BUILD_STATIC ON CACHE INTERNAL "")
+FetchContent_MakeAvailable(json)
+
 add_executable(runner
 src/runner.cpp 
 src/core/process/process.cpp
@@ -36,30 +45,20 @@ src/runner/runtime/runtimes
 )
 
 target_link_libraries(runner PRIVATE spdlog::spdlog)
+target_link_libraries(runner PRIVATE nlohmann_json::nlohmann_json)
 
 project(script)
 
-include(FetchContent)
+add_executable(script
+src/main.cpp
+src/core/main/scriptManager.cpp
+src/core/main/script.cpp
+src/core/process/process.cpp
+src/core/ipc/namedPipe.cpp
+src/core/ipc/unnamedPipe.cpp
+)
 
-FetchContent_Declare(
-    json
-    GIT_REPOSITORY https://github.com/nlohmann/json.git
-    GIT_TAG v3.12.0
-    )
-    
-    set(JSON_BUILD_STATIC ON CACHE INTERNAL "")
-    FetchContent_MakeAvailable(json)
-    
-    add_executable(script
-    src/main.cpp
-    src/core/main/scriptManager.cpp
-    src/core/main/script.cpp
-    src/core/process/process.cpp
-    src/core/ipc/namedPipe.cpp
-    src/core/ipc/unnamedPipe.cpp
-    )
-    
-    target_include_directories(script INTERFACE 
+target_include_directories(script INTERFACE 
 src/core/main
 src/core/main/engine
 src/core/process

@@ -3,6 +3,7 @@
 
 #include <windows.h>
 #include <string>
+#include <nlohmann/json.hpp>
 
 #define PIPENAME "\\\\.\\pipe\\easyscripts"
 
@@ -17,8 +18,11 @@ public:
     bool create(const std::string &name = PIPENAME);
     bool connect(const std::string &name = PIPENAME);
 
+    bool waitForConnection();
+
     std::string read();
     void write(const std::string &);
+    nlohmann::json json();
 
     bool isNull();
 };

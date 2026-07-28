@@ -2,6 +2,7 @@
 #include <string>
 #include <iostream>
 #include <spdlog/spdlog.h>
+#include <nlohmann/json.hpp>
 
 #include "namedPipe.hpp"
 
@@ -54,19 +55,14 @@ std::string NamedPipe::read()
         spdlog::critical("NamedPipe(read): pipeHandle is NULL");
         return "";
     }
-    if (ConnectNamedPipe(pipeHandle, NULL) || GetLastError() == ERROR_PIPE_CONNECTED)
+    std::string output;
+    char buffer[512];
+    DWORD bytesRead = 0;
+    if (!ReadFile(pipeHandle, buffer, sizeof(buffer) - 1, &bytesRead, NULL))
     {
-        std::string output;
-        char buffer[128];
-        DWORD bytesRead = 0;
-        if (ReadFile(pipeHandle, buffer, sizeof(buffer) - 1, &bytesRead, NULL))
-        {
-            output.append(buffer, bytesRead);
-            return output;
-        }
+        return "";
     }
-
-    return "";
+    return std::string(buffer, bytesRead);
 }
 
 void NamedPipe::write(const std::string &data)
@@ -77,16 +73,55 @@ void NamedPipe::write(const std::string &data)
         return;
     }
 
-    if (ConnectNamedPipe(pipeHandle, NULL) || GetLastError() == ERROR_PIPE_CONNECTED)
-    {
-        DWORD bytesToWrite = static_cast<DWORD>(data.size());
-        DWORD bytesWritten = 0;
+    DWORD bytesToWrite = static_cast<DWORD>(data.size());
+    DWORD bytesWritten = 0;
 
-        WriteFile(pipeHandle, data.data(), bytesToWrite, &bytesWritten, NULL);
-    }
+    WriteFile(pipeHandle, data.data(), bytesToWrite, &bytesWritten, NULL);
 }
 
 bool NamedPipe::isNull()
 {
     return pipeHandle == INVALID_HANDLE_VALUE;
+}
+
+bool NamedPipe::waitForConnection()
+{
+    if (pipeHandle == INVALID_HANDLE_VALUE)
+    {
+        spdlog::critical("NamedPipe(waitForConnection): pipeHandle is NULL");
+        return false;
+    }
+
+    if (ConnectNamedPipe(pipeHandle, nullptr))
+    {
+        return true;
+    }
+
+    DWORD error = GetLastError();
+
+    if (error == ERROR_PIPE_CONNECTED)
+    {
+        return true;
+    }
+
+    spdlog::error("ConnectNamedPipe failed: {}", error);
+    return false;
+}
+
+nlohmann::json NamedPipe::json()
+{
+    if (pipeHandle == nullptr || pipeHandle == INVALID_HANDLE_VALUE)
+    {
+        spdlog::critical("NamedPipe(read): pipeHandle is NULL");
+        return "";
+    }
+
+    char buffer[512];
+    DWORD bytesRead = 0;
+    if (!ReadFile(pipeHandle, buffer, sizeof(buffer) - 1, &bytesRead, NULL))
+    {
+        return "";
+    }
+
+    return nlohmann::json::parse(buffer);
 }

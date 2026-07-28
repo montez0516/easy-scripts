@@ -2,6 +2,8 @@
 
 #include <filesystem>
 #include <iostream>
+#include <thread>
+#include <chrono>
 
 #include "spdlog/spdlog.h"
 #include "script.hpp"
@@ -44,8 +46,7 @@ void ScriptManager::run(const std::string &language, const std::filesystem::path
         return;
     }
 
-    std::string s_args = std::accumulate(args.begin(), args.end(), std::string(""), [](const std::string &a, const std::string &b)
-                                         { return a.empty() ? b : a + " " + b; });
+    pipe->waitForConnection();
 
-    pipe->write(language);
+    pipe->write(nlohmann::json({{"language", language}, {"file", scriptFile.string()}, {"args", args}}).dump());
 }

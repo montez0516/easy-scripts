@@ -45,7 +45,7 @@ bool Process::start()
         environmentBlock = environment->data();
     }
 
-    std::wcout << "Running Command: " << command << std::endl;
+    // std::wcout << "Running Command: " << command << std::endl;
 
     if (!CreateProcessW(NULL,
                         command.data(),
@@ -118,7 +118,7 @@ void Process::t_wait()
     {
         spdlog::error("Process(t_wait): GetExitCodeProcess failed ({})", toString(GetError()));
     }
-    spdlog::info("Process exited with code:: {}", exitCode);
+    spdlog::info("Process {} exited with code:: {}", exe.string(), exitCode);
 
     CloseHandle(processInformation.hProcess);
     CloseHandle(processInformation.hThread);
