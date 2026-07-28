@@ -85,3 +85,8 @@ void NamedPipe::write(const std::string &data)
         WriteFile(pipeHandle, data.data(), bytesToWrite, &bytesWritten, NULL);
     }
 }
+
+bool NamedPipe::isNull()
+{
+    return pipeHandle == INVALID_HANDLE_VALUE;
+}

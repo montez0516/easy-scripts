@@ -14,16 +14,16 @@ ScriptManager::ScriptManager()
 
 bool ScriptManager::initialize(const std::filesystem::path &scriptFolder)
 {
-    // if (!pipe->create())
-    // {
-    //     spdlog::critical("scriptManager(): NamedPipe failed to create.");
-    //     delete pipe;
-    //     pipe = nullptr;
-    //     return false;
-    // }
+    if (!pipe->create())
+    {
+        spdlog::critical("scriptManager(): NamedPipe failed to create.");
+        delete pipe;
+        pipe = nullptr;
+        return false;
+    }
 
-    // runner = new Process(std::filesystem::absolute("./runner.exe"), {});
-    // runner->start();
+    runner = new Process(std::filesystem::absolute("./runner.exe"), {});
+    runner->start();
 
     for (const auto &entry : std::filesystem::directory_iterator(scriptFolder))
     {
@@ -38,7 +38,7 @@ bool ScriptManager::initialize(const std::filesystem::path &scriptFolder)
 
 void ScriptManager::run(const std::string &language, const std::filesystem::path &scriptFile, const std::vector<std::string> &args)
 {
-    if (pipe == nullptr)
+    if (pipe->isNull())
     {
         spdlog::critical("ScriptManager(run): pipe is NULL");
         return;

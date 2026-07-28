@@ -19,6 +19,8 @@ public:
 
     std::string read();
     void write(const std::string &);
+
+    bool isNull();
 };
 
 #endif
