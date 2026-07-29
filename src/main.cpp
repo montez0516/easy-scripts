@@ -1,21 +1,21 @@
-#include <filesystem>
-#include <thread>
 #include <chrono>
+#include <filesystem>
 #include <spdlog/spdlog.h>
+#include <thread>
 
 #include "main/scriptManager.hpp"
 
 int main()
 {
-    spdlog::set_level(spdlog::level::debug);
-    ScriptManager *manager = new ScriptManager();
-    manager->initialize(std::filesystem::path("../scripts"));
+  spdlog::set_level(spdlog::level::debug);
+  ScriptManager *manager = new ScriptManager();
+  manager->initialize(std::filesystem::path("../scripts"));
 
-    while (true)
+  while(true)
     {
-        std::this_thread::sleep_for(std::chrono::seconds(1));
+      std::this_thread::sleep_for(std::chrono::seconds(1));
     }
 
-    delete manager;
-    return 0;
+  delete manager;
+  return 0;
 }

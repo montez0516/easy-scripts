@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 4.0.0)
 
 
-project(runner)
+project(EasyScripts)
 
 include(FetchContent)
 
@@ -23,8 +23,19 @@ GIT_TAG v3.12.0
 set(JSON_BUILD_STATIC ON CACHE INTERNAL "")
 FetchContent_MakeAvailable(json)
 
+add_executable(EasyScripts
+src/main.cpp
+src/core/paths.cpp
+src/main/scriptManager.cpp
+src/main/script.cpp
+src/core/process/process.cpp
+src/core/ipc/namedPipe.cpp
+src/core/ipc/unnamedPipe.cpp
+)
+
 add_executable(runner
-src/runner.cpp 
+src/runner.cpp
+src/core/paths.cpp
 src/core/process/process.cpp
 src/core/ipc/namedPipe.cpp
 src/core/ipc/unnamedPipe.cpp
@@ -34,8 +45,15 @@ src/runner/runtime/runtimes/defaultRuntime.cpp
 src/runner/runtime/runtimeManager.cpp
 )
 
+target_include_directories(EasyScripts INTERFACE 
+src/main
+src/core/process
+src/core/ipc
+src/core
+)
 
 target_include_directories(runner INTERFACE 
+src/core
 src/core/process
 src/core/ipc
 src/runner
@@ -44,25 +62,19 @@ src/runner/runtime
 src/runner/runtime/runtimes
 )
 
-target_link_libraries(runner PRIVATE spdlog::spdlog)
-target_link_libraries(runner PRIVATE nlohmann_json::nlohmann_json)
+target_link_libraries(EasyScripts PRIVATE nlohmann_json::nlohmann_json spdlog::spdlog)
+target_link_libraries(runner PRIVATE nlohmann_json::nlohmann_json spdlog::spdlog)
 
-project(script)
 
-add_executable(script
-src/main.cpp
-src/main/scriptManager.cpp
-src/main/script.cpp
-src/core/process/process.cpp
-src/core/ipc/namedPipe.cpp
-src/core/ipc/unnamedPipe.cpp
+
+install(TARGETS EasyScripts
+RUNTIME DESTINATION .
 )
 
-target_include_directories(script INTERFACE 
-src/main
-src/core/process
-src/core/ipc
+install(TARGETS runner
+    RUNTIME DESTINATION bin
 )
 
-target_link_libraries(script PRIVATE nlohmann_json::nlohmann_json)
-target_link_libraries(script PRIVATE spdlog::spdlog)
+install(DIRECTORY scripts/
+    DESTINATION scripts
+)

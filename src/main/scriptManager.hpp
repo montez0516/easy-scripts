@@ -11,17 +11,19 @@
 class ScriptManager
 {
 private:
-    std::vector<Script> scripts;
-    std::vector<Process> runtimes;
-    NamedPipe *pipe = nullptr;
+  std::vector<Script> scripts;
+  std::vector<Process> runtimes;
+  NamedPipe *pipe = nullptr;
 
-    Process *runner = nullptr;
+  Process *runner = nullptr;
 
 public:
-    ScriptManager();
-    bool initialize(const std::filesystem::path &ScriptFolder);
-    void run(const std::string &language, const std::filesystem::path &scriptFile, const std::vector<std::string> &args);
-    void stop();
+  ScriptManager();
+  bool initialize(const std::filesystem::path &ScriptFolder);
+  void
+  run(const std::string &language, const std::filesystem::path &scriptFile,
+      const std::vector<std::string> &args);
+  void stop();
 };
 
 #endif
