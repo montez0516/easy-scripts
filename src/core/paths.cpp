@@ -39,7 +39,11 @@ std::filesystem::path Paths::bin() const
 
 std::filesystem::path Paths::runner() const
 {
-    return root_ / "bin" / "runner.exe";
+    #if defined(BUILD_DEV)
+        return root_ / "build" / "runner.exe";
+    #else
+        return root_ / "bin" / "runner.exe";
+    #endif
 }
 
 std::filesystem::path Paths::python() const

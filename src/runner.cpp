@@ -15,9 +15,9 @@ namespace fs = std::filesystem;
 
 int main()
 {
-  NamedPipe *pipe = new NamedPipe();
+  NamedPipe pipe{};
 
-  if(!pipe->connect(""))
+  if(!pipe.connect(""))
     {
       spdlog::critical("runner(main): NamedPipe failed to connect.");
       return 1;
@@ -25,21 +25,16 @@ int main()
 
   Paths paths{};
 
-  Engine *engine = new Engine;
-  engine->initialize();
+  Engine engine{paths};
+  engine.initialize();
 
-  std::ofstream file("file.txt");
-
-  std::thread([pipe, engine]() {
-    while(true)
-      {
-        nlohmann::json payload = pipe->json();
-        std::string temp = "";
-        engine->run(payload["language"], payload["file"], temp);
-
-        std::this_thread::sleep_for(std::chrono::milliseconds(500));
-      }
-  }).join();
+  while(true)
+  {
+    nlohmann::json payload = pipe.json();
+    std::string temp = "";
+    engine.run(payload["language"], payload["file"], temp);
+    std::this_thread::sleep_for(std::chrono::milliseconds(500));
+  }
 
   return 0;
 }

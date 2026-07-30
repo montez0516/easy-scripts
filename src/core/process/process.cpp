@@ -58,7 +58,7 @@ bool Process::start()
                         &startupInfo,
                         &processInformation))
     {
-        spdlog::error("Process(start): CreateProcessW failed {}", toString(GetError()));
+        spdlog::error("Process(start): CreateProcessW failed {} {}", toString(GetError()), exe.string());
         return false;
     }
 

@@ -35,5 +35,5 @@ void PythonRuntime::run(const std::string &file, std::vector<std::string> args)
     process->setCurrentDirectory(parent_dir.wstring());
     process->start();
     std::cout << process->read() << std::endl;
-    exit(process->wait());
+    process->wait();
 }

@@ -15,7 +15,6 @@ private:
     Paths &paths_;
 public:
     Engine(Paths &paths);
-    ~Engine();
 
     void initialize();
     void run(const std::string &language, const std::string &file, std::string &args);
