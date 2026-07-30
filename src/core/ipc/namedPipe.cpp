@@ -123,5 +123,7 @@ nlohmann::json NamedPipe::json()
         return "";
     }
 
-    return nlohmann::json::parse(buffer);
+    std::string data(buffer, bytesRead);
+
+    return nlohmann::json::parse(data);
 }

@@ -35,5 +35,11 @@ void PythonRuntime::run(const std::string &file, std::vector<std::string> args)
     process->setCurrentDirectory(parent_dir.wstring());
     process->start();
     std::cout << process->read() << std::endl;
-    process->wait();
+    
+    DWORD code = process->wait();
+
+    if(code)
+    {
+        spdlog::critical("PythonRuntime(run): Python process exited with error({}): {}", code, process->error());
+    }
 }

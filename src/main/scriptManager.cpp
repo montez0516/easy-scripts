@@ -54,4 +54,5 @@ void ScriptManager::run(const std::string &language, const std::filesystem::path
   pipe->waitForConnection();
 
   pipe->write(nlohmann::json({ { "language", language }, { "file", scriptFile.string() }, { "args", args } }).dump());
+
 }

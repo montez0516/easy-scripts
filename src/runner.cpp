@@ -3,18 +3,23 @@
 #include <iostream>
 #include <thread>
 #include <chrono>
-#include <fstream>
-#include <spdlog/spdlog.h>
 #include "core/ipc/namedPipe.hpp"
 #include "runner/engine/runnerEngine.hpp"
 #include "core/paths.hpp"
 
+#include <spdlog/spdlog.h>
+#include <spdlog/sinks/basic_file_sink.h>
 #include <nlohmann/json.hpp>
+
+#include <fstream>
 
 namespace fs = std::filesystem;
 
 int main()
 {
+  auto logger = spdlog::basic_logger_st("file_logger", "logs.txt", false);
+  spdlog::set_default_logger(logger);
+
   NamedPipe pipe{};
 
   if(!pipe.connect(""))
@@ -28,9 +33,10 @@ int main()
   Engine engine{paths};
   engine.initialize();
 
+  
   while(true)
   {
-    nlohmann::json payload = pipe.json();
+    nlohmann::json payload = pipe.json();    
     std::string temp = "";
     engine.run(payload["language"], payload["file"], temp);
     std::this_thread::sleep_for(std::chrono::milliseconds(500));
