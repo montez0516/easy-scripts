@@ -1,15 +1,19 @@
 #include "pythonRuntime.hpp"
 #include "../../../core/process/process.hpp"
+#include "../../../core/paths.hpp"
+
+#include <spdlog/spdlog.h>
 
 #include <filesystem>
 #include <vector>
 #include <iostream>
 
-#include "spdlog/spdlog.h"
 
 namespace fs = std::filesystem;
 
-const fs::path PYTHON = fs::path("../bin") / "python" / "python.exe";
+// const fs::path PYTHON = fs::path("../bin") / "python" / "python.exe";
+
+PythonRuntime::PythonRuntime(Paths &paths) : Runtime(paths) {};
 
 void PythonRuntime::run(const std::string &file, std::vector<std::string> args)
 {
@@ -20,7 +24,7 @@ void PythonRuntime::run(const std::string &file, std::vector<std::string> args)
 
     args.insert(args.begin(), abs_file.string());
 
-    fs::path exe = PYTHON;
+    fs::path exe = paths_.python();
 
     if (fs::exists(parent_dir / "venv"))
         exe = parent_dir / "venv" / "Scripts" / "python.exe";

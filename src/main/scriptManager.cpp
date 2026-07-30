@@ -1,18 +1,26 @@
 #include "scriptManager.hpp"
 
+#include "script.hpp"
+#include "../core/process/process.hpp"
+#include "../core/paths.hpp"
+
+#include <spdlog/spdlog.h>
+
 #include <chrono>
 #include <filesystem>
 #include <iostream>
 #include <thread>
 
-#include "../core/process/process.hpp"
-#include "script.hpp"
-#include "spdlog/spdlog.h"
 
-ScriptManager::ScriptManager() { pipe = new NamedPipe(); }
+ScriptManager::ScriptManager(Paths &paths) : paths_(paths)
+ { 
+  pipe = new NamedPipe();
+ }
 
-bool ScriptManager::initialize(const std::filesystem::path &scriptFolder)
+bool ScriptManager::initialize()
 {
+  std::filesystem::path scriptFolder = paths_.scripts();
+
   if(!pipe->create())
     {
       spdlog::critical("scriptManager(): NamedPipe failed to create.");
@@ -21,7 +29,7 @@ bool ScriptManager::initialize(const std::filesystem::path &scriptFolder)
       return false;
     }
 
-  runner = new Process(std::filesystem::absolute("./runner.exe"), {});
+  runner = new Process(std::filesystem::absolute(paths_.runner()), {});
   runner->start();
 
   for(const auto &entry : std::filesystem::directory_iterator(scriptFolder))
@@ -35,9 +43,7 @@ bool ScriptManager::initialize(const std::filesystem::path &scriptFolder)
   return true;
 }
 
-void ScriptManager::run(const std::string &language,
-                        const std::filesystem::path &scriptFile,
-                        const std::vector<std::string> &args)
+void ScriptManager::run(const std::string &language, const std::filesystem::path &scriptFile, const std::vector<std::string> &args)
 {
   if(pipe->isNull())
     {
@@ -47,8 +53,5 @@ void ScriptManager::run(const std::string &language,
 
   pipe->waitForConnection();
 
-  pipe->write(nlohmann::json({ { "language", language },
-                               { "file", scriptFile.string() },
-                               { "args", args } })
-                  .dump());
+  pipe->write(nlohmann::json({ { "language", language }, { "file", scriptFile.string() }, { "args", args } }).dump());
 }

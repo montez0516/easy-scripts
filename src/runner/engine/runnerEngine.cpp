@@ -1,3 +1,8 @@
+#include "runnerEngine.hpp"
+#include "../runtime/runtimes/pythonRuntime.hpp"
+#include "../runtime/runtimes/defaultRuntime.hpp"
+#include "../../core/paths.hpp"
+
 #include <memory>
 #include <string>
 #include <vector>
@@ -5,9 +10,6 @@
 #include <iostream>
 #include <filesystem>
 
-#include "runnerEngine.hpp"
-#include "../runtime/runtimes/pythonRuntime.hpp"
-#include "../runtime/runtimes/defaultRuntime.hpp"
 
 std::vector<std::string> split(std::string &str, char delim)
 {
@@ -22,10 +24,12 @@ std::vector<std::string> split(std::string &str, char delim)
     return splitted;
 }
 
+Engine::Engine(Paths &paths) : paths_(paths){};
+
 void Engine::initialize()
 {
-    runtimeManager->registerRunTime("python", std::make_unique<PythonRuntime>());
-    runtimeManager->registerRunTime("default", std::make_unique<DefaultRuntime>());
+    runtimeManager->registerRunTime("python", std::make_unique<PythonRuntime>(paths_));
+    runtimeManager->registerRunTime("default", std::make_unique<DefaultRuntime>(paths_));
 }
 
 void Engine::run(const std::string &language, const std::string &file, std::string &args)

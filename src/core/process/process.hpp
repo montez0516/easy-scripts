@@ -31,23 +31,23 @@ private:
 
   std::thread thread;
 
-  std::wstring buildCommandLine ();
-  void t_wait ();
+  std::wstring buildCommandLine();
+  void t_wait();
 
 public:
   Process (fs::path executable, std::vector<std::string> arguments);
-  bool start ();
-  void stop ();
-  DWORD wait ();
-  std::string read ();
-  void write (std::string &);
-  std::string error ();
+  bool start();
+  void stop();
+  DWORD wait();
+  std::string read();
+  void write(std::string &);
+  std::string error();
 
-  void setEnvironment (const std::map<std::wstring, std::wstring> &variables);
-  void clearEnvironment ();
+  void setEnvironment(const std::map<std::wstring, std::wstring> &variables);
+  void clearEnvironment();
 
-  void setCurrentDirectory (const std::wstring &dir);
-  void clearCurrentDirectory ();
+  void setCurrentDirectory(const std::wstring &dir);
+  void clearCurrentDirectory();
 };
 
 #endif

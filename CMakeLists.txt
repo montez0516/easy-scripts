@@ -65,6 +65,14 @@ src/runner/runtime/runtimes
 target_link_libraries(EasyScripts PRIVATE nlohmann_json::nlohmann_json spdlog::spdlog)
 target_link_libraries(runner PRIVATE nlohmann_json::nlohmann_json spdlog::spdlog)
 
+target_compile_definitions(EasyScripts PRIVATE 
+    $<$<CONFIG:Debug>:BUILD_DEV=1>
+)
+
+target_compile_definitions(runner PRIVATE 
+    $<$<CONFIG:Debug>:BUILD_DEV=1>
+)
+
 
 
 install(TARGETS EasyScripts

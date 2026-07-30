@@ -1,12 +1,14 @@
 #ifndef SCRIPT_MANAGER_H
 #define SCRIPT_MANAGER_H
 
+#include "script.hpp"
+#include "../core/process/process.hpp"
+#include "../core/ipc/namedPipe.hpp"
+#include "../core/paths.hpp"
+
 #include <filesystem>
 #include <vector>
 
-#include "../core/process/process.hpp"
-#include "script.hpp"
-#include "../core/ipc/namedPipe.hpp"
 
 class ScriptManager
 {
@@ -16,13 +18,13 @@ private:
   NamedPipe *pipe = nullptr;
 
   Process *runner = nullptr;
+  Paths &paths_;
 
 public:
-  ScriptManager();
-  bool initialize(const std::filesystem::path &ScriptFolder);
+  ScriptManager(Paths &paths);
+  bool initialize();
   void
-  run(const std::string &language, const std::filesystem::path &scriptFile,
-      const std::vector<std::string> &args);
+  run(const std::string &language, const std::filesystem::path &scriptFile, const std::vector<std::string> &args);
   void stop();
 };
 

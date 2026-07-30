@@ -5,10 +5,11 @@
 #include <chrono>
 #include <fstream>
 #include <spdlog/spdlog.h>
-#include <nlohmann/json.hpp>
-
 #include "core/ipc/namedPipe.hpp"
 #include "runner/engine/runnerEngine.hpp"
+#include "core/paths.hpp"
+
+#include <nlohmann/json.hpp>
 
 namespace fs = std::filesystem;
 
@@ -21,6 +22,8 @@ int main()
       spdlog::critical("runner(main): NamedPipe failed to connect.");
       return 1;
     }
+
+  Paths paths{};
 
   Engine *engine = new Engine;
   engine->initialize();
