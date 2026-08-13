@@ -82,7 +82,3 @@ RUNTIME DESTINATION .
 install(TARGETS runner
     RUNTIME DESTINATION bin
 )
-
-install(DIRECTORY scripts/
-    DESTINATION scripts
-)

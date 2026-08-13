@@ -8,17 +8,19 @@
 
 int main()
 {
+#if defined(BUILD_DEV)
   spdlog::set_level(spdlog::level::debug);
+#endif
 
   Paths paths{};
 
   ScriptManager manager{paths};
   manager.initialize();
 
-  while(true)
-    {
-      std::this_thread::sleep_for(std::chrono::seconds(1));
-    }
+  while (true)
+  {
+    std::this_thread::sleep_for(std::chrono::seconds(1));
+  }
 
   return 0;
 }
