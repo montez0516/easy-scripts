@@ -18,8 +18,18 @@ ScriptManager::ScriptManager(Paths &paths) : paths_(paths)
 
 bool ScriptManager::initialize()
 {
-  std::filesystem::path scriptFolder = paths_.scripts();
 
+  if (!startRunner())
+  {
+    spdlog::critical("Failed to start runner.exe");
+    return false;
+  }
+  loadScripts();
+  return true;
+}
+
+bool ScriptManager::startRunner()
+{
   if (!pipe.create())
   {
     spdlog::critical("scriptManager(): NamedPipe failed to create.");
@@ -33,6 +43,13 @@ bool ScriptManager::initialize()
 
   pipe.waitForConnection();
 
+  return true;
+}
+
+void ScriptManager::loadScripts()
+{
+  std::filesystem::path scriptFolder = paths_.scripts();
+
   for (const auto &entry : std::filesystem::directory_iterator(scriptFolder))
   {
     if (entry.is_directory())
@@ -41,7 +58,6 @@ bool ScriptManager::initialize()
       scripts.push_back(script);
     }
   }
-  return true;
 }
 
 void ScriptManager::run(const std::string &language, const std::filesystem::path &scriptFile, const std::vector<std::string> &args)

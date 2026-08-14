@@ -19,6 +19,8 @@ private:
 
   std::unique_ptr<Process> runner;
   Paths &paths_;
+  bool startRunner();
+  void loadScripts();
 
 public:
   ScriptManager(Paths &paths);
