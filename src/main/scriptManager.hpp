@@ -8,16 +8,16 @@
 
 #include <filesystem>
 #include <vector>
-
+#include <memory>
 
 class ScriptManager
 {
 private:
   std::vector<Script> scripts;
   std::vector<Process> runtimes;
-  NamedPipe *pipe = nullptr;
+  NamedPipe pipe;
 
-  Process *runner = nullptr;
+  std::unique_ptr<Process> runner;
   Paths &paths_;
 
 public:

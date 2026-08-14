@@ -3,27 +3,28 @@
 #include <windows.h>
 #include <filesystem>
 #include <string>
+#include <iostream>
 
 Paths::Paths()
 {
     char path[MAX_PATH];
     GetModuleFileNameA(NULL, path, MAX_PATH);
 
-    #if defined(BUILD_DEV)
-        root_ = std::filesystem::path(path).parent_path().parent_path();
-    #else
-        root_ = std::filesystem::path(path);
+#if defined(BUILD_DEV)
+    root_ = std::filesystem::path(path).parent_path().parent_path();
+#else
+    root_ = std::filesystem::path(path);
 
-        if(root_.stem() == "EasyScripts")
-        {
-            root_ = root_.parent_path();
-        }
-        else if(root_.stem() == "runner")
-        {
-            root_ = root_.parent_path().parent_path();
-        }
+    if (root_.stem() == "EasyScripts")
+    {
+        root_ = root_.parent_path();
+    }
+    else if (root_.stem() == "runner")
+    {
+        root_ = root_.parent_path().parent_path();
+    }
 
-    #endif
+#endif
 }
 
 std::filesystem::path Paths::root() const
@@ -34,16 +35,15 @@ std::filesystem::path Paths::root() const
 std::filesystem::path Paths::bin() const
 {
     return root_ / "bin";
-
 }
 
 std::filesystem::path Paths::runner() const
 {
-    #if defined(BUILD_DEV)
-        return root_ / "build" / "runner.exe";
-    #else
-        return root_ / "bin" / "runner.exe";
-    #endif
+#if defined(BUILD_DEV)
+    return root_ / "build" / "runner.exe";
+#else
+    return root_ / "bin" / "runner.exe";
+#endif
 }
 
 std::filesystem::path Paths::python() const

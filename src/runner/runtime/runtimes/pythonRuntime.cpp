@@ -8,7 +8,6 @@
 #include <vector>
 #include <iostream>
 
-
 namespace fs = std::filesystem;
 
 // const fs::path PYTHON = fs::path("../bin") / "python" / "python.exe";
@@ -17,7 +16,9 @@ PythonRuntime::PythonRuntime(Paths &paths) : Runtime(paths) {};
 
 void PythonRuntime::run(const std::string &file, std::vector<std::string> args)
 {
-    std::cout << "Creating python runtime for file " << file << std::endl;
+#if defined(BUILD_DEV)
+    spdlog::debug("Creating python runtime for file {}", file);
+#endif
 
     fs::path abs_file = fs::absolute(file);
     fs::path parent_dir = fs::absolute(file).parent_path();
@@ -34,12 +35,4 @@ void PythonRuntime::run(const std::string &file, std::vector<std::string> args)
     process = new Process(exe, args);
     process->setCurrentDirectory(parent_dir.wstring());
     process->start();
-    std::cout << process->read() << std::endl;
-    
-    DWORD code = process->wait();
-
-    if(code)
-    {
-        spdlog::critical("PythonRuntime(run): Python process exited with error({}): {}", code, process->error());
-    }
 }

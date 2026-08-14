@@ -3,13 +3,14 @@
 #include "../runtime/runtimes/defaultRuntime.hpp"
 #include "../../core/paths.hpp"
 
+#include <spdlog/spdlog.h>
+
 #include <memory>
 #include <string>
 #include <vector>
 #include <sstream>
 #include <iostream>
 #include <filesystem>
-
 
 std::vector<std::string> split(std::string &str, char delim)
 {
@@ -24,7 +25,7 @@ std::vector<std::string> split(std::string &str, char delim)
     return splitted;
 }
 
-Engine::Engine(Paths &paths) : paths_(paths){};
+Engine::Engine(Paths &paths) : paths_(paths) {};
 
 void Engine::initialize()
 {
@@ -34,12 +35,14 @@ void Engine::initialize()
 
 void Engine::run(const std::string &language, const std::string &file, std::string &args)
 {
-    std::cout << "Finding runtime for langauge " << language << std::endl;
+#if defined(BUILD_DEV)
+    spdlog::debug("FINDING RUNTIME FOR LANGUAGE");
+#endif
     Runtime *runtime = runtimeManager->getRuntime(language);
 
     if (runtime == nullptr)
     {
-        std::cerr << "No runtime found " << language << std::endl;
+        spdlog::error("No runtime found for language {}", language);
         return;
     }
 

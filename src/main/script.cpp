@@ -24,6 +24,7 @@ void Script::initialize()
 
     if (metaData["type"] == "service")
     {
+        spdlog::debug("Running service {}", metaData.value<std::string>("name", ""));
         run({});
     }
 }

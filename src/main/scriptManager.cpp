@@ -10,49 +10,50 @@
 #include <filesystem>
 #include <iostream>
 #include <thread>
-
+#include <memory>
 
 ScriptManager::ScriptManager(Paths &paths) : paths_(paths)
- { 
-  pipe = new NamedPipe();
- }
+{
+}
 
 bool ScriptManager::initialize()
 {
   std::filesystem::path scriptFolder = paths_.scripts();
 
-  if(!pipe->create())
-    {
-      spdlog::critical("scriptManager(): NamedPipe failed to create.");
-      delete pipe;
-      pipe = nullptr;
-      return false;
-    }
+  if (!pipe.create())
+  {
+    spdlog::critical("scriptManager(): NamedPipe failed to create.");
+    return false;
+  }
 
-  runner = new Process(std::filesystem::absolute(paths_.runner()), {});
+  runner = std::make_unique<Process>(
+      std::filesystem::absolute(paths_.runner()),
+      std::vector<std::string>{});
   runner->start();
 
-  for(const auto &entry : std::filesystem::directory_iterator(scriptFolder))
+  pipe.waitForConnection();
+
+  for (const auto &entry : std::filesystem::directory_iterator(scriptFolder))
+  {
+    if (entry.is_directory())
     {
-      if(entry.is_directory())
-        {
-          Script script(entry.path(), this);
-          scripts.push_back(script);
-        }
+      Script script(entry.path(), this);
+      scripts.push_back(script);
     }
+  }
   return true;
 }
 
 void ScriptManager::run(const std::string &language, const std::filesystem::path &scriptFile, const std::vector<std::string> &args)
 {
-  if(pipe->isNull())
-    {
-      spdlog::critical("ScriptManager(run): pipe is NULL");
-      return;
-    }
+#if defined(BUILD_DEV)
+  spdlog::debug("Running script {} {}", language, scriptFile.string());
+#endif
+  if (pipe.isNull())
+  {
+    spdlog::critical("ScriptManager(run): pipe is NULL");
+    return;
+  }
 
-  pipe->waitForConnection();
-
-  pipe->write(nlohmann::json({ { "language", language }, { "file", scriptFile.string() }, { "args", args } }).dump());
-
+  pipe.write(nlohmann::json({{"language", language}, {"file", scriptFile.string()}, {"args", args}}).dump());
 }
