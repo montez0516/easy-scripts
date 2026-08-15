@@ -1,38 +1,40 @@
-#include <windows.h>
-#include <string>
-#include <iostream>
 #include "unnamedPipe.hpp"
 #include "../process/utils.hpp"
 
+#include <spdlog/spdlog.h>
+
+#include <windows.h>
+#include <string>
+#include <thread>
+#include <functional>
+#include <chrono>
+
 UnnamedPipe::UnnamedPipe()
 {
-    HANDLE hRead, hWrite;
     SECURITY_ATTRIBUTES saAttr;
 
     saAttr.nLength = sizeof(SECURITY_ATTRIBUTES);
     saAttr.bInheritHandle = TRUE;
     saAttr.lpSecurityDescriptor = NULL;
 
-    if (!CreatePipe(&hRead, &hWrite, &saAttr, 0))
+    if (!CreatePipe(&readHandle_, &writeHandle_, &saAttr, 0))
     {
-        std::cerr << "Pipe create failed" << std::endl;
+        spdlog::critical("UnnamedPipe(): Fialed to create pipe");
         return;
     }
-    writeHandle = hWrite;
-    readHandle = hRead;
 }
 
 UnnamedPipe::~UnnamedPipe()
 {
-    CloseHandle(readHandle);
-    CloseHandle(writeHandle);
+    closeRead();
+    closeWrite();
 }
 
 std::string UnnamedPipe::read()
 {
-    if (readHandle == nullptr || readHandle == INVALID_HANDLE_VALUE)
+    if (readHandle_ == nullptr || readHandle_ == INVALID_HANDLE_VALUE)
     {
-        std::cerr << "readHandle is null" << std::endl;
+        spdlog::critical("UnnamedPipe(read): readHandle is null");
         return "";
     }
 
@@ -41,7 +43,7 @@ std::string UnnamedPipe::read()
     char buffer[4096];
     DWORD bytesRead = 0;
 
-    if (!ReadFile(readHandle, buffer, sizeof(buffer), &bytesRead, NULL))
+    if (!ReadFile(readHandle_, buffer, sizeof(buffer), &bytesRead, NULL))
     {
         return "";
     }
@@ -53,9 +55,9 @@ std::string UnnamedPipe::read()
 
 void UnnamedPipe::write(const std::string &data)
 {
-    if (writeHandle == nullptr)
+    if (writeHandle_ == nullptr)
     {
-        std::cerr << "writeHandle is null" << std::endl;
+        spdlog::critical("UnnamedPipe(write): writeHandle is null");
         return;
     }
 
@@ -63,33 +65,62 @@ void UnnamedPipe::write(const std::string &data)
         return;
     DWORD bytesWritten = 0;
 
-    WriteFile(writeHandle, data.data(), data.size(), &bytesWritten, NULL);
+    WriteFile(writeHandle_, data.data(), data.size(), &bytesWritten, NULL);
 }
 
 HANDLE UnnamedPipe::getRead() const
 {
-    return readHandle;
+    return readHandle_;
 }
 
 HANDLE UnnamedPipe::getWrite() const
 {
-    return writeHandle;
+    return writeHandle_;
 }
 
 void UnnamedPipe::closeRead()
 {
-    if (readHandle != nullptr && readHandle != INVALID_HANDLE_VALUE)
+    if (readHandle_ != nullptr && readHandle_ != INVALID_HANDLE_VALUE)
     {
-        CloseHandle(readHandle);
-        readHandle = nullptr;
+        CloseHandle(readHandle_);
+        readHandle_ = nullptr;
     }
 }
 
 void UnnamedPipe::closeWrite()
 {
-    if (writeHandle != nullptr && writeHandle != INVALID_HANDLE_VALUE)
+    if (writeHandle_ != nullptr && writeHandle_ != INVALID_HANDLE_VALUE)
     {
-        CloseHandle(writeHandle);
-        writeHandle = nullptr;
+        CloseHandle(writeHandle_);
+        writeHandle_ = nullptr;
     }
+}
+
+bool UnnamedPipe::readyRead(std::function<void()> readCallBack)
+{
+    if (readHandle_ == nullptr || readHandle_ == INVALID_HANDLE_VALUE)
+    {
+        spdlog::critical("UnnamedPipe(readyRead): readHandle is invalid");
+        return false;
+    }
+    readyReadCallBack_ = std::move(readCallBack);
+
+    readyReadThread_ = std::thread([this]()
+                                   {
+        while(true)
+        {
+            DWORD bytesAvail = 0;
+            if(PeekNamedPipe(readHandle_, NULL, 0, NULL, &bytesAvail, NULL))
+            {
+                if(bytesAvail > 0)
+                {
+                    readyReadCallBack_();
+                }
+            }
+            else
+                spdlog::error("UnnamedPipe(readyRead): failed to peek into readHandle");
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        } });
+
+    return true;
 }

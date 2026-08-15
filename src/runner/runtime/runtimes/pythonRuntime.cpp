@@ -4,6 +4,7 @@
 
 #include <spdlog/spdlog.h>
 
+#include <windows.h>
 #include <filesystem>
 #include <vector>
 #include <iostream>
@@ -16,9 +17,7 @@ PythonRuntime::PythonRuntime(Paths &paths) : Runtime(paths) {};
 
 void PythonRuntime::run(const std::string &file, std::vector<std::string> args)
 {
-#if defined(BUILD_DEV)
     spdlog::debug("Creating python runtime for file {}", file);
-#endif
 
     fs::path abs_file = fs::absolute(file);
     fs::path parent_dir = fs::absolute(file).parent_path();
@@ -30,9 +29,13 @@ void PythonRuntime::run(const std::string &file, std::vector<std::string> args)
     if (fs::exists(parent_dir / "venv"))
         exe = parent_dir / "venv" / "Scripts" / "python.exe";
 
-    spdlog::info("{} {}", exe.string(), abs_file.string());
+    spdlog::debug("{} {}", exe.string(), abs_file.string());
 
     process = new Process(exe, args);
     process->setCurrentDirectory(parent_dir.wstring());
     process->start();
+    process->onFinished([](DWORD exitCode)
+                        { std::cout << "Python script finished with exit code " << exitCode << std::endl; });
+    process->readyRead([this]()
+                       { std::cout << process->read() << std::endl; });
 }

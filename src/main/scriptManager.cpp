@@ -39,7 +39,12 @@ bool ScriptManager::startRunner()
   runner = std::make_unique<Process>(
       std::filesystem::absolute(paths_.runner()),
       std::vector<std::string>{});
+
   runner->start();
+  runner->onFinished([this](DWORD exitCode)
+                     { spdlog::critical("ScriptManager(startRunnner): runner exited with code {}", exitCode); });
+  runner->readyRead([this]()
+                    { std::cout << "FROM RUNNER.EXE: " << runner->read() << std::endl; });
 
   pipe.waitForConnection();
 

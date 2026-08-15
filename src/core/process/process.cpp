@@ -1,13 +1,14 @@
 #include "process.hpp"
 #include "utils.hpp"
 
+#include <spdlog/spdlog.h>
+
 #include <windows.h>
 #include <utility>
 #include <filesystem>
 #include <iostream>
 #include <thread>
-
-#include "spdlog/spdlog.h"
+#include <functional>
 
 namespace fs = std::filesystem;
 
@@ -66,7 +67,7 @@ bool Process::start()
     stdoutPipe->closeWrite();
     stderrPipe->closeWrite();
 
-    thread = std::thread(&Process::t_wait, this);
+    wait_thread = std::thread(&Process::t_wait, this);
     return true;
 }
 
@@ -128,11 +129,14 @@ void Process::t_wait()
     delete stdinPipe;
     delete stdoutPipe;
     delete stderrPipe;
+
+    if (finishCallBack_)
+        finishCallBack_(exitCode);
 }
 
 DWORD Process::wait()
 {
-    thread.join();
+    wait_thread.join();
     return exitCode;
 }
 
@@ -204,4 +208,14 @@ void Process::clearCurrentDirectory()
 std::string Process::error()
 {
     return stderrPipe->read();
+}
+
+bool Process::readyRead(std::function<void()> readCallBack)
+{
+    return stdoutPipe->readyRead(std::move(readCallBack));
+}
+
+void Process::onFinished(std::function<void(DWORD)> finishCallBack)
+{
+    finishCallBack_ = std::move(finishCallBack);
 }

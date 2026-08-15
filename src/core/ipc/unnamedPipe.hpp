@@ -3,13 +3,18 @@
 
 #include <windows.h>
 #include <string>
+#include <thread>
+#include <functional>
 
 class UnnamedPipe
 {
 
 private:
-    HANDLE readHandle = nullptr;
-    HANDLE writeHandle = nullptr;
+    HANDLE readHandle_ = nullptr;
+    HANDLE writeHandle_ = nullptr;
+
+    std::function<void()> readyReadCallBack_;
+    std::thread readyReadThread_;
 
 public:
     UnnamedPipe();
@@ -22,6 +27,8 @@ public:
 
     void closeRead();
     void closeWrite();
+
+    bool readyRead(std::function<void()> readCallBack);
 };
 
 #endif
