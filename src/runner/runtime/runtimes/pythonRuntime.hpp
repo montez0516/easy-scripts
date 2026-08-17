@@ -4,12 +4,15 @@
 #include "../runtime.hpp"
 #include "../../../core/process/process.hpp"
 #include "../../../core/paths.hpp"
+
 #include <vector>
+#include <memory>
 
 class PythonRuntime : public Runtime
 {
 private:
-    Process *process;
+    std::unique_ptr<Process> process;
+
 public:
     PythonRuntime(Paths &paths);
     void run(const std::string &file, std::vector<std::string> args) override;

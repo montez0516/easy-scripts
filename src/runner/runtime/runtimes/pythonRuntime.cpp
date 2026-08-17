@@ -8,10 +8,9 @@
 #include <filesystem>
 #include <vector>
 #include <iostream>
+#include <memory>
 
 namespace fs = std::filesystem;
-
-// const fs::path PYTHON = fs::path("../bin") / "python" / "python.exe";
 
 PythonRuntime::PythonRuntime(Paths &paths) : Runtime(paths) {};
 
@@ -31,7 +30,7 @@ void PythonRuntime::run(const std::string &file, std::vector<std::string> args)
 
     spdlog::debug("{} {}", exe.string(), abs_file.string());
 
-    process = new Process(exe, args);
+    process = std::make_unique<Process>(exe, args);
     process->setCurrentDirectory(parent_dir.wstring());
     process->start();
     process->onFinished([](DWORD exitCode)
