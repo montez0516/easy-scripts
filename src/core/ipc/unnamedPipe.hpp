@@ -10,9 +10,10 @@ class UnnamedPipe
 {
 
 private:
-    HANDLE readHandle_ = nullptr;
-    HANDLE writeHandle_ = nullptr;
+    HANDLE readHandle_ = INVALID_HANDLE_VALUE;
+    HANDLE writeHandle_ = INVALID_HANDLE_VALUE;
 
+    bool threadLoop_;
     std::function<void()> readyReadCallBack_;
     std::thread readyReadThread_;
 
@@ -24,6 +25,8 @@ public:
     void write(const std::string &);
     HANDLE getRead() const;
     HANDLE getWrite() const;
+
+    bool isNull();
 
     void closeRead();
     void closeWrite();

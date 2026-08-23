@@ -12,9 +12,7 @@
 #include <thread>
 #include <memory>
 
-ScriptManager::ScriptManager(Paths &paths) : paths_(paths)
-{
-}
+ScriptManager::ScriptManager(Paths &paths) : paths_(paths) {}
 
 bool ScriptManager::initialize()
 {
@@ -32,7 +30,7 @@ bool ScriptManager::startRunner()
 {
   if (!pipe.create())
   {
-    spdlog::critical("scriptManager(): NamedPipe failed to create.");
+    spdlog::critical("scriptManager(startRunner): NamedPipe failed to create.");
     return false;
   }
 
@@ -42,7 +40,7 @@ bool ScriptManager::startRunner()
 
   runner->start();
   runner->onFinished([this](DWORD exitCode)
-                     { spdlog::critical("ScriptManager(startRunnner): runner exited with code {}", exitCode); });
+                     { spdlog::critical("ScriptManager(startRunnner): runner exited with code {}\n{}", exitCode, runner->error()); });
   runner->readyRead([this]()
                     { std::cout << "FROM RUNNER.EXE: " << runner->read() << std::endl; });
 

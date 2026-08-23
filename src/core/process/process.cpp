@@ -18,6 +18,11 @@ Process::Process(fs::path executable, std::vector<std::string> arguments) : exe(
 
 bool Process::start()
 {
+    if (stdinPipe.isNull() || stdoutPipe.isNull() || stderrPipe.isNull())
+    {
+        spdlog::debug("Process(start):\nstdin:{}\nstdout:{}\nstderr:{}\n", stdinPipe.isNull(), stdoutPipe.isNull(), stderrPipe.isNull());
+        spdlog::critical("Process(start): one or more ipc pipe is NULL");
+    }
 
     startupInfo = {};
     processInformation = {};
@@ -25,17 +30,13 @@ bool Process::start()
     startupInfo.cb = sizeof(startupInfo);
     startupInfo.dwFlags = STARTF_USESTDHANDLES;
 
-    stdinPipe = new UnnamedPipe();
-    stdoutPipe = new UnnamedPipe();
-    stderrPipe = new UnnamedPipe();
+    startupInfo.hStdInput = stdinPipe.getRead();
+    startupInfo.hStdOutput = stdoutPipe.getWrite();
+    startupInfo.hStdError = stderrPipe.getWrite();
 
-    startupInfo.hStdInput = stdinPipe->getRead();
-    startupInfo.hStdOutput = stdoutPipe->getWrite();
-    startupInfo.hStdError = stderrPipe->getWrite();
-
-    SetHandleInformation(stdinPipe->getWrite(), HANDLE_FLAG_INHERIT, 0);
-    SetHandleInformation(stdoutPipe->getRead(), HANDLE_FLAG_INHERIT, 0);
-    SetHandleInformation(stderrPipe->getRead(), HANDLE_FLAG_INHERIT, 0);
+    SetHandleInformation(stdinPipe.getWrite(), HANDLE_FLAG_INHERIT, 0);
+    SetHandleInformation(stdoutPipe.getRead(), HANDLE_FLAG_INHERIT, 0);
+    SetHandleInformation(stderrPipe.getRead(), HANDLE_FLAG_INHERIT, 0);
 
     std::wstring command = buildCommandLine();
 
@@ -63,9 +64,9 @@ bool Process::start()
         return false;
     }
 
-    stdinPipe->closeRead();
-    stdoutPipe->closeWrite();
-    stderrPipe->closeWrite();
+    stdinPipe.closeRead();
+    stdoutPipe.closeWrite();
+    stderrPipe.closeWrite();
 
     wait_thread = std::thread(&Process::t_wait, this);
     return true;
@@ -73,24 +74,14 @@ bool Process::start()
 
 std::string Process::read()
 {
-    if (stdoutPipe == nullptr)
-    {
-        std::cerr << "child stdout pipe is null cannot read" << std::endl;
-        return "";
-    }
-    return stdoutPipe->read();
+    return stdoutPipe.read();
 }
 
 void Process::write(std::string &data)
 {
-    if (stdinPipe == nullptr)
-    {
-        std::cerr << "Child stdin pipe is null cannot write" << std::endl;
-        return;
-    }
     if (!data.ends_with('\n'))
         data += '\n';
-    stdinPipe->write(data);
+    stdinPipe.write(data);
 }
 
 std::wstring Process::buildCommandLine()
@@ -126,9 +117,6 @@ void Process::t_wait()
 
     processInformation.hProcess = nullptr;
     processInformation.hThread = nullptr;
-    delete stdinPipe;
-    delete stdoutPipe;
-    delete stderrPipe;
 
     if (finishCallBack_)
         finishCallBack_(exitCode);
@@ -207,12 +195,12 @@ void Process::clearCurrentDirectory()
 
 std::string Process::error()
 {
-    return stderrPipe->read();
+    return stderrPipe.read();
 }
 
 bool Process::readyRead(std::function<void()> readCallBack)
 {
-    return stdoutPipe->readyRead(std::move(readCallBack));
+    return stdoutPipe.readyRead(std::move(readCallBack));
 }
 
 void Process::onFinished(std::function<void(DWORD)> finishCallBack)

@@ -17,9 +17,9 @@ namespace fs = std::filesystem;
 class Process
 {
 private:
-  UnnamedPipe *stdinPipe = nullptr;
-  UnnamedPipe *stdoutPipe = nullptr;
-  UnnamedPipe *stderrPipe = nullptr;
+  UnnamedPipe stdinPipe;
+  UnnamedPipe stdoutPipe;
+  UnnamedPipe stderrPipe;
 
   fs::path exe;
   std::vector<std::string> args;

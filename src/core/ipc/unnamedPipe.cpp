@@ -26,13 +26,15 @@ UnnamedPipe::UnnamedPipe()
 
 UnnamedPipe::~UnnamedPipe()
 {
+    threadLoop_ = false;
+    readyReadThread_.join();
     closeRead();
     closeWrite();
 }
 
 std::string UnnamedPipe::read()
 {
-    if (readHandle_ == nullptr || readHandle_ == INVALID_HANDLE_VALUE)
+    if (readHandle_ == INVALID_HANDLE_VALUE)
     {
         spdlog::critical("UnnamedPipe(read): readHandle is null");
         return "";
@@ -55,7 +57,7 @@ std::string UnnamedPipe::read()
 
 void UnnamedPipe::write(const std::string &data)
 {
-    if (writeHandle_ == nullptr)
+    if (writeHandle_ == INVALID_HANDLE_VALUE)
     {
         spdlog::critical("UnnamedPipe(write): writeHandle is null");
         return;
@@ -80,25 +82,25 @@ HANDLE UnnamedPipe::getWrite() const
 
 void UnnamedPipe::closeRead()
 {
-    if (readHandle_ != nullptr && readHandle_ != INVALID_HANDLE_VALUE)
+    if (readHandle_ != INVALID_HANDLE_VALUE)
     {
         CloseHandle(readHandle_);
-        readHandle_ = nullptr;
+        readHandle_ = INVALID_HANDLE_VALUE;
     }
 }
 
 void UnnamedPipe::closeWrite()
 {
-    if (writeHandle_ != nullptr && writeHandle_ != INVALID_HANDLE_VALUE)
+    if (writeHandle_ != INVALID_HANDLE_VALUE)
     {
         CloseHandle(writeHandle_);
-        writeHandle_ = nullptr;
+        writeHandle_ = INVALID_HANDLE_VALUE;
     }
 }
 
 bool UnnamedPipe::readyRead(std::function<void()> readCallBack)
 {
-    if (readHandle_ == nullptr || readHandle_ == INVALID_HANDLE_VALUE)
+    if (readHandle_ == INVALID_HANDLE_VALUE)
     {
         spdlog::critical("UnnamedPipe(readyRead): readHandle is invalid");
         return false;
@@ -107,7 +109,7 @@ bool UnnamedPipe::readyRead(std::function<void()> readCallBack)
 
     readyReadThread_ = std::thread([this]()
                                    {
-        while(true)
+        while(threadLoop_)
         {
             DWORD bytesAvail = 0;
             if(PeekNamedPipe(readHandle_, NULL, 0, NULL, &bytesAvail, NULL))
@@ -117,10 +119,17 @@ bool UnnamedPipe::readyRead(std::function<void()> readCallBack)
                     readyReadCallBack_();
                 }
             }
-            else
+            else{
                 spdlog::error("UnnamedPipe(readyRead): failed to peek into readHandle");
+                return;
+            }
             std::this_thread::sleep_for(std::chrono::milliseconds(100));
         } });
 
     return true;
+}
+
+bool UnnamedPipe::isNull()
+{
+    return (readHandle_ == INVALID_HANDLE_VALUE || writeHandle_ == INVALID_HANDLE_VALUE);
 }
