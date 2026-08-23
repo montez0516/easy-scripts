@@ -13,11 +13,11 @@
 class ScriptManager
 {
 private:
-  std::vector<Script> scripts;
-  std::vector<Process> runtimes;
-  NamedPipe pipe;
+  std::vector<Script> scripts_;
+  std::vector<Process> runtimes_;
+  NamedPipe runnerPipe_;
 
-  std::unique_ptr<Process> runner;
+  std::unique_ptr<Process> runnerProcess_;
   Paths &paths_;
   bool startRunner();
   void loadScripts();

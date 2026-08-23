@@ -28,23 +28,23 @@ bool ScriptManager::initialize()
 
 bool ScriptManager::startRunner()
 {
-  if (!pipe.create())
+  if (!runnerPipe_.create())
   {
     spdlog::critical("scriptManager(startRunner): NamedPipe failed to create.");
     return false;
   }
 
-  runner = std::make_unique<Process>(
+  runnerProcess_ = std::make_unique<Process>(
       std::filesystem::absolute(paths_.runner()),
       std::vector<std::string>{});
 
-  runner->start();
-  runner->onFinished([this](DWORD exitCode)
-                     { spdlog::critical("ScriptManager(startRunnner): runner exited with code {}\n{}", exitCode, runner->error()); });
-  runner->readyRead([this]()
-                    { std::cout << "FROM RUNNER.EXE: " << runner->read() << std::endl; });
+  runnerProcess_->start();
+  runnerProcess_->onFinished([this](DWORD exitCode)
+                             { spdlog::critical("ScriptManager(startRunnner): runner process exited with code {}\n{}", exitCode, runnerProcess_->error()); });
+  runnerProcess_->readyRead([this]()
+                            { std::cout << "FROM RUNNER.EXE: " << runnerProcess_->read() << std::endl; });
 
-  pipe.waitForConnection();
+  runnerPipe_.waitForConnection();
 
   return true;
 }
@@ -58,7 +58,7 @@ void ScriptManager::loadScripts()
     if (entry.is_directory())
     {
       Script script(entry.path(), this);
-      scripts.push_back(script);
+      scripts_.push_back(script);
     }
   }
 }
@@ -68,11 +68,11 @@ void ScriptManager::run(const std::string &language, const std::filesystem::path
 #if defined(BUILD_DEV)
   spdlog::debug("Running script {} {}", language, scriptFile.string());
 #endif
-  if (pipe.isNull())
+  if (runnerPipe_.isNull())
   {
     spdlog::critical("ScriptManager(run): pipe is NULL");
     return;
   }
 
-  pipe.write(nlohmann::json({{"language", language}, {"file", scriptFile.string()}, {"args", args}}).dump());
+  runnerPipe_.write(nlohmann::json({{"language", language}, {"file", scriptFile.string()}, {"args", args}}).dump());
 }
