@@ -27,25 +27,17 @@ Process::~Process()
 
 bool Process::start()
 {
-    if (stdinPipe_.isNull() || stdoutPipe_.isNull() || stderrPipe_.isNull())
-    {
-        spdlog::debug("Process(start):\nstdin:{}\nstdout:{}\nstderr:{}\n", stdinPipe_.isNull(), stdoutPipe_.isNull(), stderrPipe_.isNull());
-        spdlog::critical("Process(start): one or more ipc pipe is NULL");
-    }
 
     startupInfo_ = {};
     processInformation_ = {};
 
     startupInfo_.cb = sizeof(startupInfo_);
-    startupInfo_.dwFlags = STARTF_USESTDHANDLES;
 
-    startupInfo_.hStdInput = stdinPipe_.getRead();
-    startupInfo_.hStdOutput = stdoutPipe_.getWrite();
-    startupInfo_.hStdError = stderrPipe_.getWrite();
-
-    SetHandleInformation(stdinPipe_.getWrite(), HANDLE_FLAG_INHERIT, 0);
-    SetHandleInformation(stdoutPipe_.getRead(), HANDLE_FLAG_INHERIT, 0);
-    SetHandleInformation(stderrPipe_.getRead(), HANDLE_FLAG_INHERIT, 0);
+    if (captureHandles_)
+    {
+        if (!captureProcessHandles())
+            return false;
+    }
 
     std::wstring command = buildCommandLine();
 
@@ -55,8 +47,6 @@ bool Process::start()
     {
         environmentBlock = processEnvironment_->data();
     }
-
-    // std::wcout << "Running Command: " << command << std::endl;
 
     if (!CreateProcessW(NULL,
                         command.data(),
@@ -72,10 +62,6 @@ bool Process::start()
         spdlog::error("Process(start): CreateProcessW failed {} {}", toString(GetError()), exe_.string());
         return false;
     }
-
-    stdinPipe_.closeRead();
-    stdoutPipe_.closeWrite();
-    stderrPipe_.closeWrite();
 
     waitThread_ = std::thread(&Process::t_wait, this);
     return true;
@@ -215,4 +201,34 @@ bool Process::readyRead(std::function<void()> readCallBack)
 void Process::onFinished(std::function<void(DWORD)> finishCallBack)
 {
     finishCallBack_ = std::move(finishCallBack);
+}
+
+bool Process::captureProcessHandles()
+{
+    if (stdinPipe_.isNull() || stdoutPipe_.isNull() || stderrPipe_.isNull())
+    {
+        spdlog::debug("Process(start):\nstdin:{}\nstdout:{}\nstderr:{}\n", stdinPipe_.isNull(), stdoutPipe_.isNull(), stderrPipe_.isNull());
+        spdlog::critical("Process(start): one or more ipc pipe is NULL");
+        return false;
+    }
+    startupInfo_.dwFlags = STARTF_USESTDHANDLES;
+
+    startupInfo_.hStdInput = stdinPipe_.getRead();
+    startupInfo_.hStdOutput = stdoutPipe_.getWrite();
+    startupInfo_.hStdError = stderrPipe_.getWrite();
+
+    SetHandleInformation(stdinPipe_.getWrite(), HANDLE_FLAG_INHERIT, 0);
+    SetHandleInformation(stdoutPipe_.getRead(), HANDLE_FLAG_INHERIT, 0);
+    SetHandleInformation(stderrPipe_.getRead(), HANDLE_FLAG_INHERIT, 0);
+
+    stdinPipe_.closeRead();
+    stdoutPipe_.closeWrite();
+    stderrPipe_.closeWrite();
+
+    return true;
+}
+
+void Process::setCaptureHandles(bool value)
+{
+    captureHandles_ = value;
 }

@@ -29,8 +29,6 @@ void PythonRuntime::run(const std::string &file, std::vector<std::string> args)
     if (fs::exists(parentDir / "venv"))
         exe = parentDir / "venv" / "Scripts" / "python.exe";
 
-
-    
     process = std::make_unique<Process>(exe, args);
     process->setCurrentDirectory(parentDir.wstring());
     process->start();
@@ -39,8 +37,7 @@ void PythonRuntime::run(const std::string &file, std::vector<std::string> args)
                             if(exitCode != 0 )
                             {
                                 spdlog::error(process->error());
-                            }
-                        });
+                            } });
     process->readyRead([this]()
                        { std::cout << process->read() << std::endl; });
 }

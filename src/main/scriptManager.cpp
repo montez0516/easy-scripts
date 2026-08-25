@@ -12,8 +12,6 @@
 #include <thread>
 #include <memory>
 
-
-
 ScriptManager::ScriptManager(Paths &paths, EventBus &bus) : paths_(paths), bus_(bus) {}
 
 bool ScriptManager::initialize()
@@ -48,9 +46,8 @@ bool ScriptManager::startRunner()
                             { std::cout << "FROM RUNNER.EXE: " << runnerProcess_->read() << std::endl; });
 
   runnerPipe_.waitForConnection();
-  runnerPipe_.readyRead([this](){
-    handleEvent(runnerPipe_.read());
-  });
+  runnerPipe_.readyRead([this]()
+                        { handleEvent(runnerPipe_.read()); });
   return true;
 }
 
@@ -82,7 +79,8 @@ void ScriptManager::run(const std::string &language, const std::filesystem::path
 
 void ScriptManager::handleEvent(const std::string &eventPayload)
 {
-  try{
+  try
+  {
     nlohmann::json event = nlohmann::json::parse(eventPayload);
 
     std::string id;
@@ -94,7 +92,7 @@ void ScriptManager::handleEvent(const std::string &eventPayload)
     e.type = type;
     e.payload = payload;
   }
-  catch(nlohmann::json_abi_v3_12_0::detail::parse_error &e)
+  catch (nlohmann::json_abi_v3_12_0::detail::parse_error &e)
   {
     spdlog::critical("ScriptManager(handleEvent): failed to parse event payload {}", e.what());
   }
@@ -102,7 +100,8 @@ void ScriptManager::handleEvent(const std::string &eventPayload)
 
 void ScriptManager::registerEventListeners()
 {
-  bus_.subscribe<ScriptEvent>([this](const ScriptEvent &event){
+  bus_.subscribe<ScriptEvent>([this](const ScriptEvent &event)
+                              {
     if(event.id != "0")
       return;
 
@@ -119,6 +118,5 @@ void ScriptManager::registerEventListeners()
       {
         spdlog::error("ScriptManager(registerEventListeners): failed to parse ScriptEvent payload {}\n{}", event.payload, e);
       }
-    }
-  });
+    } });
 }
