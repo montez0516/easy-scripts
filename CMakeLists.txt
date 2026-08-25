@@ -50,6 +50,7 @@ src/main
 src/core/process
 src/core/ipc
 src/core
+src/core/eventBus
 )
 
 target_include_directories(runner INTERFACE 
@@ -60,6 +61,7 @@ src/runner
 src/runner/engine
 src/runner/runtime
 src/runner/runtime/runtimes
+src/core/eventBus
 )
 
 target_link_libraries(EasyScripts PRIVATE nlohmann_json::nlohmann_json spdlog::spdlog)

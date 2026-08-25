@@ -1,10 +1,13 @@
-#include <chrono>
-#include <filesystem>
-#include <spdlog/spdlog.h>
-#include <thread>
-
+#include "core/eventBus/eventBus.hpp"
 #include "main/scriptManager.hpp"
 #include "core/paths.hpp"
+
+#include <spdlog/spdlog.h>
+
+#include <chrono>
+#include <filesystem>
+#include <thread>
+
 
 int main()
 {
@@ -13,6 +16,8 @@ int main()
 #endif
 
   Paths paths{};
+
+  EventBus bus;
 
   ScriptManager manager{paths};
   manager.initialize();

@@ -1,14 +1,34 @@
-#include <string>
+#include "../src/core/eventBus/eventBus.hpp"
+#include <iostream>
 
-#include "gtest/gtest.h"
-#include "../src/core/ipc/unnamedPipe.hpp"
-
-TEST(UnnamedPipeTest, HandlesReadAndWrite)
+void TestEventBus()
 {
-    UnnamedPipe *pipe = new UnnamedPipe();
+    EventBus bus;
 
-    pipe->write("Hello World!\nfuck this shit");
+    bus.subscribe<Event>([](const Event& e){
+        if(e.id != "main")
+        {
+           std::cout << "Event id is incorrect " <<e.id << "expected \"main\"" << std::endl; 
+        }
+        else
+            std::cout << "Event id is correct " << e.id << std::endl;
+        if(e.type != "message")
+        {
+            std::cout << "Event type is incorrect " << e.type << "expected \"message\"" << std::endl;
+        }
+        else
+            std::cout << "Event type is correct " << e.type << std::endl;
+    });
 
-    std::string read = pipe->read();
-    EXPECT_EQ(read, "Hello World!") << "Output from pipe is different from input: " << read;
+    Event e;
+    e.id = "main";
+    e.type = "message";
+    bus.publish<Event>(e);
+}
+
+int main()
+{
+    TestEventBus();
+
+    return 0;
 }

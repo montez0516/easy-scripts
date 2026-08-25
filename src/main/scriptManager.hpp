@@ -5,10 +5,17 @@
 #include "../core/process/process.hpp"
 #include "../core/ipc/namedPipe.hpp"
 #include "../core/paths.hpp"
+#include "../core/eventBus/eventBus.hpp"
 
 #include <filesystem>
 #include <vector>
 #include <memory>
+#include <string>
+
+struct ScriptEvent : Event
+{
+  std::string payload;
+};
 
 class ScriptManager
 {
@@ -16,18 +23,20 @@ private:
   std::vector<Script> scripts_;
   std::vector<Process> runtimes_;
   NamedPipe runnerPipe_;
-
   std::unique_ptr<Process> runnerProcess_;
   Paths &paths_;
+  EventBus &bus_;
+
   bool startRunner();
   void loadScripts();
-
+  void registerEventListeners();
 public:
-  ScriptManager(Paths &paths);
+  ScriptManager(Paths &paths, EventBus &bus);
   bool initialize();
-  void
-  run(const std::string &language, const std::filesystem::path &scriptFile, const std::vector<std::string> &args);
+  void run(const std::string &language, const std::filesystem::path &scriptFile, const std::vector<std::string> &args);
   void stop();
+
+  void handleEvent(const std::string &eventPayload);
 };
 
 #endif
