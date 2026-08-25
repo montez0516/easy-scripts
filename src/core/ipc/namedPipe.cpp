@@ -4,6 +4,7 @@
 #include <spdlog/spdlog.h>
 #include <nlohmann/json.hpp>
 #include <utility>
+#include <cstdint>
 
 #include "namedPipe.hpp"
 
@@ -55,40 +56,53 @@ std::string NamedPipe::read()
 {
     if (pipeHandle_ == nullptr || pipeHandle_ == INVALID_HANDLE_VALUE)
     {
-        spdlog::critical("NamedPipe(read): pipeHandle is NULL");
-        return "";
+        spdlog::critical("NamedPipe(read): pipeHandle is NULL {}", GetLastError());
+        return {};
     }
 
-    std::size_t payloadSize = 0;
+    std::uint32_t payloadSize = 0;
 
-    if (!ReadFile(pipeHandle_, &payloadSize, sizeof(std::size_t), NULL, NULL))
+    if (!ReadFile(pipeHandle_, &payloadSize, sizeof(payloadSize), NULL, NULL))
+    {
+        spdlog::error("NamedPipe(read): failed to read payload size from pipe {}", GetLastError());
         return {};
+    }
 
-    std::string output;
-    char buffer[payloadSize];
+    std::string output(payloadSize, '\0');
     DWORD bytesRead = 0;
 
-    if (!ReadFile(pipeHandle_, buffer, sizeof(buffer) - 1, &bytesRead, NULL))
+    if (!ReadFile(pipeHandle_, output.data(), payloadSize, &bytesRead, NULL))
     {
-        return "";
+        spdlog::error("NamedPipe(read): failed to read payload from pipe {}", GetLastError());
+        return {};
     }
-    return std::string(buffer, bytesRead);
+
+    output.resize(bytesRead);
+    return output;
 }
 
 void NamedPipe::write(const std::string &data)
 {
     if (pipeHandle_ == nullptr || pipeHandle_ == INVALID_HANDLE_VALUE)
     {
-        spdlog::critical("NamedPipe(write): pipeHandle is NULL");
+        spdlog::critical("NamedPipe(write): pipeHandle is NULL {}", GetLastError());
         return;
     }
 
-    DWORD bytesToWrite = static_cast<DWORD>(data.size());
+    std::uint32_t payloadSize = static_cast<std::uint32_t>(data.size());
+
+    if (!WriteFile(pipeHandle_, &payloadSize, sizeof(payloadSize), NULL, NULL))
+    {
+        spdlog::error("NamedPipe(write): failed to write payload size {}", GetLastError());
+        return;
+    }
+
     DWORD bytesWritten = 0;
 
-    WriteFile(pipeHandle_, &bytesToWrite, sizeof(std::size_t), NULL, NULL);
-
-    WriteFile(pipeHandle_, data.data(), bytesToWrite, &bytesWritten, NULL);
+    if (!WriteFile(pipeHandle_, data.data(), payloadSize, &bytesWritten, NULL))
+    {
+        spdlog::error("NamedPipe(write): failed to write payload {}", GetLastError());
+    }
 }
 
 bool NamedPipe::isNull()
@@ -116,32 +130,8 @@ bool NamedPipe::waitForConnection()
         return true;
     }
 
-    spdlog::error("ConnectNamedPipe failed: {}", error);
+    spdlog::error("NamedPipe(waitForConnection): ConnectNamedPipe failed: {}", error);
     return false;
-}
-
-nlohmann::json NamedPipe::json()
-{
-    if (pipeHandle_ == nullptr || pipeHandle_ == INVALID_HANDLE_VALUE)
-    {
-        spdlog::critical("NamedPipe(read): pipeHandle is NULL");
-        return {};
-    }
-
-    std::string data = this->read();
-
-    try
-    {
-
-        nlohmann::json json = nlohmann::json::parse(data);
-        return json;
-    }
-    catch (nlohmann::json_abi_v3_12_0::detail::parse_error &e)
-    {
-        spdlog::critical("{}\n{}", e.what(), data);
-    }
-
-    return {};
 }
 
 bool NamedPipe::readyRead(std::function<void()> readCallBack)
@@ -166,7 +156,7 @@ bool NamedPipe::readyRead(std::function<void()> readCallBack)
                 }
             }
             else{
-                spdlog::error("NamedPipe(readyRead): failed to peek into readHandle");
+                spdlog::error("NamedPipe(readyRead): failed to peek into readHandle {}", GetLastError());
                 return;
             }
             std::this_thread::sleep_for(std::chrono::milliseconds(100));

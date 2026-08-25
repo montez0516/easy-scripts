@@ -46,8 +46,6 @@ void Engine::run(const std::string &language, const std::string &file, std::stri
         return;
     }
 
-    std::cout << std::filesystem::absolute(file) << std::endl;
-
     std::vector<std::string> v_args = split(args, ' ');
 
     runtime->run(file, v_args);

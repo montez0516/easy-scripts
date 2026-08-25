@@ -12,39 +12,48 @@
 
 namespace fs = std::filesystem;
 
-Process::Process(fs::path executable, std::vector<std::string> arguments) : exe(std::move(executable)), args(std::move(arguments))
+Process::Process(fs::path executable, std::vector<std::string> arguments) : exe_(std::move(executable)), args_(std::move(arguments))
 {
+}
+
+Process::~Process()
+{
+    if (waitThread_.joinable())
+        waitThread_.join();
+    stdinPipe_.close();
+    stdoutPipe_.close();
+    stderrPipe_.close();
 }
 
 bool Process::start()
 {
-    if (stdinPipe.isNull() || stdoutPipe.isNull() || stderrPipe.isNull())
+    if (stdinPipe_.isNull() || stdoutPipe_.isNull() || stderrPipe_.isNull())
     {
-        spdlog::debug("Process(start):\nstdin:{}\nstdout:{}\nstderr:{}\n", stdinPipe.isNull(), stdoutPipe.isNull(), stderrPipe.isNull());
+        spdlog::debug("Process(start):\nstdin:{}\nstdout:{}\nstderr:{}\n", stdinPipe_.isNull(), stdoutPipe_.isNull(), stderrPipe_.isNull());
         spdlog::critical("Process(start): one or more ipc pipe is NULL");
     }
 
-    startupInfo = {};
-    processInformation = {};
+    startupInfo_ = {};
+    processInformation_ = {};
 
-    startupInfo.cb = sizeof(startupInfo);
-    startupInfo.dwFlags = STARTF_USESTDHANDLES;
+    startupInfo_.cb = sizeof(startupInfo_);
+    startupInfo_.dwFlags = STARTF_USESTDHANDLES;
 
-    startupInfo.hStdInput = stdinPipe.getRead();
-    startupInfo.hStdOutput = stdoutPipe.getWrite();
-    startupInfo.hStdError = stderrPipe.getWrite();
+    startupInfo_.hStdInput = stdinPipe_.getRead();
+    startupInfo_.hStdOutput = stdoutPipe_.getWrite();
+    startupInfo_.hStdError = stderrPipe_.getWrite();
 
-    SetHandleInformation(stdinPipe.getWrite(), HANDLE_FLAG_INHERIT, 0);
-    SetHandleInformation(stdoutPipe.getRead(), HANDLE_FLAG_INHERIT, 0);
-    SetHandleInformation(stderrPipe.getRead(), HANDLE_FLAG_INHERIT, 0);
+    SetHandleInformation(stdinPipe_.getWrite(), HANDLE_FLAG_INHERIT, 0);
+    SetHandleInformation(stdoutPipe_.getRead(), HANDLE_FLAG_INHERIT, 0);
+    SetHandleInformation(stderrPipe_.getRead(), HANDLE_FLAG_INHERIT, 0);
 
     std::wstring command = buildCommandLine();
 
     LPVOID environmentBlock = nullptr;
 
-    if (environment.has_value())
+    if (processEnvironment_.has_value())
     {
-        environmentBlock = environment->data();
+        environmentBlock = processEnvironment_->data();
     }
 
     // std::wcout << "Running Command: " << command << std::endl;
@@ -56,39 +65,39 @@ bool Process::start()
                         TRUE,
                         CREATE_UNICODE_ENVIRONMENT,
                         environmentBlock,
-                        cwd.empty() ? NULL : cwd.c_str(),
-                        &startupInfo,
-                        &processInformation))
+                        cwd_.empty() ? NULL : cwd_.c_str(),
+                        &startupInfo_,
+                        &processInformation_))
     {
-        spdlog::error("Process(start): CreateProcessW failed {} {}", toString(GetError()), exe.string());
+        spdlog::error("Process(start): CreateProcessW failed {} {}", toString(GetError()), exe_.string());
         return false;
     }
 
-    stdinPipe.closeRead();
-    stdoutPipe.closeWrite();
-    stderrPipe.closeWrite();
+    stdinPipe_.closeRead();
+    stdoutPipe_.closeWrite();
+    stderrPipe_.closeWrite();
 
-    wait_thread = std::thread(&Process::t_wait, this);
+    waitThread_ = std::thread(&Process::t_wait, this);
     return true;
 }
 
 std::string Process::read()
 {
-    return stdoutPipe.read();
+    return stdoutPipe_.read();
 }
 
 void Process::write(std::string &data)
 {
     if (!data.ends_with('\n'))
         data += '\n';
-    stdinPipe.write(data);
+    stdinPipe_.write(data);
 }
 
 std::wstring Process::buildCommandLine()
 {
-    std::wstring cmd = quoteWindowsArgument(exe.wstring());
+    std::wstring cmd = quoteWindowsArgument(exe_.wstring());
 
-    for (const auto &arg : args)
+    for (const auto &arg : args_)
     {
         cmd += L' ';
         cmd += quoteWindowsArgument(toWstring(arg));
@@ -99,33 +108,33 @@ std::wstring Process::buildCommandLine()
 
 void Process::t_wait()
 {
-    if (processInformation.hProcess == nullptr)
+    if (processInformation_.hProcess == nullptr)
     {
         throw std::runtime_error("hProcess handle null");
     }
 
-    WaitForSingleObject(processInformation.hProcess, INFINITE);
+    WaitForSingleObject(processInformation_.hProcess, INFINITE);
 
-    if (!GetExitCodeProcess(processInformation.hProcess, &exitCode))
+    if (!GetExitCodeProcess(processInformation_.hProcess, &exitCode_))
     {
         spdlog::error("Process(t_wait): GetExitCodeProcess failed ({})", toString(GetError()));
     }
-    spdlog::info("Process {} exited with code:: {}", exe.string(), exitCode);
 
-    CloseHandle(processInformation.hProcess);
-    CloseHandle(processInformation.hThread);
+    CloseHandle(processInformation_.hProcess);
+    CloseHandle(processInformation_.hThread);
 
-    processInformation.hProcess = nullptr;
-    processInformation.hThread = nullptr;
+    processInformation_.hProcess = nullptr;
+    processInformation_.hThread = nullptr;
 
     if (finishCallBack_)
-        finishCallBack_(exitCode);
+        finishCallBack_(exitCode_);
 }
 
 DWORD Process::wait()
 {
-    wait_thread.join();
-    return exitCode;
+    if (waitThread_.joinable())
+        waitThread_.join();
+    return exitCode_;
 }
 
 static std::map<std::wstring, std::wstring> getCurrentEnvironment()
@@ -175,32 +184,32 @@ void Process::setEnvironment(
     }
 
     block.push_back(L'\0');
-    environment = std::move(block);
+    processEnvironment_ = std::move(block);
 }
 
 void Process::clearEnvironment()
 {
-    environment.reset();
+    processEnvironment_.reset();
 }
 
 void Process::setCurrentDirectory(const std::wstring &dir)
 {
-    cwd = dir;
+    cwd_ = dir;
 }
 
 void Process::clearCurrentDirectory()
 {
-    cwd.clear();
+    cwd_.clear();
 }
 
 std::string Process::error()
 {
-    return stderrPipe.read();
+    return stderrPipe_.read();
 }
 
 bool Process::readyRead(std::function<void()> readCallBack)
 {
-    return stdoutPipe.readyRead(std::move(readCallBack));
+    return stdoutPipe_.readyRead(std::move(readCallBack));
 }
 
 void Process::onFinished(std::function<void(DWORD)> finishCallBack)

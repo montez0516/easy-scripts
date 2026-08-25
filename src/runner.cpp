@@ -25,6 +25,10 @@ int main()
 
   // spdlog::set_default_logger(logger);
 
+#if defined(BUILD_DEV)
+  spdlog::set_level(spdlog::level::debug);
+#endif
+
   NamedPipe pipe{};
 
   if (!pipe.connect())
@@ -40,13 +44,21 @@ int main()
 
   while (true)
   {
-    nlohmann::json payload = pipe.json();
+    std::string payload = pipe.read();
     if (!payload.empty())
     {
-      spdlog::debug(payload.dump());
+      spdlog::debug(payload);
+      try
+      {
+        nlohmann::json jsonPayload = nlohmann::json::parse(payload);
+        std::string temp = "";
+        engine.run(jsonPayload["language"], jsonPayload["file"], temp);
+      }
+      catch (nlohmann::json_abi_v3_12_0::detail::parse_error &e)
+      {
+        spdlog::error("Runner(): failed to parse event payload {}", e.what());
+      }
     }
-    std::string temp = "";
-    engine.run(payload["language"], payload["file"], temp);
     std::this_thread::sleep_for(std::chrono::milliseconds(500));
   }
 

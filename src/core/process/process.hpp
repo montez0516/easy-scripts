@@ -17,18 +17,18 @@ namespace fs = std::filesystem;
 class Process
 {
 private:
-  UnnamedPipe stdinPipe;
-  UnnamedPipe stdoutPipe;
-  UnnamedPipe stderrPipe;
+  UnnamedPipe stdinPipe_;
+  UnnamedPipe stdoutPipe_;
+  UnnamedPipe stderrPipe_;
 
-  fs::path exe;
-  std::vector<std::string> args;
-  STARTUPINFOW startupInfo{};
-  PROCESS_INFORMATION processInformation{};
-  std::optional<std::vector<wchar_t>> environment;
-  std::wstring cwd;
-  DWORD exitCode = 0;
-  std::thread wait_thread;
+  fs::path exe_;
+  std::vector<std::string> args_;
+  STARTUPINFOW startupInfo_{};
+  PROCESS_INFORMATION processInformation_{};
+  std::optional<std::vector<wchar_t>> processEnvironment_;
+  std::wstring cwd_;
+  DWORD exitCode_ = 0;
+  std::thread waitThread_;
   std::function<void(DWORD)> finishCallBack_;
 
   std::wstring buildCommandLine();
@@ -36,6 +36,7 @@ private:
 
 public:
   Process(fs::path executable, std::vector<std::string> arguments);
+  ~Process();
   bool start();
   void stop();
   DWORD wait();

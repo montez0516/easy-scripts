@@ -30,7 +30,6 @@ public:
 
     std::string read();
     void write(const std::string &);
-    nlohmann::json json();
 
     bool isNull();
 

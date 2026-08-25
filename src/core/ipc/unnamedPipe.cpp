@@ -26,8 +26,9 @@ UnnamedPipe::UnnamedPipe()
 
 UnnamedPipe::~UnnamedPipe()
 {
-    threadLoop_ = false;
-    readyReadThread_.join();
+    threadLoop_.store(false);
+    if (readyReadThread_.joinable())
+        readyReadThread_.join();
     closeRead();
     closeWrite();
 }
@@ -109,7 +110,7 @@ bool UnnamedPipe::readyRead(std::function<void()> readCallBack)
 
     readyReadThread_ = std::thread([this]()
                                    {
-        while(threadLoop_)
+        while(threadLoop_.load())
         {
             DWORD bytesAvail = 0;
             if(PeekNamedPipe(readHandle_, NULL, 0, NULL, &bytesAvail, NULL))
@@ -121,6 +122,7 @@ bool UnnamedPipe::readyRead(std::function<void()> readCallBack)
             }
             else{
                 spdlog::error("UnnamedPipe(readyRead): failed to peek into readHandle");
+
                 return;
             }
             std::this_thread::sleep_for(std::chrono::milliseconds(100));
@@ -132,4 +134,9 @@ bool UnnamedPipe::readyRead(std::function<void()> readCallBack)
 bool UnnamedPipe::isNull()
 {
     return (readHandle_ == INVALID_HANDLE_VALUE || writeHandle_ == INVALID_HANDLE_VALUE);
+}
+
+void UnnamedPipe::close()
+{
+    threadLoop_.store(false);
 }

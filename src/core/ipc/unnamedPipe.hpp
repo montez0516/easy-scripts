@@ -5,6 +5,7 @@
 #include <string>
 #include <thread>
 #include <functional>
+#include <atomic>
 
 class UnnamedPipe
 {
@@ -13,7 +14,7 @@ private:
     HANDLE readHandle_ = INVALID_HANDLE_VALUE;
     HANDLE writeHandle_ = INVALID_HANDLE_VALUE;
 
-    bool threadLoop_;
+    std::atomic_bool threadLoop_{true};
     std::function<void()> readyReadCallBack_;
     std::thread readyReadThread_;
 
@@ -32,6 +33,8 @@ public:
     void closeWrite();
 
     bool readyRead(std::function<void()> readCallBack);
+
+    void close();
 };
 
 #endif
