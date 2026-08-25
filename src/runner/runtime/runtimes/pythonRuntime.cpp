@@ -16,25 +16,31 @@ PythonRuntime::PythonRuntime(Paths &paths) : Runtime(paths) {};
 
 void PythonRuntime::run(const std::string &file, std::vector<std::string> args)
 {
-    spdlog::debug("Creating python runtime for file {}", file);
+    spdlog::debug("PYTHON: {}", file);
 
-    fs::path abs_file = fs::absolute(file);
-    fs::path parent_dir = fs::absolute(file).parent_path();
+    fs::path absFile = fs::absolute(file);
+    fs::path parentDir = absFile.parent_path();
 
-    args.insert(args.begin(), abs_file.string());
+    args.insert(args.begin(), absFile.string());
+    args.push_back("-u");
 
     fs::path exe = paths_.python();
 
-    if (fs::exists(parent_dir / "venv"))
-        exe = parent_dir / "venv" / "Scripts" / "python.exe";
+    if (fs::exists(parentDir / "venv"))
+        exe = parentDir / "venv" / "Scripts" / "python.exe";
 
-    spdlog::debug("{} {}", exe.string(), abs_file.string());
 
+    
     process = std::make_unique<Process>(exe, args);
-    process->setCurrentDirectory(parent_dir.wstring());
+    process->setCurrentDirectory(parentDir.wstring());
     process->start();
-    process->onFinished([](DWORD exitCode)
-                        { std::cout << "Python script finished with exit code " << exitCode << std::endl; });
+    process->onFinished([this, &file](DWORD exitCode)
+                        { 
+                            if(exitCode != 0 )
+                            {
+                                spdlog::error(process->error());
+                            }
+                        });
     process->readyRead([this]()
                        { std::cout << process->read() << std::endl; });
 }
