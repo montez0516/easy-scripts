@@ -13,9 +13,8 @@ int main()
 #if defined(BUILD_DEV)
   spdlog::set_level(spdlog::level::debug);
 #endif
-
+  spdlog::set_pattern("[%m/%d %T.%f %p][%^%l%$] %v");
   Paths paths{};
-
   EventBus bus;
 
   ScriptManager manager{paths, bus};

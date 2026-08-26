@@ -2,6 +2,7 @@
 #include "../runtime/runtimes/pythonRuntime.hpp"
 #include "../runtime/runtimes/defaultRuntime.hpp"
 #include "../../core/paths.hpp"
+#include "../../core/eventBus/eventBus.hpp"
 
 #include <spdlog/spdlog.h>
 
@@ -25,20 +26,19 @@ std::vector<std::string> split(std::string &str, char delim)
     return splitted;
 }
 
-Engine::Engine(Paths &paths) : paths_(paths) {};
+Engine::Engine(Paths &paths, EventBus &bus) : paths_(paths), bus_(bus) 
+{}
 
 void Engine::initialize()
 {
-    runtimeManager->registerRunTime("python", std::make_unique<PythonRuntime>(paths_));
-    runtimeManager->registerRunTime("default", std::make_unique<DefaultRuntime>(paths_));
+    runtimeManager_.registerRunTime("python", std::make_unique<PythonRuntime>(paths_, bus_));
+    runtimeManager_.registerRunTime("default", std::make_unique<DefaultRuntime>(paths_, bus_));
 }
 
 void Engine::run(const std::string &language, const std::string &file, std::string &args)
 {
-#if defined(BUILD_DEV)
-    spdlog::debug("FINDING RUNTIME FOR LANGUAGE");
-#endif
-    Runtime *runtime = runtimeManager->getRuntime(language);
+    spdlog::debug("FINDING RUNTIME FOR LANGUAGE {}", language);
+    Runtime *runtime = runtimeManager_.getRuntime(language);
 
     if (runtime == nullptr)
     {

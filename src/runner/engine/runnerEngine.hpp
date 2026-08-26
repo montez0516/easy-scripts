@@ -3,6 +3,7 @@
 
 #include "../runtime/runtimeManager.hpp"
 #include "../../core/paths.hpp"
+#include "../../core/eventBus/eventBus.hpp"
 
 #include <vector>
 #include <string>
@@ -11,10 +12,11 @@ class Engine
 {
 
 private:
-    RuntimeManager *runtimeManager = new RuntimeManager();
+    RuntimeManager runtimeManager_;
     Paths &paths_;
+    EventBus &bus_;
 public:
-    Engine(Paths &paths);
+    Engine(Paths &paths, EventBus &bus);
 
     void initialize();
     void run(const std::string &language, const std::string &file, std::string &args);

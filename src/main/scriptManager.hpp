@@ -12,9 +12,10 @@
 #include <memory>
 #include <string>
 
+template<typename T>
 struct ScriptEvent : Event
 {
-  std::string payload;
+  T payload;
 };
 
 class ScriptManager

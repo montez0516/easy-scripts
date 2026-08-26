@@ -61,7 +61,7 @@ void ScriptManager::loadScripts()
     spdlog::debug(entry.path().string());
     if (entry.is_directory())
     {
-      Script script(entry.path(), this);
+      Script script(entry.path(), *this, bus_);
       scripts_.push_back(script);
     }
   }
@@ -86,14 +86,6 @@ void ScriptManager::handleEvent(const std::string &eventPayload)
   {
     nlohmann::json event = nlohmann::json::parse(eventPayload);
 
-    std::string id;
-    std::string type;
-    std::string payload;
-
-    ScriptEvent e;
-    e.id = id;
-    e.type = type;
-    e.payload = payload;
   }
   catch (nlohmann::json_abi_v3_12_0::detail::parse_error &e)
   {
@@ -103,24 +95,17 @@ void ScriptManager::handleEvent(const std::string &eventPayload)
 
 void ScriptManager::registerEventListeners()
 {
-  bus_.subscribe<ScriptEvent>([this](const ScriptEvent &event)
+  bus_.subscribe<ScriptEvent<nlohmann::json>>([this](const ScriptEvent<nlohmann::json> &event)
                               {
-    if(event.id != "0")
+    if(event.to != "0")
       return;
 
     if(event.type == "run")
     {
-      try{
-        nlohmann::json payload = nlohmann::json::parse(event.payload);
-        std::string language = payload.value<std::string>("language", "");
-        std::filesystem::path file = payload.value<std::filesystem::path>("file", "");
-        std::vector<std::string> args = payload.value<std::vector<std::string>>("args", {});
-        run(language, file, args);
-      } 
-      catch(nlohmann::json_abi_v3_12_0::detail::parse_error &e)
-      {
-        spdlog::error("ScriptManager(registerEventListeners): failed to parse ScriptEvent payload {}\n{}", event.payload, e.what());
-      }
+      std::string language = event.payload.value<std::string>("language", "");
+      std::filesystem::path file = event.payload.value<std::filesystem::path>("file", "");
+      std::vector<std::string> args = event.payload.value<std::vector<std::string>>("args", {});
+      run(language, file, args);
     } });
 }
 

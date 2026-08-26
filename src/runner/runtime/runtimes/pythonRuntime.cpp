@@ -1,6 +1,7 @@
 #include "pythonRuntime.hpp"
 #include "../../../core/process/process.hpp"
 #include "../../../core/paths.hpp"
+#include "../../../core/eventBus/eventBus.hpp"
 
 #include <spdlog/spdlog.h>
 
@@ -12,7 +13,9 @@
 
 namespace fs = std::filesystem;
 
-PythonRuntime::PythonRuntime(Paths &paths) : Runtime(paths) {};
+PythonRuntime::PythonRuntime(Paths &paths, EventBus &bus) : Runtime(paths, bus){
+    exe = paths.python();
+};
 
 void PythonRuntime::run(const std::string &file, std::vector<std::string> args)
 {
@@ -29,15 +32,17 @@ void PythonRuntime::run(const std::string &file, std::vector<std::string> args)
     if (fs::exists(parentDir / "venv"))
         exe = parentDir / "venv" / "Scripts" / "python.exe";
 
-    process = std::make_unique<Process>(exe, args);
+    std::unique_ptr<Process> process = std::make_unique<Process>(exe, args);
     process->setCurrentDirectory(parentDir.wstring());
     process->start();
-    process->onFinished([this, &file](DWORD exitCode)
+    process->onFinished([&process](DWORD exitCode)
                         { 
                             if(exitCode != 0 )
                             {
                                 spdlog::error(process->error());
                             } });
-    process->readyRead([this]()
+    process->readyRead([&process]()
                        { std::cout << process->read() << std::endl; });
+    // NOTE: REORGANIZE PROCESS CLASS SO THAT THE READYREAD THREADS ONLY START AFTER PROCESS START IS CALLED
+    runtimes_.push_back(process);
 }

@@ -1,32 +1,34 @@
 #ifndef SCRIPT_H
 #define SCRIPT_H
 
+#include "../core/eventBus/eventBus.hpp"
+
+#include <nlohmann/json.hpp>
+
 #include <filesystem>
 #include <vector>
 #include <string>
 
-#include "nlohmann/json.hpp"
 
 class ScriptManager;
 
 class Script
 {
 private:
-    std::filesystem::path dir;
+    std::filesystem::path dir_;
+    std::filesystem::path scriptFile_;
+    std::filesystem::path icon_;
+    nlohmann::json metaData_;
 
-    std::filesystem::path scriptFile;
-    std::filesystem::path icon;
-    nlohmann::json metaData;
-
-    ScriptManager *manager = nullptr;
-
+    ScriptManager &manager_;
+    EventBus &bus_;
     void parseInfo();
     void loadMetaData();
     void findScriptFile();
     void logInfo();
 
 public:
-    Script(std::filesystem::path scriptDir, ScriptManager *m);
+    Script(std::filesystem::path scriptDir, ScriptManager &m, EventBus &bus);
     void initialize();
     void run(std::vector<std::string> args);
     void stop();

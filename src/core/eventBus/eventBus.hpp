@@ -8,7 +8,8 @@
 #include <typeindex>
 
 struct Event{
-    std::string id;
+    std::string to;
+    std::string from;
     std::string type;
     virtual ~Event() = default;
 };

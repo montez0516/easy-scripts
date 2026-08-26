@@ -43,6 +43,7 @@ src/runner/engine/runnerEngine.cpp
 src/runner/runtime/runtimes/pythonRuntime.cpp
 src/runner/runtime/runtimes/defaultRuntime.cpp
 src/runner/runtime/runtimeManager.cpp
+src/runner/runtime/runtime.cpp
 )
 
 target_include_directories(EasyScripts INTERFACE 
