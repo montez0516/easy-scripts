@@ -30,5 +30,6 @@ public:
     void initialize();
     void run(std::vector<std::string> args);
     void stop();
+    bool isService();
 };
 #endif

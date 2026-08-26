@@ -30,6 +30,7 @@ private:
   bool startRunner();
   void loadScripts();
   void registerEventListeners();
+  void startServices();
 public:
   ScriptManager(Paths &paths, EventBus &bus);
   bool initialize();

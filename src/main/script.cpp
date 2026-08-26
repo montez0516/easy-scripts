@@ -21,11 +21,6 @@ Script::Script(std::filesystem::path scriptDir, ScriptManager *m) : dir(std::mov
 void Script::initialize()
 {
     parseInfo();
-
-    if (metaData["type"] == "service")
-    {
-        run({});
-    }
 }
 
 void Script::parseInfo()
@@ -72,4 +67,9 @@ void Script::run(std::vector<std::string> args)
     if (!std::filesystem::exists(scriptFile))
         return;
     manager->run(metaData["language"], scriptFile, args);
+}
+
+bool Script::isService()
+{
+    return metaData["type"] == "service";
 }

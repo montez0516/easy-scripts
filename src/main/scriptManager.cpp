@@ -65,6 +65,7 @@ void ScriptManager::loadScripts()
       scripts_.push_back(script);
     }
   }
+  startServices();
 }
 
 void ScriptManager::run(const std::string &language, const std::filesystem::path &scriptFile, const std::vector<std::string> &args)
@@ -121,4 +122,15 @@ void ScriptManager::registerEventListeners()
         spdlog::error("ScriptManager(registerEventListeners): failed to parse ScriptEvent payload {}\n{}", event.payload, e.what());
       }
     } });
+}
+
+void ScriptManager::startServices()
+{
+  for(Script &script: scripts_)
+  {
+    if(script.isService())
+    {
+      script.run({});
+    }
+  }
 }
