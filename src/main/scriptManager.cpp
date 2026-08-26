@@ -38,7 +38,7 @@ bool ScriptManager::startRunner()
   runnerProcess_ = std::make_unique<Process>(
       std::filesystem::absolute(paths_.runner()),
       std::vector<std::string>{});
-
+  // runnerProcess_->setCaptureHandles(true);
   runnerProcess_->start();
   runnerProcess_->onFinished([this](DWORD exitCode)
                              { spdlog::critical("ScriptManager(startRunnner): runner process exited with code {}\n{}", exitCode, runnerProcess_->error()); });
@@ -53,10 +53,12 @@ bool ScriptManager::startRunner()
 
 void ScriptManager::loadScripts()
 {
+  spdlog::debug("Loading Scripts");
   std::filesystem::path scriptFolder = paths_.scripts();
 
   for (const auto &entry : std::filesystem::directory_iterator(scriptFolder))
   {
+    spdlog::debug(entry.path().string());
     if (entry.is_directory())
     {
       Script script(entry.path(), this);

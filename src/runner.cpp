@@ -45,13 +45,14 @@ int main()
   while (true)
   {
     std::string payload = pipe.read();
+    spdlog::debug("_RUNNER PAYLOAD {}", payload);
     if (!payload.empty())
     {
-      spdlog::debug(payload);
       try
       {
         nlohmann::json jsonPayload = nlohmann::json::parse(payload);
         std::string temp = "";
+        spdlog::debug("_RUNNER RUNNING SCRIPT {}", jsonPayload.value<std::string>("file", ""));
         engine.run(jsonPayload["language"], jsonPayload["file"], temp);
       }
       catch (nlohmann::json_abi_v3_12_0::detail::parse_error &e)
