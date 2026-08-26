@@ -8,7 +8,6 @@
 #include <filesystem>
 #include <thread>
 
-
 int main()
 {
 #if defined(BUILD_DEV)
@@ -19,7 +18,7 @@ int main()
 
   EventBus bus;
 
-  ScriptManager manager{paths};
+  ScriptManager manager{paths, bus};
   manager.initialize();
 
   while (true)

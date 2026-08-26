@@ -116,7 +116,7 @@ void ScriptManager::registerEventListeners()
       } 
       catch(nlohmann::json_abi_v3_12_0::detail::parse_error &e)
       {
-        spdlog::error("ScriptManager(registerEventListeners): failed to parse ScriptEvent payload {}\n{}", event.payload, e);
+        spdlog::error("ScriptManager(registerEventListeners): failed to parse ScriptEvent payload {}\n{}", event.payload, e.what());
       }
     } });
 }
