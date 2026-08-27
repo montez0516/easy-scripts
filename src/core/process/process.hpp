@@ -34,6 +34,7 @@ private:
 
   std::thread waitThread_;
   std::function<void(DWORD)> finishCallBack_;
+  std::function<void()> readyReadCallBack_;
 
   std::wstring buildCommandLine();
   void t_wait();
@@ -58,8 +59,8 @@ public:
 
   void setCaptureHandles(bool value);
 
-  bool readyRead(std::function<void()> readCallBack);
-  void onFinished(std::function<void(DWORD)> finishCallBack);
+  void registerReadyReadCallback(std::function<void()> readCallBack);
+  void registerOnFinishedCallback(std::function<void(DWORD)> finishCallBack);
 };
 
 #endif

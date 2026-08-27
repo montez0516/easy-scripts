@@ -26,18 +26,19 @@ void Runtime::run(const std::string &file, std::vector<std::string> args)
 
     std::unique_ptr<Process> process = std::make_unique<Process>(executable(absFile), args);
     process->setCurrentDirectory(absFile.parent_path());
-    process->start();
+    process->setCaptureHandles(true);
 
     Process *processPtr = process.get();
-    process->onFinished([processPtr](DWORD exitCode)
-                        { 
+    process->registerReadyReadCallback([processPtr]()
+                                       { std::cout << processPtr->read() << std::endl; });
+    process->registerOnFinishedCallback([processPtr](DWORD exitCode)
+                                        { 
                             if(exitCode != 0 )
                             {
                                 spdlog::error(processPtr->error());
                             } });
-    process->readyRead([processPtr]()
-                       { std::cout << processPtr->read() << std::endl; });
-    // NOTE: REORGANIZE PROCESS CLASS SO THAT THE READYREAD THREADS ONLY START AFTER PROCESS START IS CALLED
+    process->start();
+
     runtimes_.push_back(std::move(process));
 }
 

@@ -52,7 +52,7 @@ bool Process::start()
                         command.data(),
                         NULL,
                         NULL,
-                        TRUE,
+                        captureHandles_ ? TRUE : FALSE,
                         CREATE_UNICODE_ENVIRONMENT,
                         environmentBlock,
                         cwd_.empty() ? NULL : cwd_.c_str(),
@@ -61,6 +61,16 @@ bool Process::start()
     {
         spdlog::error("Process(start): CreateProcessW failed {} {}", toString(GetError()), exe_.string());
         return false;
+    }
+
+    if (captureHandles_)
+    {
+        stdinPipe_.closeRead();
+        stdoutPipe_.closeWrite();
+        stderrPipe_.closeWrite();
+
+        if (readyReadCallBack_)
+            stdoutPipe_.readyRead(readyReadCallBack_);
     }
 
     waitThread_ = std::thread(&Process::t_wait, this);
@@ -96,7 +106,8 @@ void Process::t_wait()
 {
     if (processInformation_.hProcess == nullptr)
     {
-        throw std::runtime_error("hProcess handle null");
+        spdlog::error("Process(t_wait): hProcess handle null");
+        return;
     }
 
     WaitForSingleObject(processInformation_.hProcess, INFINITE);
@@ -193,14 +204,14 @@ std::string Process::error()
     return stderrPipe_.read();
 }
 
-bool Process::readyRead(std::function<void()> readCallBack)
+void Process::registerReadyReadCallback(std::function<void()> callback)
 {
-    return stdoutPipe_.readyRead(std::move(readCallBack));
+    readyReadCallBack_ = std::move(callback);
 }
 
-void Process::onFinished(std::function<void(DWORD)> finishCallBack)
+void Process::registerOnFinishedCallback(std::function<void(DWORD)> callback)
 {
-    finishCallBack_ = std::move(finishCallBack);
+    finishCallBack_ = std::move(callback);
 }
 
 bool Process::captureProcessHandles()
@@ -220,10 +231,6 @@ bool Process::captureProcessHandles()
     SetHandleInformation(stdinPipe_.getWrite(), HANDLE_FLAG_INHERIT, 0);
     SetHandleInformation(stdoutPipe_.getRead(), HANDLE_FLAG_INHERIT, 0);
     SetHandleInformation(stderrPipe_.getRead(), HANDLE_FLAG_INHERIT, 0);
-
-    stdinPipe_.closeRead();
-    stdoutPipe_.closeWrite();
-    stderrPipe_.closeWrite();
 
     return true;
 }

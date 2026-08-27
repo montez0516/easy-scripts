@@ -38,12 +38,11 @@ bool ScriptManager::startRunner()
   runnerProcess_ = std::make_unique<Process>(
       std::filesystem::absolute(paths_.runner()),
       std::vector<std::string>{});
-  // runnerProcess_->setCaptureHandles(true);
+  runnerProcess_->registerOnFinishedCallback([this](DWORD exitCode)
+                                             { spdlog::critical("ScriptManager(startRunnner): runner process exited with code {}\n{}", exitCode, runnerProcess_->error()); });
+  runnerProcess_->registerReadyReadCallback([this]()
+                                            { std::cout << "FROM RUNNER.EXE: " << runnerProcess_->read() << std::endl; });
   runnerProcess_->start();
-  runnerProcess_->onFinished([this](DWORD exitCode)
-                             { spdlog::critical("ScriptManager(startRunnner): runner process exited with code {}\n{}", exitCode, runnerProcess_->error()); });
-  runnerProcess_->readyRead([this]()
-                            { std::cout << "FROM RUNNER.EXE: " << runnerProcess_->read() << std::endl; });
 
   runnerPipe_.waitForConnection();
   runnerPipe_.readyRead([this]()
@@ -85,7 +84,6 @@ void ScriptManager::handleEvent(const std::string &eventPayload)
   try
   {
     nlohmann::json event = nlohmann::json::parse(eventPayload);
-
   }
   catch (nlohmann::json_abi_v3_12_0::detail::parse_error &e)
   {
@@ -96,7 +94,7 @@ void ScriptManager::handleEvent(const std::string &eventPayload)
 void ScriptManager::registerEventListeners()
 {
   bus_.subscribe<ScriptEvent<nlohmann::json>>([this](const ScriptEvent<nlohmann::json> &event)
-                              {
+                                              {
     if(event.to != "0")
       return;
 
@@ -111,9 +109,9 @@ void ScriptManager::registerEventListeners()
 
 void ScriptManager::startServices()
 {
-  for(Script &script: scripts_)
+  for (Script &script : scripts_)
   {
-    if(script.isService())
+    if (script.isService())
     {
       script.run({});
     }
