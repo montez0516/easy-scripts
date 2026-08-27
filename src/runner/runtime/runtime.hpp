@@ -12,17 +12,19 @@ namespace fs = std::filesystem;
 
 class Runtime
 {
-
+private:
 protected:
-    std::string language_ = "default";
-    std::filesystem::path exe_;
     std::vector<std::unique_ptr<Process>> runtimes_;
+
     Paths &paths_;
     EventBus &bus_;
+
+    virtual std::filesystem::path executable(const std::filesystem::path &script) const;
+    virtual void prepareArguments(const std::filesystem::path &script, std::vector<std::string> &args) const;
+
 public:
     Runtime(Paths &paths, EventBus &bus);
     void run(const std::string &file, std::vector<std::string> args);
-
 };
 
 #endif

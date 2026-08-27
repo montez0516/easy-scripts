@@ -9,12 +9,14 @@
 #include <vector>
 #include <string>
 
-
 class DefaultRuntime : public Runtime
 {
 public:
-    DefaultRuntime(Paths &paths);
-    void run(const std::string &file, std::vector<std::string> args) override;
+    using Runtime::Runtime;
+
+protected:
+    std::filesystem::path executable(const std::filesystem::path &script) const override;
+    void prepareArguments(const std::filesystem::path &script, std::vector<std::string> &args) const override;
 };
 
 #endif

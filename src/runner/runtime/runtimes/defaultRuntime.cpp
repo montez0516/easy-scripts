@@ -1,36 +1,24 @@
 #include "defaultRuntime.hpp"
 #include "../../../core/process/process.hpp"
 #include "../../../core/paths.hpp"
+#include "../../../core/eventBus/eventBus.hpp"
 
 #include <spdlog/spdlog.h>
 
+#include <windows.h>
 #include <filesystem>
+#include <vector>
 #include <iostream>
 #include <memory>
 
-DefaultRuntime::DefaultRuntime(Paths &paths) : Runtime(paths) {};
+namespace fs = std::filesystem;
 
-void DefaultRuntime::run(const std::string &file, std::vector<std::string> args)
+std::filesystem::path DefaultRuntime::executable(const std::filesystem::path &script) const
 {
-    spdlog::debug("DEFAULT RUNTIME: {}", file);
+    return "";
+}
 
-    fs::path absFile = fs::absolute(file);
-    fs::path parentDir = absFile.parent_path();
-
-    args.insert(args.begin(), absFile.string());
-    args.push_back("-u");
-    
-    std::unique_ptr<Process> process = std::make_unique<Process>(exe, args);
-    process->setCurrentDirectory(parentDir.wstring());
-    process->start();
-    process->onFinished([&process](DWORD exitCode)
-                        { 
-                            if(exitCode != 0 )
-                            {
-                                spdlog::error(process->error());
-                            } });
-    process->readyRead([&process]()
-                       { std::cout << process->read() << std::endl; });
-    // NOTE: REORGANIZE PROCESS CLASS SO THAT THE READYREAD THREADS ONLY START AFTER PROCESS START IS CALLED
-    runtimes_.push_back(process);
+void DefaultRuntime::prepareArguments(const std::filesystem::path &script, std::vector<std::string> &args) const
+{
+    args.insert(args.begin(), script.string());
 }

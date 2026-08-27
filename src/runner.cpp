@@ -24,7 +24,7 @@ int main()
 
   if (!pipe.connect())
   {
-    
+
     spdlog::critical("runner(main): NamedPipe failed to connect.");
     return 1;
   }
@@ -38,9 +38,9 @@ int main()
   while (true)
   {
     std::string payload = pipe.read();
-    spdlog::debug("SCRIPT PAYLOAD\n{}", payload);
     if (!payload.empty())
     {
+      spdlog::debug("SCRIPT PAYLOAD\n{}", payload);
       try
       {
         nlohmann::json jsonPayload = nlohmann::json::parse(payload);

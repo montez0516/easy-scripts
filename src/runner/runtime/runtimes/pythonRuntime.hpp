@@ -11,8 +11,11 @@
 class PythonRuntime : public Runtime
 {
 public:
-    PythonRuntime(Paths &paths, EventBus &bus);
-    void run(const std::string &file, std::vector<std::string> args) override;
+    using Runtime::Runtime;
+
+protected:
+    std::filesystem::path executable(const std::filesystem::path &script) const override;
+    void prepareArguments(const std::filesystem::path &script, std::vector<std::string> &args) const override;
 };
 
 #endif
