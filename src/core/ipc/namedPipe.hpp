@@ -7,7 +7,7 @@
 #include <functional>
 #include <thread>
 
-#define PIPENAME "\\\\.\\pipe\\easyscripts"
+#define PIPE_PREFIX "\\\\.\\pipe\\"
 
 class NamedPipe
 {
@@ -20,7 +20,7 @@ private:
     std::thread readyReadThread_;
 
 public:
-    NamedPipe(std::string pipeName = PIPENAME);
+    NamedPipe(std::string pipeName);
     ~NamedPipe();
 
     bool create();

@@ -3,6 +3,7 @@
 #include "../../core/process/process.hpp"
 #include "../../core/paths.hpp"
 #include "../../core/eventBus/eventBus.hpp"
+#include "../../main/scriptManager.hpp"
 
 #include <spdlog/spdlog.h>
 
@@ -29,8 +30,17 @@ void Runtime::run(const std::string &file, std::vector<std::string> args)
     process->setCaptureHandles(true);
 
     Process *processPtr = process.get();
-    process->registerReadyReadCallback([processPtr]()
-                                       { std::cout << processPtr->read() << std::endl; });
+    process->registerReadyReadCallback([this, processPtr]()
+                                    { 
+                                        std::string scriptPayload = processPtr->read();
+                                        spdlog::debug("RUNTIME RECIEVED EVENT {}", scriptPayload);
+                                        ScriptEvent<std::string> event;
+                                        event.to = "runner.exe";
+                                        event.from = "Runtime";
+                                        event.payload = scriptPayload;
+
+                                        bus_.publish(event);
+                                    });
     process->registerOnFinishedCallback([processPtr](DWORD exitCode)
                                         { 
                             if(exitCode != 0 )

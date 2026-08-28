@@ -23,7 +23,8 @@ class ScriptManager
 private:
   std::vector<Script> scripts_;
   std::vector<Process> runtimes_;
-  NamedPipe runnerPipe_;
+  NamedPipe mainPipe_{"easyscripts"};
+  NamedPipe runnerPipe_{"runner"};
   std::unique_ptr<Process> runnerProcess_;
   Paths &paths_;
   EventBus &bus_;

@@ -1,3 +1,5 @@
+#include "namedPipe.hpp"
+
 #include <windows.h>
 #include <string>
 #include <iostream>
@@ -6,9 +8,10 @@
 #include <utility>
 #include <cstdint>
 
-#include "namedPipe.hpp"
 
-NamedPipe::NamedPipe(std::string pipeName) : pipeName_(std::move(pipeName)) {}
+NamedPipe::NamedPipe(std::string pipeName) {
+    pipeName_ = PIPE_PREFIX + pipeName;
+}
 
 NamedPipe::~NamedPipe()
 {
