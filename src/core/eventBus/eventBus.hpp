@@ -21,7 +21,7 @@ class EventBus{
     public:
 
     template<typename T>
-    void subscribe(std::function<void(const T&)> callback)
+    void subscribe(std::function<void(T&)> callback)
     {
         auto typeIndx = std::type_index(typeid(T));
         subscribers[typeIndx].push_back([callback](const Event& e)
