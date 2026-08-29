@@ -1,9 +1,9 @@
-#include "core/ipc/namedPipe.hpp"
+#include "core/ipc/namedPipeServer.hpp"
+#include "core/ipc/namedPipeClient.hpp"
 #include "runner/engine/runnerEngine.hpp"
 #include "core/paths.hpp"
 #include "core/eventBus/eventBus.hpp"
 #include "main/scriptManager.hpp"
-
 
 #include <spdlog/spdlog.h>
 #include <nlohmann/json.hpp>
@@ -18,16 +18,16 @@ namespace fs = std::filesystem;
 
 void registerEventListeners(EventBus &bus, NamedPipe &pipe)
 {
-  bus.subscribe<ScriptEvent<std::string>>([&pipe](const ScriptEvent<std::string> &event)
-{
+  bus.subscribe<ScriptEvent<std::string>>([&pipe](ScriptEvent<std::string> &event)
+                                          {
+                                            spdlog::debug(
+                                                        "RUNNER BUS CALLBACK: to={} from={} payload={}",
+                                                        event.to,
+                                                        event.from,
+                                                        event.payload
+                                                    );
   if(event.to == "runner.exe")
   {
-    spdlog::debug(
-                "RUNNER BUS CALLBACK: to={} from={} payload={}",
-                event.to,
-                event.from,
-                event.payload
-            );
 
             if (event.to != "runner.exe")
             {
@@ -35,13 +35,23 @@ void registerEventListeners(EventBus &bus, NamedPipe &pipe)
                 return;
             }
 
-            spdlog::debug("RUNNER: writing event to named pipe");
+            try{
+              spdlog::debug("RUNNER: adding from to event payload");
+              nlohmann::json jsonPayload = nlohmann::json::parse(event.payload);
+              jsonPayload["from"] = event.from;
+              spdlog::debug("RUNNER: added from to event payload");
 
-            pipe.write(event.payload);
+              spdlog::debug("RUNNER: sending event to main application");
+              pipe.write(jsonPayload.dump());
+              spdlog::debug("RUNNER: sent event to main application");
 
-            spdlog::debug("RUNNER: pipe.write returned");
-  }
-});
+            }
+            catch(nlohmann::json_abi_v3_12_0::detail::parse_error &e)
+            {
+              spdlog::error("RUNNER(registerEventListeners): failed to parse payload {}\n{}", event.payload, e.what());
+            }
+
+  } });
 }
 
 int main()
@@ -50,22 +60,23 @@ int main()
 #if defined(BUILD_DEV)
   spdlog::set_level(spdlog::level::debug);
 #endif
-  NamedPipe runnerPipe{"runner"};  
-  if(!runnerPipe.create())
+  NamedPipeServer runnerPipe{"runner"};
+  if (!runnerPipe.open())
   {
     spdlog::critical("runner(main): runnerPipe failed to create {}", GetLastError());
     return 1;
   }
-  
-  NamedPipe mainPipe{"easyscripts"};
-  
 
-  if (!mainPipe.connect())
+  NamedPipeClient mainPipe{"easyscripts"};
+
+  if (!mainPipe.open())
   {
 
     spdlog::critical("runner(main): mainPipe failed to connect {}", GetLastError());
     return 1;
   }
+
+  runnerPipe.waitForConnection();
 
   Paths paths{};
   EventBus bus;
@@ -84,15 +95,33 @@ int main()
       try
       {
         nlohmann::json jsonPayload = nlohmann::json::parse(payload);
-        std::string temp = "";
-        spdlog::debug("RUNNING SCRIPT\n{}", jsonPayload.value<std::string>("file", ""));
-        engine.run(jsonPayload["language"], jsonPayload["file"], temp);
+
+        std::string type = jsonPayload.value<std::string>("type", "");
+
+        if (type == "run")
+        {
+          std::string temp = "";
+          spdlog::debug("RUNNING SCRIPT\n{}", jsonPayload.value<std::string>("file", ""));
+          engine.run(jsonPayload["language"], jsonPayload["file"], temp);
+        }
+        else if (type == "response")
+        {
+          spdlog::debug("RUNNER: response type recieved");
+          ScriptEvent<std::string> event;
+          event.to = jsonPayload["to"];
+          event.payload = jsonPayload["payload"];
+          spdlog::debug("RUNNER: sending response event to runtime");
+          bus.publish(event);
+          spdlog::debug("RUNNER: sent response event to runtime");
+        }
       }
       catch (nlohmann::json_abi_v3_12_0::detail::parse_error &e)
       {
         spdlog::error("Runner(): failed to parse event payload {}", e.what());
       }
     }
+    else
+      return 1;
   }
 
   return 0;

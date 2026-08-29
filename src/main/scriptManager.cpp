@@ -29,28 +29,41 @@ bool ScriptManager::initialize()
 
 bool ScriptManager::startRunner()
 {
-  if(!mainPipe_.create())
+  if (!mainPipe_.open())
   {
     spdlog::critical("ScriptManager(startRunner): mainPipe failed to create {}", GetLastError());
     return false;
   }
-  
-  runnerProcess_ = std::make_unique<Process>(
-    std::filesystem::absolute(paths_.runner()),
-    std::vector<std::string>{});
-    runnerProcess_->registerOnFinishedCallback([this](DWORD exitCode)
-    { spdlog::critical("ScriptManager(startRunnner): runner process exited with code {}\n{}", exitCode, runnerProcess_->error()); });
-    runnerProcess_->start();
-  
-  mainPipe_.waitForConnection();
 
-  if (!runnerPipe_.connect())
+  runnerProcess_ = std::make_unique<Process>(
+      std::filesystem::absolute(paths_.runner()),
+      std::vector<std::string>{});
+  runnerProcess_->registerOnFinishedCallback([this](DWORD exitCode)
+                                             { spdlog::critical("ScriptManager(startRunnner): runner process exited with code {}\n{}", exitCode, runnerProcess_->error()); });
+  runnerProcess_->start();
+
+  spdlog::debug("ScriptManager: waiting for runner to connect");
+  mainPipe_.waitForConnection();
+  spdlog::debug("ScriptManager: runner connected to main pipe");
+
+  if (!runnerPipe_.open())
   {
-      spdlog::critical("scriptManager(startRunner): runnerPipe failed to connet {}", GetLastError());
-      return false;
+    spdlog::critical("scriptManager(startRunner): runnerPipe failed to connet {}", GetLastError());
+    return false;
   }
+
   runnerPipe_.readyRead([this]()
-                        { handleEvent(runnerPipe_.read()); });
+                        {
+    spdlog::debug("ScriptManager: runnerPipe readyRead fired");
+
+    std::string payload = runnerPipe_.read();
+
+    spdlog::debug(
+        "ScriptManager: runnerPipe read returned {} bytes",
+        payload.size()
+    );
+
+    handleEvent(payload); });
   return true;
 }
 
@@ -80,7 +93,38 @@ void ScriptManager::run(const std::string &language, const std::filesystem::path
     return;
   }
 
-  mainPipe_.write(nlohmann::json({{"language", language}, {"file", scriptFile.string()}, {"args", args}}).dump());
+  mainPipe_.write(nlohmann::json({{"type", "run"}, {"language", language}, {"file", scriptFile.string()}, {"args", args}}).dump());
+}
+
+#include <commdlg.h>
+
+#include <optional>
+
+std::optional<std::filesystem::path> openFilePicker()
+{
+  wchar_t fileBuffer[MAX_PATH] = {};
+
+  OPENFILENAMEW dialog{};
+  dialog.lStructSize = sizeof(dialog);
+  dialog.hwndOwner = nullptr;
+  dialog.lpstrFile = fileBuffer;
+  dialog.nMaxFile = MAX_PATH;
+
+  dialog.lpstrFilter =
+      L"All Files\0*.*\0"
+      L"Text Files\0*.txt\0"
+      L"Images\0*.png;*.jpg;*.jpeg\0";
+
+  dialog.nFilterIndex = 1;
+
+  dialog.Flags =
+      OFN_PATHMUSTEXIST |
+      OFN_FILEMUSTEXIST;
+
+  if (GetOpenFileNameW(&dialog))
+    return std::filesystem::path(fileBuffer);
+
+  return std::nullopt;
 }
 
 void ScriptManager::handleEvent(const std::string &eventPayload)
@@ -89,7 +133,21 @@ void ScriptManager::handleEvent(const std::string &eventPayload)
   try
   {
     nlohmann::json event = nlohmann::json::parse(eventPayload);
-    
+    if (event["type"] == "filepicker")
+    {
+      std::optional<std::filesystem::path> files = openFilePicker();
+      if (files.has_value())
+      {
+        nlohmann::json response({{"to", event["from"]}, {"type", "response"}, {"payload", files.value().string()}});
+        spdlog::debug("WRITING RESPONSE TO RUNNER");
+        mainPipe_.write(response.dump());
+        spdlog::debug("WROTE RESPONSE TO RUNNER");
+      }
+    }
+    else if (event["type"] == "msg")
+    {
+      spdlog::info(event["payload"]);
+    }
   }
   catch (nlohmann::json_abi_v3_12_0::detail::parse_error &e)
   {
@@ -99,7 +157,7 @@ void ScriptManager::handleEvent(const std::string &eventPayload)
 
 void ScriptManager::registerEventListeners()
 {
-  bus_.subscribe<ScriptEvent<nlohmann::json>>([this](const ScriptEvent<nlohmann::json> &event)
+  bus_.subscribe<ScriptEvent<nlohmann::json>>([this](ScriptEvent<nlohmann::json> &event)
                                               {
     if(event.to != "0")
       return;

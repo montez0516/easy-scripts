@@ -1,58 +1,25 @@
 #include "namedPipe.hpp"
 
-#include <windows.h>
-#include <string>
-#include <iostream>
 #include <spdlog/spdlog.h>
 #include <nlohmann/json.hpp>
+
+#include <windows.h>
+#include <string>
 #include <utility>
 #include <cstdint>
 
-
-NamedPipe::NamedPipe(std::string pipeName) {
-    pipeName_ = PIPE_PREFIX + pipeName;
-}
-
 NamedPipe::~NamedPipe()
 {
+    threadLoop_.store(false);
+    if (readyReadThread_.joinable())
+        readyReadThread_.join();
+
     if (pipeHandle_ != INVALID_HANDLE_VALUE)
     {
         FlushFileBuffers(pipeHandle_);
         DisconnectNamedPipe(pipeHandle_);
         CloseHandle(pipeHandle_);
     }
-}
-
-bool NamedPipe::create()
-{
-    pipeHandle_ = CreateNamedPipe(pipeName_.c_str(), PIPE_ACCESS_DUPLEX, PIPE_TYPE_MESSAGE | PIPE_READMODE_MESSAGE | PIPE_WAIT, PIPE_UNLIMITED_INSTANCES, 512, 512, 0, NULL);
-
-    if (pipeHandle_ == INVALID_HANDLE_VALUE)
-    {
-        spdlog::error("NamedPipe(create): Failed to create pipe. Error: {}\n", GetLastError());
-        return false;
-    }
-    return true;
-}
-
-bool NamedPipe::connect()
-{
-    pipeHandle_ = CreateFile(
-        pipeName_.c_str(),
-        GENERIC_READ | GENERIC_WRITE,
-        0,
-        NULL,
-        OPEN_EXISTING,
-        0,
-        NULL);
-
-    if (pipeHandle_ == INVALID_HANDLE_VALUE)
-    {
-        spdlog::critical("NamedPipe(connect): Failed to connect to pipe. Error: {}\n", GetLastError());
-        return false;
-    }
-
-    return true;
 }
 
 std::string NamedPipe::read()
@@ -113,30 +80,6 @@ bool NamedPipe::isNull()
     return pipeHandle_ == INVALID_HANDLE_VALUE;
 }
 
-bool NamedPipe::waitForConnection()
-{
-    if (pipeHandle_ == INVALID_HANDLE_VALUE)
-    {
-        spdlog::critical("NamedPipe(waitForConnection): pipeHandle is NULL");
-        return false;
-    }
-
-    if (ConnectNamedPipe(pipeHandle_, nullptr))
-    {
-        return true;
-    }
-
-    DWORD error = GetLastError();
-
-    if (error == ERROR_PIPE_CONNECTED)
-    {
-        return true;
-    }
-
-    spdlog::error("NamedPipe(waitForConnection): ConnectNamedPipe failed: {}", error);
-    return false;
-}
-
 bool NamedPipe::readyRead(std::function<void()> readCallBack)
 {
     if (pipeHandle_ == INVALID_HANDLE_VALUE)
@@ -148,14 +91,23 @@ bool NamedPipe::readyRead(std::function<void()> readCallBack)
 
     readyReadThread_ = std::thread([this]()
                                    {
-        while(threadLoop_)
+        while(threadLoop_.load())
         {
             DWORD bytesAvail = 0;
             if(PeekNamedPipe(pipeHandle_, NULL, 0, NULL, &bytesAvail, NULL))
             {
                 if(bytesAvail > 0)
                 {
+                    spdlog::debug(
+                        "NamedPipe(readyRead): {} bytes available",
+                        bytesAvail
+                    );
+
                     readyReadCallBack_();
+
+                    spdlog::debug(
+                        "NamedPipe(readyRead): callback returned"
+                    );
                 }
             }
             else{

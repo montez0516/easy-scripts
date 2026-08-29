@@ -31,6 +31,8 @@ src/main/script.cpp
 src/core/process/process.cpp
 src/core/ipc/namedPipe.cpp
 src/core/ipc/unnamedPipe.cpp
+src/core/ipc/namedPipeServer.cpp
+src/core/ipc/namedPipeClient.cpp
 )
 
 add_executable(runner
@@ -39,6 +41,8 @@ src/core/paths.cpp
 src/core/process/process.cpp
 src/core/ipc/namedPipe.cpp
 src/core/ipc/unnamedPipe.cpp
+src/core/ipc/namedPipeServer.cpp
+src/core/ipc/namedPipeClient.cpp
 src/runner/engine/runnerEngine.cpp 
 src/runner/runtime/runtimes/pythonRuntime.cpp
 src/runner/runtime/runtimes/defaultRuntime.cpp

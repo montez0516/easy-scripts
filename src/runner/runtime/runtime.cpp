@@ -15,6 +15,7 @@
 
 Runtime::Runtime(Paths &paths, EventBus &bus) : paths_(paths), bus_(bus)
 {
+    registerListener();
 }
 
 void Runtime::run(const std::string &file, std::vector<std::string> args)
@@ -30,17 +31,16 @@ void Runtime::run(const std::string &file, std::vector<std::string> args)
     process->setCaptureHandles(true);
 
     Process *processPtr = process.get();
-    process->registerReadyReadCallback([this, processPtr]()
-                                    { 
+    process->registerReadyReadCallback([this, processPtr, file]()
+                                       { 
                                         std::string scriptPayload = processPtr->read();
                                         spdlog::debug("RUNTIME RECIEVED EVENT {}", scriptPayload);
                                         ScriptEvent<std::string> event;
                                         event.to = "runner.exe";
-                                        event.from = "Runtime";
+                                        event.from = file;
                                         event.payload = scriptPayload;
 
-                                        bus_.publish(event);
-                                    });
+                                        bus_.publish(event); });
     process->registerOnFinishedCallback([processPtr](DWORD exitCode)
                                         { 
                             if(exitCode != 0 )
@@ -65,16 +65,22 @@ void Runtime::prepareArguments(const std::filesystem::path &script, std::vector<
 void Runtime::registerListener()
 {
     bus_.subscribe<ScriptEvent<std::string>>([this](ScriptEvent<std::string> &event)
-{
-    if(runtimes_.find(event.to) == runtimes_.end())
-    {
-        spdlog::error("Runtime(registerListener): event reached dead end to={} from={} payload={}", event.to, event.from, event.payload);
-        return;
-    }
-    std::unique_ptr<Process> process = runtimes_[event.to];
+                                             {
+                                                spdlog::debug("RUNTIME CALLBACK: to={} payload={}", event.to, event.payload);
 
-    process->write(event.payload);
+                                                for(const auto &pair : runtimes_)
+                                                {
+                                                    spdlog::debug(pair.first);
+                                                }
 
-    
-});
+                                                 if (runtimes_.find(event.to) == runtimes_.end())
+                                                 {
+                                                     spdlog::error("Runtime(registerListener): event reached dead end to={} from={} payload={}", event.to, event.from, event.payload);
+                                                     return;
+                                                 }
+
+                                                Process *process = runtimes_[event.to].get();
+                                                spdlog::debug("RUNTIME: writing payload to process");
+                                                process->write(event.payload); 
+                                                spdlog::debug("RUNTIME: wrote payload to process"); });
 }

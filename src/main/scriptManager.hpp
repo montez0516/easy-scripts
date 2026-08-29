@@ -3,7 +3,8 @@
 
 #include "script.hpp"
 #include "../core/process/process.hpp"
-#include "../core/ipc/namedPipe.hpp"
+#include "../core/ipc/namedPipeServer.hpp"
+#include "../core/ipc/namedPipeClient.hpp"
 #include "../core/paths.hpp"
 #include "../core/eventBus/eventBus.hpp"
 
@@ -12,7 +13,7 @@
 #include <memory>
 #include <string>
 
-template<typename T>
+template <typename T>
 struct ScriptEvent : Event
 {
   T payload;
@@ -23,8 +24,8 @@ class ScriptManager
 private:
   std::vector<Script> scripts_;
   std::vector<Process> runtimes_;
-  NamedPipe mainPipe_{"easyscripts"};
-  NamedPipe runnerPipe_{"runner"};
+  NamedPipeServer mainPipe_{"easyscripts"};
+  NamedPipeClient runnerPipe_{"runner"};
   std::unique_ptr<Process> runnerProcess_;
   Paths &paths_;
   EventBus &bus_;
@@ -33,6 +34,7 @@ private:
   void loadScripts();
   void registerEventListeners();
   void startServices();
+
 public:
   ScriptManager(Paths &paths, EventBus &bus);
   bool initialize();
