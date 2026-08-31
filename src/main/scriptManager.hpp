@@ -8,12 +8,14 @@
 #include "../core/paths.hpp"
 #include "../core/eventBus/eventBus.hpp"
 
+#include <nlohmann/json.hpp>
+
 #include <filesystem>
 #include <vector>
 #include <memory>
 #include <string>
 
-template <typename T>
+template<typename T>
 struct ScriptEvent : Event
 {
   T payload;

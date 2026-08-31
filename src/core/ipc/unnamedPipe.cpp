@@ -121,7 +121,12 @@ bool UnnamedPipe::readyRead(std::function<void()> readCallBack)
                 }
             }
             else{
-                spdlog::error("UnnamedPipe(readyRead): failed to peek into readHandle");
+                DWORD code = GetLastError();
+
+                if(code != 109)
+                {
+                    spdlog::error("UnnamedPipe(readyRead): failed to peek into readHandle. {}", code);
+                }
 
                 return;
             }

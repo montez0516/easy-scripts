@@ -1,6 +1,7 @@
 #include "scriptManager.hpp"
 
 #include "script.hpp"
+#include "events.hpp"
 #include "../core/process/process.hpp"
 #include "../core/paths.hpp"
 
@@ -54,15 +55,7 @@ bool ScriptManager::startRunner()
 
   runnerPipe_.readyRead([this]()
                         {
-    spdlog::debug("ScriptManager: runnerPipe readyRead fired");
-
     std::string payload = runnerPipe_.read();
-
-    spdlog::debug(
-        "ScriptManager: runnerPipe read returned {} bytes",
-        payload.size()
-    );
-
     handleEvent(payload); });
   return true;
 }
@@ -93,7 +86,9 @@ void ScriptManager::run(const std::string &language, const std::filesystem::path
     return;
   }
 
-  mainPipe_.write(nlohmann::json({{"type", "run"}, {"language", language}, {"file", scriptFile.string()}, {"args", args}}).dump());
+  std::string runPayload = Events::run(scriptFile.string(), language, args);
+
+  mainPipe_.write(runPayload);
 }
 
 #include <commdlg.h>
@@ -129,20 +124,16 @@ std::optional<std::filesystem::path> openFilePicker()
 
 void ScriptManager::handleEvent(const std::string &eventPayload)
 {
-  spdlog::debug("ScriptManager recieved event {}", eventPayload);
   try
   {
     nlohmann::json event = nlohmann::json::parse(eventPayload);
     if (event["type"] == "filepicker")
     {
       std::optional<std::filesystem::path> files = openFilePicker();
-      if (files.has_value())
-      {
-        nlohmann::json response({{"to", event["from"]}, {"type", "response"}, {"payload", files.value().string()}});
-        spdlog::debug("WRITING RESPONSE TO RUNNER");
-        mainPipe_.write(response.dump());
-        spdlog::debug("WROTE RESPONSE TO RUNNER");
-      }
+
+      std::string responsePayload = Events::response(event.value("from", ""), files.has_value() ? files.value() : "");
+
+      mainPipe_.write(responsePayload);
     }
     else if (event["type"] == "msg")
     {

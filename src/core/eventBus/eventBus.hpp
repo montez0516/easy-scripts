@@ -2,12 +2,14 @@
 #define EVENT_BUS_H
 
 #include <spdlog/spdlog.h>
+#include <nlohmann/json.hpp>
 
 #include <string>
 #include <map>
 #include <vector>
 #include <functional>
 #include <typeindex>
+
 
 struct Event
 {
@@ -34,20 +36,14 @@ public:
     template <typename T>
     void publish(T &event)
     {
-        std::string typeName = typeid(T).name();
-        spdlog::debug("EventBus: FINDING CALLBACK FOR TYPE {}", typeName);
         auto typeIndx = std::type_index(typeid(T));
         if (subscribers.find(typeIndx) != subscribers.end())
         {
-            spdlog::debug("EventBus: CALLING CALLBACKS FOR TYPE {}", typeName);
             for (auto &callback : subscribers[typeIndx])
             {
                 callback(event);
             }
-            spdlog::debug("EventBus: CALLED CALLBACKS FOR TYPE {}", typeName);
         }
-        else
-            spdlog::debug("EventBus: no callbacks found for type {}", typeName);
     }
 };
 

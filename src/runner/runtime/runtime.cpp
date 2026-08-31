@@ -34,7 +34,6 @@ void Runtime::run(const std::string &file, std::vector<std::string> args)
     process->registerReadyReadCallback([this, processPtr, file]()
                                        { 
                                         std::string scriptPayload = processPtr->read();
-                                        spdlog::debug("RUNTIME RECIEVED EVENT {}", scriptPayload);
                                         ScriptEvent<std::string> event;
                                         event.to = "runner.exe";
                                         event.from = file;
@@ -66,8 +65,6 @@ void Runtime::registerListener()
 {
     bus_.subscribe<ScriptEvent<std::string>>([this](ScriptEvent<std::string> &event)
                                              {
-                                                spdlog::debug("RUNTIME CALLBACK: to={} payload={}", event.to, event.payload);
-
                                                 for(const auto &pair : runtimes_)
                                                 {
                                                     spdlog::debug(pair.first);
@@ -75,12 +72,10 @@ void Runtime::registerListener()
 
                                                  if (runtimes_.find(event.to) == runtimes_.end())
                                                  {
-                                                     spdlog::error("Runtime(registerListener): event reached dead end to={} from={} payload={}", event.to, event.from, event.payload);
                                                      return;
                                                  }
 
                                                 Process *process = runtimes_[event.to].get();
-                                                spdlog::debug("RUNTIME: writing payload to process");
                                                 process->write(event.payload); 
-                                                spdlog::debug("RUNTIME: wrote payload to process"); });
+                                             });
 }

@@ -20,30 +20,18 @@ void registerEventListeners(EventBus &bus, NamedPipe &pipe)
 {
   bus.subscribe<ScriptEvent<std::string>>([&pipe](ScriptEvent<std::string> &event)
                                           {
-                                            spdlog::debug(
-                                                        "RUNNER BUS CALLBACK: to={} from={} payload={}",
-                                                        event.to,
-                                                        event.from,
-                                                        event.payload
-                                                    );
   if(event.to == "runner.exe")
   {
 
             if (event.to != "runner.exe")
             {
-                spdlog::debug("RUNNER: ignoring event");
                 return;
             }
 
             try{
-              spdlog::debug("RUNNER: adding from to event payload");
               nlohmann::json jsonPayload = nlohmann::json::parse(event.payload);
               jsonPayload["from"] = event.from;
-              spdlog::debug("RUNNER: added from to event payload");
-
-              spdlog::debug("RUNNER: sending event to main application");
               pipe.write(jsonPayload.dump());
-              spdlog::debug("RUNNER: sent event to main application");
 
             }
             catch(nlohmann::json_abi_v3_12_0::detail::parse_error &e)
@@ -102,17 +90,14 @@ int main()
         {
           std::string temp = "";
           spdlog::debug("RUNNING SCRIPT\n{}", jsonPayload.value<std::string>("file", ""));
-          engine.run(jsonPayload["language"], jsonPayload["file"], temp);
+          engine.run(jsonPayload["payload"]["language"], jsonPayload["payload"]["file"], temp);
         }
         else if (type == "response")
         {
-          spdlog::debug("RUNNER: response type recieved");
           ScriptEvent<std::string> event;
           event.to = jsonPayload["to"];
           event.payload = jsonPayload["payload"];
-          spdlog::debug("RUNNER: sending response event to runtime");
           bus.publish(event);
-          spdlog::debug("RUNNER: sent response event to runtime");
         }
       }
       catch (nlohmann::json_abi_v3_12_0::detail::parse_error &e)

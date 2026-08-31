@@ -98,16 +98,7 @@ bool NamedPipe::readyRead(std::function<void()> readCallBack)
             {
                 if(bytesAvail > 0)
                 {
-                    spdlog::debug(
-                        "NamedPipe(readyRead): {} bytes available",
-                        bytesAvail
-                    );
-
                     readyReadCallBack_();
-
-                    spdlog::debug(
-                        "NamedPipe(readyRead): callback returned"
-                    );
                 }
             }
             else{
