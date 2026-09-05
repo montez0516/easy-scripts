@@ -139,8 +139,19 @@ void ScriptManager::handleEvent(const std::string &eventPayload)
     {
       spdlog::info(event["payload"]);
     }
+    else if (event["type"] == "input")
+    {
+      std::string inputMsg = event.value<std::string>("payload", "");
+      std::string input = "";
+
+      std::cout << inputMsg << std::endl;
+      std::getline(std::cin, input);
+
+      std::string responsePayload = Events::response(event["from"], input);
+      mainPipe_.write(responsePayload);
+    }
   }
-  catch (nlohmann::json_abi_v3_12_0::detail::parse_error &e)
+  catch (nlohmann::json::exception &e)
   {
     spdlog::critical("ScriptManager(handleEvent): failed to parse event payload {}", e.what());
   }

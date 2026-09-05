@@ -34,9 +34,10 @@ void registerEventListeners(EventBus &bus, NamedPipe &pipe)
               pipe.write(jsonPayload.dump());
 
             }
-            catch(nlohmann::json_abi_v3_12_0::detail::parse_error &e)
+            catch(nlohmann::json::exception &e)
             {
-              spdlog::error("RUNNER(registerEventListeners): failed to parse payload {}\n{}", event.payload, e.what());
+              spdlog::error("RUNNER(registerEventListeners): failed to parse payload {}", e.what());
+              spdlog::error(event.payload);
             }
 
   } });
@@ -100,7 +101,7 @@ int main()
           bus.publish(event);
         }
       }
-      catch (nlohmann::json_abi_v3_12_0::detail::parse_error &e)
+      catch (nlohmann::json::exception &e)
       {
         spdlog::error("Runner(): failed to parse event payload {}", e.what());
       }

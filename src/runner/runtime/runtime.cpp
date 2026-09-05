@@ -12,6 +12,7 @@
 #include <iostream>
 #include <memory>
 #include <utility>
+#include <sstream>
 
 Runtime::Runtime(Paths &paths, EventBus &bus) : paths_(paths), bus_(bus)
 {
@@ -34,12 +35,21 @@ void Runtime::run(const std::string &file, std::vector<std::string> args)
     process->registerReadyReadCallback([this, processPtr, file]()
                                        { 
                                         std::string scriptPayload = processPtr->read();
-                                        ScriptEvent<std::string> event;
-                                        event.to = "runner.exe";
-                                        event.from = file;
-                                        event.payload = scriptPayload;
+                                        
+                                        std::istringstream is(scriptPayload);
 
-                                        bus_.publish(event); });
+                                        spdlog::debug("RUNTIME: Handling process output {}", scriptPayload);
+                                        std::string line;
+
+                                        while(std::getline(is, line)){
+                                            spdlog::debug("RUNTIME: OUTPUT {}", line);
+                                            ScriptEvent<std::string> event;
+                                            event.to = "runner.exe";
+                                            event.from = file;
+                                            event.payload = line;
+                                            
+                                            bus_.publish(event);
+                                        } });
     process->registerOnFinishedCallback([processPtr](DWORD exitCode)
                                         { 
                             if(exitCode != 0 )
@@ -76,6 +86,5 @@ void Runtime::registerListener()
                                                  }
 
                                                 Process *process = runtimes_[event.to].get();
-                                                process->write(event.payload); 
-                                             });
+                                                process->write(event.payload); });
 }
