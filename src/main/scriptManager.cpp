@@ -23,6 +23,9 @@ ScriptManager::ScriptManager(Paths &paths, EventBus &bus, APIRegister &apiRegist
   }
   registerEventListeners();
   loadScripts();
+
+  apiRegister_.registerMethod("scripts.list", [this](APIRequest request)
+                              { return list(request); });
 }
 
 bool ScriptManager::startRunner()
@@ -132,6 +135,20 @@ void ScriptManager::registerEventListeners()
       std::vector<std::string> args = event.payload.value<std::vector<std::string>>("args", {});
       run(language, file, args);
     } });
+}
+
+APIResponse ScriptManager::list(APIRequest request)
+{
+  nlohmann::json scriptsInfo = nlohmann::json::array();
+  for (Script &script : scripts_)
+  {
+    scriptsInfo.push_back(script.getInfo());
+  }
+
+  APIResponse response;
+  response.status = true;
+  response.result = scriptsInfo;
+  return response;
 }
 
 void ScriptManager::startServices()

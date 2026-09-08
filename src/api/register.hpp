@@ -2,6 +2,7 @@
 #define REGISTER_H
 
 #include <spdlog/spdlog.h>
+#include <nlohmann/json.hpp>
 
 #include <string>
 #include <functional>
@@ -11,7 +12,7 @@
 struct APIResponse
 {
     bool status;
-    std::string result;
+    nlohmann::json result;
     std::string error;
 };
 

@@ -45,6 +45,8 @@ public:
   void run(const std::string &language, const std::filesystem::path &scriptFile, const std::vector<std::string> &args);
   void stop();
 
+  APIResponse list(APIRequest request);
+
   void handleEvent(const std::string &eventPayload);
 };
 

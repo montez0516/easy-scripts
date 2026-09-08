@@ -9,7 +9,6 @@
 #include <vector>
 #include <string>
 
-
 class ScriptManager;
 
 class Script
@@ -33,5 +32,6 @@ public:
     void run(std::vector<std::string> args);
     void stop();
     bool isService();
+    nlohmann::json getInfo();
 };
 #endif

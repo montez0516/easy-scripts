@@ -12,12 +12,9 @@
 #include <string>
 #include <vector>
 
-
 using json = nlohmann::json;
 
-
-
-Script::Script(std::filesystem::path scriptDir, ScriptManager &m, EventBus &bus) : dir_(std::move(scriptDir)), manager_(m), bus_(bus) 
+Script::Script(std::filesystem::path scriptDir, ScriptManager &m, EventBus &bus) : dir_(std::move(scriptDir)), manager_(m), bus_(bus)
 {
     initialize();
 };
@@ -74,7 +71,7 @@ void Script::run(std::vector<std::string> args)
     event.to = "0";
     event.from = metaData_["name"];
     event.type = "run";
-    event.payload = {{"file", scriptFile_}, {"language", metaData_["language"]}, {"args",args}};
+    event.payload = {{"file", scriptFile_}, {"language", metaData_["language"]}, {"args", args}};
 
     bus_.publish(event);
 }
@@ -83,3 +80,5 @@ bool Script::isService()
 {
     return metaData_["type"] == "service";
 }
+
+nlohmann::json Script::getInfo() { return metaData_; }

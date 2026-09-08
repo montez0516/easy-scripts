@@ -46,6 +46,10 @@ src/ui/themeManager.cpp
 src/ui/themeManager.hpp
 src/ui/centralWidget.hpp
 src/ui/centralWidget.cpp
+src/ui/scriptCard.hpp
+src/ui/scriptCard.cpp
+src/ui/scriptGrid.hpp
+src/ui/scriptGrid.cpp
 )
 
 add_executable(runner
