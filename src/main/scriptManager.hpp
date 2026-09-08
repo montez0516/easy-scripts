@@ -1,7 +1,7 @@
 #ifndef SCRIPT_MANAGER_H
 #define SCRIPT_MANAGER_H
 
-#include "script.hpp"
+#include "scriptInfo.hpp"
 #include "../core/process/process.hpp"
 #include "../core/ipc/namedPipeServer.hpp"
 #include "../core/ipc/namedPipeClient.hpp"
@@ -24,8 +24,19 @@ struct ScriptEvent : Event
 
 class ScriptManager
 {
+
+public:
+  ScriptManager(Paths &paths, EventBus &bus, APIRegister &apiRegister);
+  bool initialize();
+  void run(const std::string &language, const std::string &scriptFile, const std::vector<std::string> &args);
+  void stop();
+
+  APIResponse list(APIRequest request);
+
+  void handleEvent(const std::string &eventPayload);
+
 private:
-  std::vector<Script> scripts_;
+  std::vector<ScriptInfo> scripts_;
   std::vector<Process> runtimes_;
   NamedPipeServer mainPipe_{"easyscripts"};
   NamedPipeClient runnerPipe_{"runner"};
@@ -39,15 +50,7 @@ private:
   void registerEventListeners();
   void startServices();
 
-public:
-  ScriptManager(Paths &paths, EventBus &bus, APIRegister &apiRegister);
-  bool initialize();
-  void run(const std::string &language, const std::filesystem::path &scriptFile, const std::vector<std::string> &args);
-  void stop();
-
-  APIResponse list(APIRequest request);
-
-  void handleEvent(const std::string &eventPayload);
+  ScriptInfo &getScript(std::string id);
 };
 
 #endif

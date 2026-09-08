@@ -1,20 +1,23 @@
 *{
-    color:black;
+    color:white;
+    font-family:"Arial", sans-serif;
 }
 
 QMainWindow{
     background-color:white;
-    color:black;
     
 }
 
 #CentralWidget{
     background-color:white;
-    color:black;
     border: 2px solid black;
 }
 
 #ScriptCard{
-    background-color:red;
-    border:2px solid black;
+    border-radius: 10px;
+}
+
+#ScriptCard > QLabel
+{
+    font-size:25px;
 }

@@ -6,14 +6,24 @@
 #include <nlohmann/json.hpp>
 
 #include <QWidget>
+#include <QLabel>
+#include <QVBoxLayout>
+#include <QEvent>
 
 class ScriptCard : public QWidget
 {
 public:
     ScriptCard(nlohmann::json scriptInfo, APIRegister &apiRegister, QWidget *parent = nullptr);
 
+protected:
+    void mousePressEvent(QMouseEvent *event) override;
+
 private:
+    QLabel *nameLabel_;
+    QVBoxLayout *layout_;
     APIRegister &apiRegister_;
+
+    nlohmann::json scriptInfo_;
 };
 
 #endif

@@ -37,7 +37,6 @@ src/core/ipc/unnamedPipe.cpp
 src/core/ipc/namedPipeServer.cpp
 src/core/ipc/namedPipeClient.cpp
 src/main/scriptManager.cpp
-src/main/script.cpp
 src/main/apis/fileAPI.cpp
 src/main/apis/mediaAPI.cpp
 src/api/register.cpp
@@ -50,6 +49,7 @@ src/ui/scriptCard.hpp
 src/ui/scriptCard.cpp
 src/ui/scriptGrid.hpp
 src/ui/scriptGrid.cpp
+src/main/scriptInfo.cpp
 )
 
 add_executable(runner
