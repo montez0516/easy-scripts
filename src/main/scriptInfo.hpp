@@ -15,6 +15,7 @@ public:
     ScriptInfo(std::filesystem::path scriptName);
     std::string get(std::string key);
     nlohmann::json getAll();
+    bool running{false};
 
 private:
     std::filesystem::path scriptDir_;

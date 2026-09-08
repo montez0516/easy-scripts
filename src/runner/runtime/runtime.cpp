@@ -47,15 +47,18 @@ void Runtime::run(const std::string &file, std::vector<std::string> args)
                                             event.to = "runner.exe";
                                             event.from = file;
                                             event.payload = line;
-                                            
+                                            event.type = "api";
                                             bus_.publish(event);
                                         } });
-    process->registerOnFinishedCallback([processPtr](DWORD exitCode)
+    process->registerOnFinishedCallback([this, processPtr, absFile](DWORD exitCode)
                                         { 
-                            if(exitCode != 0 )
-                            {
-                                spdlog::error(processPtr->error());
-                            } });
+                        spdlog::debug("Runtime(registerOnFinishedCallback): {} exited with code {}", absFile.string(), exitCode);
+                        ScriptEvent<std::string> event;
+                        event.to = "runner.exe";
+                        event.from = absFile.parent_path().filename().string();
+                        event.payload = "";
+                        event.type = "finished";
+                        bus_.publish(event); });
     process->start();
 
     runtimes_[file] = (std::move(process));

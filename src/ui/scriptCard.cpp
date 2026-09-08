@@ -33,10 +33,13 @@ void ScriptCard::mousePressEvent(QMouseEvent *event)
 {
     QWidget::mousePressEvent(event);
 
+    std::string name = scriptInfo_.value("name", "");
+
+    spdlog::debug("ScriptCard(mousePressEvent): Running Script {}", name);
     auto method = apiRegister_.getMethod("scripts.run");
 
     if (!method)
         return;
 
-    APIResponse response = method({.params = scriptInfo_.value("name", "")});
+    APIResponse response = method({.params = name});
 }

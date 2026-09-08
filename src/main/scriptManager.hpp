@@ -15,6 +15,7 @@
 #include <vector>
 #include <memory>
 #include <string>
+#include <optional>
 
 template <typename T>
 struct ScriptEvent : Event
@@ -28,7 +29,7 @@ class ScriptManager
 public:
   ScriptManager(Paths &paths, EventBus &bus, APIRegister &apiRegister);
   bool initialize();
-  void run(const std::string &language, const std::string &scriptFile, const std::vector<std::string> &args);
+  void run(std::string scriptName, const std::vector<std::string> &args);
   void stop();
 
   APIResponse list(APIRequest request);
@@ -51,6 +52,7 @@ private:
   void startServices();
 
   ScriptInfo &getScript(std::string id);
+  bool hasScript(std::string id);
 };
 
 #endif

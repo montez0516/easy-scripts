@@ -29,9 +29,20 @@ void registerEventListeners(EventBus &bus, NamedPipe &pipe)
             }
 
             try{
+
+            if(event.type == "api")
+            {
+
               nlohmann::json jsonPayload = nlohmann::json::parse(event.payload);
               jsonPayload["from"] = event.from;
               pipe.write(jsonPayload.dump());
+            }
+            else if(event.type == "finished")
+            {
+              nlohmann::json jsonPayload = {{"from", event.from}, {"type", "finished"}};
+              spdlog::debug("Runner(): finished payload {}", jsonPayload.dump());
+              pipe.write(jsonPayload.dump());
+            }
 
             }
             catch(nlohmann::json::exception &e)
@@ -106,8 +117,11 @@ int main()
         spdlog::error("Runner(): failed to parse event payload {}", e.what());
       }
     }
-    else
-      return 1;
+    // else
+    // {
+    //   // spdlog::critical("Runner(): pipe payload empty {}", payload);
+    //   return 1;
+    // }
   }
 
   return 0;

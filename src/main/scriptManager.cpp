@@ -11,6 +11,7 @@
 #include <filesystem>
 #include <iostream>
 #include <memory>
+#include <optional>
 
 ScriptManager::ScriptManager(Paths &paths, EventBus &bus, APIRegister &apiRegister) : paths_(paths), bus_(bus), apiRegister_(apiRegister)
 {
@@ -29,12 +30,7 @@ ScriptManager::ScriptManager(Paths &paths, EventBus &bus, APIRegister &apiRegist
                                 APIResponse response;
                                 response.status = true;
 
-                                ScriptInfo scriptInfo = this->getScript(request.params);
-
-                                std::string language = scriptInfo.get("language");
-                                std::string file = scriptInfo.get("file");
-
-                                this->run(language, file, {});
+                                this->run(request.params, {});
 
                                 return response; });
 }
@@ -88,65 +84,83 @@ void ScriptManager::loadScripts()
   startServices();
 }
 
-void ScriptManager::run(const std::string &language, const std::string &scriptFile, const std::vector<std::string> &args)
+void ScriptManager::run(std::string scriptName, const std::vector<std::string> &args)
 {
-  spdlog::debug("Running script {} {}", language, scriptFile);
+  if (!hasScript(scriptName))
+    return;
+  ScriptInfo &scriptInfo = getScript(scriptName);
+
+  if (scriptInfo.running)
+  {
+    spdlog::debug("ScriptManager(run): script already running {}", scriptInfo.get("name"));
+    return;
+  }
+
+  std::string file = scriptInfo.get("file");
+  std::string language = scriptInfo.get("language");
+
+  spdlog::debug("Running script {} {}", language, file);
   if (mainPipe_.isNull())
   {
     spdlog::critical("ScriptManager(run): pipe is NULL");
     return;
   }
 
-  std::string runPayload = Events::run(scriptFile, language, args);
+  std::string runPayload = Events::run(file, language, args);
 
   mainPipe_.write(runPayload);
+  scriptInfo.running = true;
+  spdlog::debug("ScriptManager(run): Ran script", language, file);
 }
 
 void ScriptManager::handleEvent(const std::string &eventPayload)
 {
-  spdlog::debug("ScriptManager(handleEvent)");
+  spdlog::debug("ScriptManager(handleEvent): {}", eventPayload);
   try
   {
     nlohmann::json event = nlohmann::json::parse(eventPayload);
 
     std::string type = event["type"];
 
-    auto method = apiRegister_.getMethod(type);
-
-    if (!method)
+    if (type != "finished")
     {
-      spdlog::error("ScriptManager(handleEvent): method with type {} does not exist", type);
-      return;
+
+      auto method = apiRegister_.getMethod(type);
+
+      if (!method)
+      {
+        spdlog::error("ScriptManager(handleEvent): method with type {} does not exist", type);
+        mainPipe_.write(Events::response(event["from"], ""));
+        return;
+      }
+
+      APIRequest req;
+      req.params = event.value("payload", "");
+
+      APIResponse res = method(req);
+
+      std::string payload = Events::response(event["from"], res.result);
+      mainPipe_.write(payload);
     }
+    else
+    {
+      std::string scriptName = event["from"];
 
-    APIRequest req;
-    req.params = event.value("payload", "");
-
-    APIResponse res = method(req);
-
-    std::string payload = Events::response(event["from"], res.result);
-    mainPipe_.write(payload);
+      if (!hasScript(scriptName))
+        return;
+      ScriptInfo &scriptInfo = getScript(event["from"]);
+      scriptInfo.running = false;
+      spdlog::debug("ScriptManager(handleEvent): script no longer running {}", scriptInfo.get("name"));
+    }
   }
   catch (nlohmann::json::exception &e)
   {
-    spdlog::critical("ScriptManager(handleEvent): failed to parse event payload {}", e.what());
+    spdlog::critical("ScriptManager(handleEvent): failed to parse event payload {}", e.what(), eventPayload);
   }
 }
 
 void ScriptManager::registerEventListeners()
 {
-  bus_.subscribe<ScriptEvent<nlohmann::json>>([this](ScriptEvent<nlohmann::json> &event)
-                                              {
-    if(event.to != "0")
-      return;
-
-    if(event.type == "run")
-    {
-      std::string language = event.payload.value<std::string>("language", "");
-      std::string file = event.payload.value<std::string>("file", "");
-      std::vector<std::string> args = event.payload.value<std::vector<std::string>>("args", {});
-      run(language, file, args);
-    } });
 }
 
 APIResponse ScriptManager::list(APIRequest request)
@@ -169,9 +183,7 @@ void ScriptManager::startServices()
   {
     if (script.get("type") == "service")
     {
-      std::string lanugage = script.get("language");
-      std::string file = script.get("file");
-      run(lanugage, file, {});
+      run(script.get("name"), {});
     }
   }
 }
@@ -185,4 +197,16 @@ ScriptInfo &ScriptManager::getScript(std::string id)
       return script;
     }
   }
+}
+
+bool ScriptManager::hasScript(std::string id)
+{
+  for (auto &script : scripts_)
+  {
+    if (script.get("name") == id)
+    {
+      return true;
+    }
+  }
+  return false;
 }
