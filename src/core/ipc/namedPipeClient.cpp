@@ -1,5 +1,6 @@
 #include "namedPipeClient.hpp"
 #include "namedPipe.hpp"
+#include "../process/utils.hpp"
 
 #include <spdlog/spdlog.h>
 
@@ -14,8 +15,8 @@ NamedPipeClient::NamedPipeClient(std::string pipeName)
 
 bool NamedPipeClient::open()
 {
-    pipeHandle_ = CreateFile(
-        (PIPE_PREFIX + pipeName_).c_str(),
+    pipeHandle_ = CreateFileW(
+        toWstring(PIPE_PREFIX + pipeName_).c_str(),
         GENERIC_READ | GENERIC_WRITE,
         0,
         NULL,

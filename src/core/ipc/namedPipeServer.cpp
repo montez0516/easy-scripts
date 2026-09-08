@@ -1,6 +1,6 @@
 #include "namedPipeServer.hpp"
 #include "namedPipe.hpp"
-
+#include "../process/utils.hpp"
 #include <spdlog/spdlog.h>
 
 #include <windows.h>
@@ -13,7 +13,7 @@ NamedPipeServer::NamedPipeServer(std::string pipeName)
 
 bool NamedPipeServer::open()
 {
-    pipeHandle_ = CreateNamedPipe((PIPE_PREFIX + pipeName_).c_str(), PIPE_ACCESS_DUPLEX, PIPE_TYPE_MESSAGE | PIPE_READMODE_MESSAGE | PIPE_WAIT, PIPE_UNLIMITED_INSTANCES, 512, 512, 0, NULL);
+    pipeHandle_ = CreateNamedPipeW(toWstring(PIPE_PREFIX + pipeName_).c_str(), PIPE_ACCESS_DUPLEX, PIPE_TYPE_MESSAGE | PIPE_READMODE_MESSAGE | PIPE_WAIT, PIPE_UNLIMITED_INSTANCES, 512, 512, 0, NULL);
 
     if (pipeHandle_ == INVALID_HANDLE_VALUE)
     {
