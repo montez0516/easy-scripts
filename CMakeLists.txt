@@ -23,16 +23,29 @@ GIT_TAG v3.12.0
 set(JSON_BUILD_STATIC ON CACHE INTERNAL "")
 FetchContent_MakeAvailable(json)
 
+set(CMAKE_AUTOMOC ON)
+set(Qt6_DIR "C:\\Qt\\6.11.2\\mingw_64\\lib\\cmake\\Qt6")
+
+find_package(Qt6 REQUIRED COMPONENTS Core Widgets)
+
 add_executable(EasyScripts
 src/main.cpp
 src/core/paths.cpp
-src/main/scriptManager.cpp
-src/main/script.cpp
 src/core/process/process.cpp
 src/core/ipc/namedPipe.cpp
 src/core/ipc/unnamedPipe.cpp
 src/core/ipc/namedPipeServer.cpp
 src/core/ipc/namedPipeClient.cpp
+src/main/scriptManager.cpp
+src/main/script.cpp
+src/main/apis/fileAPI.cpp
+src/main/apis/mediaAPI.cpp
+src/api/register.cpp
+src/ui/mainWindow.cpp
+src/ui/themeManager.cpp
+src/ui/themeManager.hpp
+src/ui/centralWidget.hpp
+src/ui/centralWidget.cpp
 )
 
 add_executable(runner
@@ -50,15 +63,18 @@ src/runner/runtime/runtimeManager.cpp
 src/runner/runtime/runtime.cpp
 )
 
-target_include_directories(EasyScripts INTERFACE 
+target_include_directories(EasyScripts PRIVATE 
 src/main
 src/core/process
 src/core/ipc
 src/core
 src/core/eventBus
+src/api
+src/main/apis
+src/ui
 )
 
-target_include_directories(runner INTERFACE 
+target_include_directories(runner PRIVATE 
 src/core
 src/core/process
 src/core/ipc
@@ -69,7 +85,7 @@ src/runner/runtime/runtimes
 src/core/eventBus
 )
 
-target_link_libraries(EasyScripts PRIVATE nlohmann_json::nlohmann_json spdlog::spdlog)
+target_link_libraries(EasyScripts PRIVATE nlohmann_json::nlohmann_json spdlog::spdlog Qt6::Widgets Qt6::Core)
 target_link_libraries(runner PRIVATE nlohmann_json::nlohmann_json spdlog::spdlog)
 
 target_compile_definitions(EasyScripts PRIVATE 

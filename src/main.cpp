@@ -1,29 +1,40 @@
 #include "core/eventBus/eventBus.hpp"
 #include "main/scriptManager.hpp"
 #include "core/paths.hpp"
+#include "api/register.hpp"
+#include "main/apis/fileAPI.hpp"
+#include "main/apis/mediaAPI.hpp"
+#include "ui/mainWindow.hpp"
 
 #include <spdlog/spdlog.h>
+#include <QApplication>
+#include <QMainWindow>
 
 #include <chrono>
 #include <filesystem>
 #include <thread>
 
-int main()
+int main(int argc, char **argv)
 {
 #if defined(BUILD_DEV)
   spdlog::set_level(spdlog::level::debug);
+  spdlog::debug("APPLICATION IN DEBUG MODE SETTING LOG LEVEL TO DEBUG");
+#else
+  spdlog::info("APPLICATION NOT IN DEBUG MODE LOG LEVEL INFO");
 #endif
   spdlog::set_pattern("[%m/%d %T.%f %p][%^%l%$] %v");
   Paths paths{};
   EventBus bus;
+  APIRegister apiRegister;
 
-  ScriptManager manager{paths, bus};
-  manager.initialize();
+  FileAPI{apiRegister};
+  MediaAPI{apiRegister};
 
-  while (true)
-  {
-    std::this_thread::sleep_for(std::chrono::seconds(1));
-  }
+  ScriptManager manager{paths, bus, apiRegister};
 
-  return 0;
+  QApplication app{argc, argv};
+
+  MainWindow window;
+
+  return app.exec();
 }

@@ -4,6 +4,7 @@
 #include "events.hpp"
 #include "../core/process/process.hpp"
 #include "../core/paths.hpp"
+#include "../api/register.hpp"
 
 #include <spdlog/spdlog.h>
 
@@ -13,19 +14,15 @@
 #include <thread>
 #include <memory>
 
-ScriptManager::ScriptManager(Paths &paths, EventBus &bus) : paths_(paths), bus_(bus) {}
-
-bool ScriptManager::initialize()
+ScriptManager::ScriptManager(Paths &paths, EventBus &bus, APIRegister &apiRegister) : paths_(paths), bus_(bus), apiRegister_(apiRegister)
 {
-
   if (!startRunner())
   {
     spdlog::critical("Failed to start runner.exe");
-    return false;
+    return;
   }
   registerEventListeners();
   loadScripts();
-  return true;
 }
 
 bool ScriptManager::startRunner()
@@ -91,65 +88,29 @@ void ScriptManager::run(const std::string &language, const std::filesystem::path
   mainPipe_.write(runPayload);
 }
 
-#include <commdlg.h>
-
-#include <optional>
-
-std::optional<std::filesystem::path> openFilePicker()
-{
-  wchar_t fileBuffer[MAX_PATH] = {};
-
-  OPENFILENAMEW dialog{};
-  dialog.lStructSize = sizeof(dialog);
-  dialog.hwndOwner = nullptr;
-  dialog.lpstrFile = fileBuffer;
-  dialog.nMaxFile = MAX_PATH;
-
-  dialog.lpstrFilter =
-      L"All Files\0*.*\0"
-      L"Text Files\0*.txt\0"
-      L"Images\0*.png;*.jpg;*.jpeg\0";
-
-  dialog.nFilterIndex = 1;
-
-  dialog.Flags =
-      OFN_PATHMUSTEXIST |
-      OFN_FILEMUSTEXIST;
-
-  if (GetOpenFileNameW(&dialog))
-    return std::filesystem::path(fileBuffer);
-
-  return std::nullopt;
-}
-
 void ScriptManager::handleEvent(const std::string &eventPayload)
 {
   try
   {
     nlohmann::json event = nlohmann::json::parse(eventPayload);
-    if (event["type"] == "filepicker")
+
+    std::string type = event["type"];
+
+    auto method = apiRegister_.getMethod(type);
+
+    if (!method)
     {
-      std::optional<std::filesystem::path> files = openFilePicker();
-
-      std::string responsePayload = Events::response(event.value("from", ""), files.has_value() ? files.value() : "");
-
-      mainPipe_.write(responsePayload);
+      spdlog::error("ScriptManager(handleEvent): method with type {} does not exist", type);
+      return;
     }
-    else if (event["type"] == "msg")
-    {
-      spdlog::info(event["payload"]);
-    }
-    else if (event["type"] == "input")
-    {
-      std::string inputMsg = event.value<std::string>("payload", "");
-      std::string input = "";
 
-      std::cout << inputMsg << std::endl;
-      std::getline(std::cin, input);
+    APIRequest req;
+    req.params = event.value("payload", "");
 
-      std::string responsePayload = Events::response(event["from"], input);
-      mainPipe_.write(responsePayload);
-    }
+    APIResponse res = method(req);
+
+    std::string payload = Events::response(event["from"], res.result);
+    mainPipe_.write(payload);
   }
   catch (nlohmann::json::exception &e)
   {

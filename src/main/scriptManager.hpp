@@ -7,6 +7,7 @@
 #include "../core/ipc/namedPipeClient.hpp"
 #include "../core/paths.hpp"
 #include "../core/eventBus/eventBus.hpp"
+#include "../api/register.hpp"
 
 #include <nlohmann/json.hpp>
 
@@ -15,7 +16,7 @@
 #include <memory>
 #include <string>
 
-template<typename T>
+template <typename T>
 struct ScriptEvent : Event
 {
   T payload;
@@ -31,6 +32,7 @@ private:
   std::unique_ptr<Process> runnerProcess_;
   Paths &paths_;
   EventBus &bus_;
+  APIRegister &apiRegister_;
 
   bool startRunner();
   void loadScripts();
@@ -38,7 +40,7 @@ private:
   void startServices();
 
 public:
-  ScriptManager(Paths &paths, EventBus &bus);
+  ScriptManager(Paths &paths, EventBus &bus, APIRegister &apiRegister);
   bool initialize();
   void run(const std::string &language, const std::filesystem::path &scriptFile, const std::vector<std::string> &args);
   void stop();
