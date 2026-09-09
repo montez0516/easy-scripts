@@ -15,7 +15,6 @@ APIResponse MediaAPI::message(APIRequest request)
 {
     APIResponse response;
     response.status = true;
-
     std::cout << request.params << std::endl;
     return response;
 }

@@ -108,13 +108,13 @@ int main()
         {
           ScriptEvent<std::string> event;
           event.to = jsonPayload["to"];
-          event.payload = jsonPayload["payload"];
+          event.payload = jsonPayload.value<std::string>("payload", "");
           bus.publish(event);
         }
       }
       catch (nlohmann::json::exception &e)
       {
-        spdlog::error("Runner(): failed to parse event payload {}", e.what());
+        spdlog::error("Runner(): failed to parse event payload {}\n{}", e.what(), payload);
       }
     }
     // else

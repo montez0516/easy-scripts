@@ -14,6 +14,7 @@ struct APIResponse
     bool status;
     nlohmann::json result;
     std::string error;
+    APIResponse() { result = ""; };
 };
 
 struct APIRequest
