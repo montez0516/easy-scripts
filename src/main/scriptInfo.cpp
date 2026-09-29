@@ -37,7 +37,11 @@ void ScriptInfo::findScriptFile()
     {
         std::filesystem::path filename = scriptDir_ / ("main" + ext);
         if (std::filesystem::exists(filename))
+        {
             scriptInfo_["file"] = filename.string();
+            if (ext == ".py")
+                scriptInfo_["language"] = "python";
+        }
     }
 }
 

@@ -28,7 +28,7 @@ class ScriptManager
 
 public:
   ScriptManager(Paths &paths, EventBus &bus, APIRegister &apiRegister);
-  bool initialize();
+  ~ScriptManager();
   void run(std::string scriptName, const std::vector<std::string> &args);
   void stop();
 

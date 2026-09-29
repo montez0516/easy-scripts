@@ -18,11 +18,9 @@ Process::Process(fs::path executable, std::vector<std::string> arguments) : exe_
 
 Process::~Process()
 {
-    if (waitThread_.joinable())
-        waitThread_.join();
-    stdinPipe_.close();
-    stdoutPipe_.close();
-    stderrPipe_.close();
+    spdlog::debug("Destroying process {}", exe_.string());
+    stop();
+    spdlog::debug("Destroyed process {}", exe_.string());
 }
 
 bool Process::start()
@@ -132,6 +130,23 @@ DWORD Process::wait()
     if (waitThread_.joinable())
         waitThread_.join();
     return exitCode_;
+}
+
+void Process::stop()
+{
+    spdlog::debug("stopping");
+    CloseHandle(processInformation_.hProcess);
+    CloseHandle(processInformation_.hThread);
+
+    spdlog::debug("stopping 1");
+    processInformation_.hProcess = nullptr;
+    processInformation_.hThread = nullptr;
+
+    spdlog::debug("stopping 2");
+    stdinPipe_.close();
+    stdoutPipe_.close();
+    stderrPipe_.close();
+    spdlog::debug("stopping 3");
 }
 
 static std::map<std::wstring, std::wstring> getCurrentEnvironment()

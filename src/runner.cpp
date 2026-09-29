@@ -111,6 +111,10 @@ int main()
           event.payload = jsonPayload.value<std::string>("payload", "");
           bus.publish(event);
         }
+        else if (type == "shutdown")
+        {
+          return 0;
+        }
       }
       catch (nlohmann::json::exception &e)
       {

@@ -35,6 +35,11 @@ ScriptManager::ScriptManager(Paths &paths, EventBus &bus, APIRegister &apiRegist
                                 return response; });
 }
 
+ScriptManager::~ScriptManager()
+{
+  mainPipe_.write(Events::shutdown());
+}
+
 bool ScriptManager::startRunner()
 {
   if (!mainPipe_.open())
