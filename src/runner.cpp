@@ -1,9 +1,10 @@
-#include "core/ipc/namedPipeServer.hpp"
-#include "core/ipc/namedPipeClient.hpp"
 #include "runner/engine/runnerEngine.hpp"
 #include "core/paths.hpp"
+#include "core/ipc/namedPipeServer.hpp"
+#include "core/ipc/namedPipeClient.hpp"
 #include "core/eventBus/eventBus.hpp"
-#include "main/scriptManager.hpp"
+#include "core/communication/ipcConnection.hpp"
+#include "core/communication/message.hpp"
 
 #include <spdlog/spdlog.h>
 #include <nlohmann/json.hpp>
@@ -13,46 +14,11 @@
 #include <iostream>
 #include <thread>
 #include <chrono>
+#include <condition_variable>
+#include <mutex>
+#include <memory>
 
 namespace fs = std::filesystem;
-
-void registerEventListeners(EventBus &bus, NamedPipe &pipe)
-{
-  bus.subscribe<ScriptEvent<std::string>>([&pipe](ScriptEvent<std::string> &event)
-                                          {
-  if(event.to == "runner.exe")
-  {
-
-            if (event.to != "runner.exe")
-            {
-                return;
-            }
-
-            try{
-
-            if(event.type == "api")
-            {
-
-              nlohmann::json jsonPayload = nlohmann::json::parse(event.payload);
-              jsonPayload["from"] = event.from;
-              pipe.write(jsonPayload.dump());
-            }
-            else if(event.type == "finished")
-            {
-              nlohmann::json jsonPayload = {{"from", event.from}, {"type", "finished"}};
-              spdlog::debug("Runner(): finished payload {}", jsonPayload.dump());
-              pipe.write(jsonPayload.dump());
-            }
-
-            }
-            catch(nlohmann::json::exception &e)
-            {
-              spdlog::error("RUNNER(registerEventListeners): failed to parse payload {}", e.what());
-              spdlog::error(event.payload);
-            }
-
-  } });
-}
 
 int main()
 {
@@ -60,23 +26,12 @@ int main()
 #if defined(BUILD_DEV)
   spdlog::set_level(spdlog::level::debug);
 #endif
-  NamedPipeServer runnerPipe{"runner"};
-  if (!runnerPipe.open())
-  {
-    spdlog::critical("runner(main): runnerPipe failed to create {}", GetLastError());
-    return 1;
-  }
+  std::mutex mtx;
+  std::condition_variable cv;
+  bool shutdown = false;
 
-  NamedPipeClient mainPipe{"easyscripts"};
-
-  if (!mainPipe.open())
-  {
-
-    spdlog::critical("runner(main): mainPipe failed to connect {}", GetLastError());
-    return 1;
-  }
-
-  runnerPipe.waitForConnection();
+  IPCConnection runnerPipe(std::make_unique<NamedPipeServer>("runner"));
+  IPCConnection mainPipe(std::make_unique<NamedPipeClient>("easyscripts"));
 
   Paths paths{};
   EventBus bus;
@@ -84,49 +39,20 @@ int main()
   Engine engine{paths, bus};
   engine.initialize();
 
-  registerEventListeners(bus, runnerPipe);
+  bus.subscribe("runner.shutdown", [&mtx, &cv, &shutdown](const Message &message)
+                {
+    std::lock_guard<std::mutex> lock(mtx);
+    shutdown = true;
+    cv.notify_one(); });
 
-  while (true)
-  {
-    std::string payload = mainPipe.read();
-    if (!payload.empty())
-    {
-      spdlog::debug("SCRIPT PAYLOAD\n{}", payload);
-      try
-      {
-        nlohmann::json jsonPayload = nlohmann::json::parse(payload);
+  bus.subscribe("script.event", [&runnerPipe](const Message &message)
+                { runnerPipe.send(message); });
 
-        std::string type = jsonPayload.value<std::string>("type", "");
+  mainPipe.onMessage([&bus](const Message &message)
+                     { bus.publish(message.name, message); });
 
-        if (type == "run")
-        {
-          std::string temp = "";
-          spdlog::debug("RUNNING SCRIPT\n{}", jsonPayload.value<std::string>("file", ""));
-          engine.run(jsonPayload["payload"]["language"], jsonPayload["payload"]["file"], temp);
-        }
-        else if (type == "response")
-        {
-          ScriptEvent<std::string> event;
-          event.to = jsonPayload["to"];
-          event.payload = jsonPayload.value<std::string>("payload", "");
-          bus.publish(event);
-        }
-        else if (type == "shutdown")
-        {
-          return 0;
-        }
-      }
-      catch (nlohmann::json::exception &e)
-      {
-        spdlog::error("Runner(): failed to parse event payload {}\n{}", e.what(), payload);
-      }
-    }
-    // else
-    // {
-    //   // spdlog::critical("Runner(): pipe payload empty {}", payload);
-    //   return 1;
-    // }
-  }
-
+  std::unique_lock<std::mutex> lock(mtx);
+  cv.wait(lock, [shutdown]()
+          { return shutdown; });
   return 0;
 }

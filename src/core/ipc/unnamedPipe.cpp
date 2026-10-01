@@ -56,7 +56,7 @@ std::string UnnamedPipe::read()
     return output;
 }
 
-void UnnamedPipe::write(const std::string &data)
+void UnnamedPipe::write(std::string_view message)
 {
     if (writeHandle_ == INVALID_HANDLE_VALUE)
     {
@@ -64,11 +64,11 @@ void UnnamedPipe::write(const std::string &data)
         return;
     }
 
-    if (data.empty())
+    if (message.empty())
         return;
     DWORD bytesWritten = 0;
 
-    WriteFile(writeHandle_, data.data(), data.size(), &bytesWritten, NULL);
+    WriteFile(writeHandle_, message.data(), message.size(), &bytesWritten, NULL);
 }
 
 HANDLE UnnamedPipe::getRead() const
@@ -99,7 +99,7 @@ void UnnamedPipe::closeWrite()
     }
 }
 
-bool UnnamedPipe::readyRead(std::function<void()> readCallBack)
+bool UnnamedPipe::readyRead(std::function<void(std::string_view)> readCallBack)
 {
     if (readHandle_ == INVALID_HANDLE_VALUE)
     {
@@ -117,7 +117,7 @@ bool UnnamedPipe::readyRead(std::function<void()> readCallBack)
             {
                 if(bytesAvail > 0)
                 {
-                    readyReadCallBack_();
+                    readyReadCallBack_(read());
                 }
             }
             else{

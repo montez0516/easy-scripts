@@ -42,12 +42,7 @@ void Runtime::run(const std::string &file, std::vector<std::string> args)
                                         std::string line;
 
                                         while(std::getline(is, line)){
-                                            spdlog::debug("RUNTIME: OUTPUT {}", line);
-                                            ScriptEvent<std::string> event;
-                                            event.to = "runner.exe";
-                                            event.from = file;
-                                            event.payload = line;
-                                            event.type = "api";
+                                            
                                             bus_.publish(event);
                                         } });
     process->registerOnFinishedCallback([this, processPtr, absFile](DWORD exitCode)

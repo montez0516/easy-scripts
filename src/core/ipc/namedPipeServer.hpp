@@ -9,7 +9,6 @@ class NamedPipeServer : public NamedPipe
 {
 public:
     NamedPipeServer(std::string pipeName);
-    bool open() override;
     bool waitForConnection();
 };
 

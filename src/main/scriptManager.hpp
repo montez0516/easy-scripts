@@ -8,6 +8,7 @@
 #include "../core/paths.hpp"
 #include "../core/eventBus/eventBus.hpp"
 #include "../api/register.hpp"
+#include "../core/communication/ipcConnection.hpp"
 
 #include <nlohmann/json.hpp>
 
@@ -16,12 +17,6 @@
 #include <memory>
 #include <string>
 #include <optional>
-
-template <typename T>
-struct ScriptEvent : Event
-{
-  T payload;
-};
 
 class ScriptManager
 {
@@ -39,8 +34,8 @@ public:
 private:
   std::vector<ScriptInfo> scripts_;
   std::vector<Process> runtimes_;
-  NamedPipeServer mainPipe_{"easyscripts"};
-  NamedPipeClient runnerPipe_{"runner"};
+  IPCConnection mainPipe_;
+  IPCConnection runnerPipe_;
   std::unique_ptr<Process> runnerProcess_;
   Paths &paths_;
   EventBus &bus_;

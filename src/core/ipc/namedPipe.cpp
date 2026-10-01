@@ -51,7 +51,7 @@ std::string NamedPipe::read()
     return output;
 }
 
-void NamedPipe::write(const std::string &data)
+void NamedPipe::write(std::string_view message)
 {
     if (pipeHandle_ == nullptr || pipeHandle_ == INVALID_HANDLE_VALUE)
     {
@@ -59,7 +59,7 @@ void NamedPipe::write(const std::string &data)
         return;
     }
 
-    std::uint32_t payloadSize = static_cast<std::uint32_t>(data.size());
+    std::uint32_t payloadSize = static_cast<std::uint32_t>(message.size());
 
     if (!WriteFile(pipeHandle_, &payloadSize, sizeof(payloadSize), NULL, NULL))
     {
@@ -69,18 +69,13 @@ void NamedPipe::write(const std::string &data)
 
     DWORD bytesWritten = 0;
 
-    if (!WriteFile(pipeHandle_, data.data(), payloadSize, &bytesWritten, NULL))
+    if (!WriteFile(pipeHandle_, message.data(), payloadSize, &bytesWritten, NULL))
     {
         spdlog::error("NamedPipe(write): failed to write payload {}", GetLastError());
     }
 }
 
-bool NamedPipe::isNull()
-{
-    return pipeHandle_ == INVALID_HANDLE_VALUE;
-}
-
-bool NamedPipe::readyRead(std::function<void()> readCallBack)
+bool NamedPipe::readyRead(std::function<void(std::string_view)> readCallBack)
 {
     if (pipeHandle_ == INVALID_HANDLE_VALUE)
     {
@@ -98,7 +93,7 @@ bool NamedPipe::readyRead(std::function<void()> readCallBack)
             {
                 if(bytesAvail > 0)
                 {
-                    readyReadCallBack_();
+                    readyReadCallBack_(read());
                 }
             }
             else{
@@ -109,4 +104,9 @@ bool NamedPipe::readyRead(std::function<void()> readCallBack)
         } });
 
     return true;
+}
+
+bool NamedPipe::isNull()
+{
+    return pipeHandle_ == INVALID_HANDLE_VALUE;
 }

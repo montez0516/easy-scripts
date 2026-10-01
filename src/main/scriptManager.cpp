@@ -6,6 +6,8 @@
 #include "../core/paths.hpp"
 #include "../api/register.hpp"
 
+#include "../core/communication/message.hpp"
+
 #include <spdlog/spdlog.h>
 
 #include <filesystem>
@@ -37,16 +39,17 @@ ScriptManager::ScriptManager(Paths &paths, EventBus &bus, APIRegister &apiRegist
 
 ScriptManager::~ScriptManager()
 {
-  mainPipe_.write(Events::shutdown());
+  mainPipe_.send(
+      {
+          .type = MessageType::Event,
+          .name = "shutdown",
+          .id = 0,
+      });
 }
 
 bool ScriptManager::startRunner()
 {
-  if (!mainPipe_.open())
-  {
-    spdlog::critical("ScriptManager(startRunner): mainPipe failed to create {}", GetLastError());
-    return false;
-  }
+  mainPipe_ = IPCConnection(std::make_unique<NamedPipeServer>("easyscripts"));
 
   runnerProcess_ = std::make_unique<Process>(
       std::filesystem::absolute(paths_.runner()),
@@ -55,20 +58,10 @@ bool ScriptManager::startRunner()
                                              { spdlog::critical("ScriptManager(startRunnner): runner process exited with code {}\n{}", exitCode, runnerProcess_->error()); });
   runnerProcess_->start();
 
-  spdlog::debug("ScriptManager: waiting for runner to connect");
-  mainPipe_.waitForConnection();
-  spdlog::debug("ScriptManager: runner connected to main pipe");
+  runnerPipe_ = IPCConnection(std::make_unique<NamedPipeClient>("runner"));
+  runnerPipe_.onMessage([](const Message &message) {
 
-  if (!runnerPipe_.open())
-  {
-    spdlog::critical("scriptManager(startRunner): runnerPipe failed to connet {}", GetLastError());
-    return false;
-  }
-
-  runnerPipe_.readyRead([this]()
-                        {
-    std::string payload = runnerPipe_.read();
-    handleEvent(payload); });
+  });
   return true;
 }
 
@@ -105,15 +98,13 @@ void ScriptManager::run(std::string scriptName, const std::vector<std::string> &
   std::string language = scriptInfo.get("language");
 
   spdlog::debug("Running script {} {}", language, file);
-  if (mainPipe_.isNull())
-  {
-    spdlog::critical("ScriptManager(run): pipe is NULL");
-    return;
-  }
 
-  std::string runPayload = Events::run(file, language, args);
-
-  mainPipe_.write(runPayload);
+  mainPipe_.send({.type = MessageType::Event,
+                  .name = "script.run",
+                  .id = 0,
+                  .data = {
+                      {"file", file},
+                      {"language", language}}});
   scriptInfo.running = true;
   spdlog::debug("ScriptManager(run): Ran script", language, file);
 }
@@ -135,7 +126,10 @@ void ScriptManager::handleEvent(const std::string &eventPayload)
       if (!method)
       {
         spdlog::error("ScriptManager(handleEvent): method with type {} does not exist", type);
-        mainPipe_.write(Events::response(event["from"], ""));
+        mainPipe_.send({.type = MessageType::Response,
+                        .name = "script.response",
+                        .id = 0,
+                        .data = ""});
         return;
       }
 
@@ -145,7 +139,10 @@ void ScriptManager::handleEvent(const std::string &eventPayload)
       APIResponse res = method(req);
 
       std::string payload = Events::response(event["from"], res.result);
-      mainPipe_.write(payload);
+      mainPipe_.send({.type = MessageType::Response,
+                      .name = "script.response",
+                      .id = 0,
+                      .data = res.result});
     }
     else
     {

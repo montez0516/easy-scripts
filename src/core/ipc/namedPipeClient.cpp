@@ -11,10 +11,6 @@
 NamedPipeClient::NamedPipeClient(std::string pipeName)
 {
     pipeName_ = std::move(pipeName);
-}
-
-bool NamedPipeClient::open()
-{
     pipeHandle_ = CreateFileW(
         toWstring(PIPE_PREFIX + pipeName_).c_str(),
         GENERIC_READ | GENERIC_WRITE,
@@ -27,8 +23,5 @@ bool NamedPipeClient::open()
     if (pipeHandle_ == INVALID_HANDLE_VALUE)
     {
         spdlog::critical("NamedPipeClient(): Failed to connect to pipe. Error: {}\n", GetLastError());
-        return false;
     }
-
-    return true;
 }

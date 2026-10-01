@@ -9,7 +9,6 @@ class NamedPipeClient : public NamedPipe
 {
 public:
     NamedPipeClient(std::string pipeName);
-    bool open() override;
 };
 
 #endif

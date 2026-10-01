@@ -1,6 +1,8 @@
 #ifndef NAMED_PIPE_H
 #define NAMED_PIPE_H
 
+#include "pipe.hpp"
+
 #include <nlohmann/json.hpp>
 #include <windows.h>
 #include <string>
@@ -9,11 +11,11 @@
 #include <atomic>
 #define PIPE_PREFIX "\\\\.\\pipe\\"
 
-class NamedPipe
+class NamedPipe : public Pipe
 {
 private:
     std::atomic_bool threadLoop_{true};
-    std::function<void()> readyReadCallBack_;
+    std::function<void(std::string_view)> readyReadCallBack_;
     std::thread readyReadThread_;
 
 protected:
@@ -22,14 +24,12 @@ protected:
 
 public:
     ~NamedPipe();
-    virtual bool open() = 0;
 
-    std::string read();
-    void write(const std::string &);
+    std::string read() override;
+    void write(std::string_view message) override;
+    bool readyRead(std::function<void(std::string_view)> readCallBack);
 
     bool isNull();
-
-    bool readyRead(std::function<void()> readCallBack);
 };
 
 #endif
