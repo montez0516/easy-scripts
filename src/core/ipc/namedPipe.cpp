@@ -110,3 +110,8 @@ bool NamedPipe::isNull()
 {
     return pipeHandle_ == INVALID_HANDLE_VALUE;
 }
+
+void NamedPipe::close()
+{
+    threadLoop_.store(false);
+}

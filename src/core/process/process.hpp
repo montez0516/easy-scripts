@@ -2,6 +2,8 @@
 #define PROCESS_H
 
 #include "../ipc/unnamedPipe.hpp"
+#include "../communication/ipcConnection.hpp"
+#include "../communication/message.hpp"
 
 #include <filesystem>
 #include <map>
@@ -17,9 +19,9 @@ namespace fs = std::filesystem;
 class Process
 {
 private:
-  UnnamedPipe stdinPipe_;
-  UnnamedPipe stdoutPipe_;
-  UnnamedPipe stderrPipe_;
+  IPCConnection stdinPipe_;
+  IPCConnection stdoutPipe_;
+  IPCConnection stderrPipe_;
 
   fs::path exe_;
   std::vector<std::string> args_;
@@ -34,7 +36,7 @@ private:
 
   std::thread waitThread_;
   std::function<void(DWORD)> finishCallBack_;
-  std::function<void()> readyReadCallBack_;
+  std::function<void(const Message &)> readyReadCallBack_;
 
   std::wstring buildCommandLine();
   void t_wait();
@@ -47,8 +49,9 @@ public:
   bool start();
   void stop();
   DWORD wait();
+
   std::string read();
-  void write(std::string &);
+  void write(const Message &message);
   std::string error();
 
   void setEnvironment(const std::map<std::wstring, std::wstring> &variables);
@@ -59,7 +62,7 @@ public:
 
   void setCaptureHandles(bool value);
 
-  void registerReadyReadCallback(std::function<void()> readCallBack);
+  void registerReadyReadCallback(std::function<void(const Message &)> readCallBack);
   void registerOnFinishedCallback(std::function<void(DWORD)> finishCallBack);
 };
 

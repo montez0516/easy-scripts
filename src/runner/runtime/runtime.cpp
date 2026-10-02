@@ -4,6 +4,7 @@
 #include "../../core/paths.hpp"
 #include "../../core/eventBus/eventBus.hpp"
 #include "../../main/scriptManager.hpp"
+#include "../../core/communication/message.hpp"
 
 #include <spdlog/spdlog.h>
 
@@ -19,8 +20,14 @@ Runtime::Runtime(Paths &paths, EventBus &bus) : paths_(paths), bus_(bus)
     registerListener();
 }
 
-void Runtime::run(const std::string &file, std::vector<std::string> args)
+void Runtime::run(const Message &message)
 {
+    nlohmann::json messageData = message.data;
+
+    std::string id = message.id;
+    std::string file = messageData.at("file");
+    std::vector<std::string> args = messageData.value<std::vector<std::string>>("args", {});
+
     spdlog::debug("PYTHON: {}", file);
 
     fs::path absFile = fs::absolute(file);
@@ -31,29 +38,12 @@ void Runtime::run(const std::string &file, std::vector<std::string> args)
     process->setCurrentDirectory(absFile.parent_path());
     process->setCaptureHandles(true);
 
-    Process *processPtr = process.get();
-    process->registerReadyReadCallback([this, processPtr, file]()
-                                       { 
-                                        std::string scriptPayload = processPtr->read();
-                                        
-                                        std::istringstream is(scriptPayload);
+    process->registerReadyReadCallback([this, id](const Message &message)
+                                       { bus_.publish("script.event", message); });
 
-                                        spdlog::debug("RUNTIME: Handling process output {}", scriptPayload);
-                                        std::string line;
+    process->registerOnFinishedCallback([this, message](DWORD code)
+                                        { bus_.publish("script.event", {.type = MessageType::Event, .name = "script.finished", .id = message.id, .data = code}); });
 
-                                        while(std::getline(is, line)){
-                                            
-                                            bus_.publish(event);
-                                        } });
-    process->registerOnFinishedCallback([this, processPtr, absFile](DWORD exitCode)
-                                        { 
-                        spdlog::debug("Runtime(registerOnFinishedCallback): {} exited with code {}", absFile.string(), exitCode);
-                        ScriptEvent<std::string> event;
-                        event.to = "runner.exe";
-                        event.from = absFile.parent_path().filename().string();
-                        event.payload = "";
-                        event.type = "finished";
-                        bus_.publish(event); });
     process->start();
 
     runtimes_[file] = (std::move(process));
@@ -71,18 +61,16 @@ void Runtime::prepareArguments(const std::filesystem::path &script, std::vector<
 
 void Runtime::registerListener()
 {
-    bus_.subscribe<ScriptEvent<std::string>>([this](ScriptEvent<std::string> &event)
-                                             {
-                                                for(const auto &pair : runtimes_)
-                                                {
-                                                    spdlog::debug(pair.first);
-                                                }
+    bus_.subscribe("script.response", [this](const Message &message)
+                   {
+        Process *process = getRuntime(message.id);
+        process->write(message); });
+}
 
-                                                 if (runtimes_.find(event.to) == runtimes_.end())
-                                                 {
-                                                     return;
-                                                 }
+Process *Runtime::getRuntime(const std::string &name)
+{
+    if (runtimes_.find(name) == runtimes_.end())
+        return {};
 
-                                                Process *process = runtimes_[event.to].get();
-                                                process->write(event.payload); });
+    return runtimes_.at(name).get();
 }

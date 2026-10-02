@@ -4,6 +4,8 @@
 #include "../../core/process/process.hpp"
 #include "../../core/paths.hpp"
 #include "../../core/eventBus/eventBus.hpp"
+#include "../../core/communication/message.hpp"
+
 #include <filesystem>
 #include <vector>
 #include <memory>
@@ -24,9 +26,11 @@ protected:
     virtual std::filesystem::path executable(const std::filesystem::path &script) const;
     virtual void prepareArguments(const std::filesystem::path &script, std::vector<std::string> &args) const;
     void registerListener();
+    Process *getRuntime(const std::string &name);
+
 public:
     Runtime(Paths &paths, EventBus &bus);
-    void run(const std::string &file, std::vector<std::string> args);
+    void run(const Message &);
 };
 
 #endif

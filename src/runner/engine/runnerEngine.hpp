@@ -15,11 +15,11 @@ private:
     RuntimeManager runtimeManager_;
     Paths &paths_;
     EventBus &bus_;
+
 public:
     Engine(Paths &paths, EventBus &bus);
 
     void initialize();
-    void run(const std::string &language, const std::string &file, std::string &args);
 };
 
 #endif

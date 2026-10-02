@@ -68,7 +68,7 @@ bool Process::start()
         stderrPipe_.closeWrite();
 
         if (readyReadCallBack_)
-            stdoutPipe_.readyRead(readyReadCallBack_);
+            stdoutPipe_.onMessage(readyReadCallBack_);
     }
 
     waitThread_ = std::thread(&Process::t_wait, this);
@@ -80,11 +80,9 @@ std::string Process::read()
     return stdoutPipe_.read();
 }
 
-void Process::write(std::string &data)
+void Process::write(const Message &message)
 {
-    if (!data.ends_with('\n'))
-        data += '\n';
-    stdinPipe_.write(data);
+    stdinPipe_.send(message);
 }
 
 std::wstring Process::buildCommandLine()
@@ -219,7 +217,7 @@ std::string Process::error()
     return stderrPipe_.read();
 }
 
-void Process::registerReadyReadCallback(std::function<void()> callback)
+void Process::registerReadyReadCallback(std::function<void(const Message &)> callback)
 {
     readyReadCallBack_ = std::move(callback);
 }
@@ -231,21 +229,23 @@ void Process::registerOnFinishedCallback(std::function<void(DWORD)> callback)
 
 bool Process::captureProcessHandles()
 {
-    if (stdinPipe_.isNull() || stdoutPipe_.isNull() || stderrPipe_.isNull())
-    {
-        spdlog::debug("Process(start):\nstdin:{}\nstdout:{}\nstderr:{}\n", stdinPipe_.isNull(), stdoutPipe_.isNull(), stderrPipe_.isNull());
-        spdlog::critical("Process(start): one or more ipc pipe is NULL");
-        return false;
-    }
+    std::unique_ptr stdinPipe = std::make_unique<UnnamedPipe>();
+    std::unique_ptr stdoutPipe = std::make_unique<UnnamedPipe>();
+    std::unique_ptr stderrPipe = std::make_unique<UnnamedPipe>();
+
     startupInfo_.dwFlags = STARTF_USESTDHANDLES;
 
-    startupInfo_.hStdInput = stdinPipe_.getRead();
-    startupInfo_.hStdOutput = stdoutPipe_.getWrite();
-    startupInfo_.hStdError = stderrPipe_.getWrite();
+    startupInfo_.hStdInput = stdinPipe->getRead();
+    startupInfo_.hStdOutput = stdoutPipe->getWrite();
+    startupInfo_.hStdError = stderrPipe->getWrite();
 
-    SetHandleInformation(stdinPipe_.getWrite(), HANDLE_FLAG_INHERIT, 0);
-    SetHandleInformation(stdoutPipe_.getRead(), HANDLE_FLAG_INHERIT, 0);
-    SetHandleInformation(stderrPipe_.getRead(), HANDLE_FLAG_INHERIT, 0);
+    SetHandleInformation(stdinPipe->getWrite(), HANDLE_FLAG_INHERIT, 0);
+    SetHandleInformation(stdoutPipe->getRead(), HANDLE_FLAG_INHERIT, 0);
+    SetHandleInformation(stderrPipe->getRead(), HANDLE_FLAG_INHERIT, 0);
+
+    stdinPipe_ = IPCConnection(std::move(stdinPipe));
+    stdoutPipe_ = IPCConnection(std::move(stdoutPipe));
+    stderrPipe_ = IPCConnection(std::move(stderrPipe));
 
     return true;
 }

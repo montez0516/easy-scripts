@@ -17,7 +17,7 @@ struct Message
 {
     MessageType type;
     std::string name;
-    uint64_t id;
+    std::string id;
     nlohmann::json data;
 };
 

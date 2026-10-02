@@ -30,16 +30,23 @@ find_package(Qt6 REQUIRED COMPONENTS Core Widgets)
 
 add_executable(EasyScripts
 src/main.cpp
+
 src/core/paths.cpp
 src/core/process/process.cpp
 src/core/ipc/namedPipe.cpp
 src/core/ipc/unnamedPipe.cpp
 src/core/ipc/namedPipeServer.cpp
 src/core/ipc/namedPipeClient.cpp
+src/core/communication/ipcConnection.cpp
+src/core/communication/messageCodec.cpp
+
 src/main/scriptManager.cpp
 src/main/apis/fileAPI.cpp
 src/main/apis/mediaAPI.cpp
+src/main/scriptInfo.cpp
+
 src/api/register.cpp
+
 src/ui/mainWindow.cpp
 src/ui/themeManager.cpp
 src/ui/themeManager.hpp
@@ -49,18 +56,22 @@ src/ui/scriptCard.hpp
 src/ui/scriptCard.cpp
 src/ui/scriptGrid.hpp
 src/ui/scriptGrid.cpp
-src/main/scriptInfo.cpp
 )
 
 add_executable(runner
 src/runner.cpp
+
 src/core/paths.cpp
 src/core/process/process.cpp
 src/core/ipc/namedPipe.cpp
 src/core/ipc/unnamedPipe.cpp
 src/core/ipc/namedPipeServer.cpp
 src/core/ipc/namedPipeClient.cpp
+src/core/communication/ipcConnection.cpp
+src/core/communication/messageCodec.cpp
+
 src/runner/engine/runnerEngine.cpp 
+
 src/runner/runtime/runtimes/pythonRuntime.cpp
 src/runner/runtime/runtimes/defaultRuntime.cpp
 src/runner/runtime/runtimeManager.cpp
@@ -73,6 +84,7 @@ src/core/process
 src/core/ipc
 src/core
 src/core/eventBus
+src/core/communication
 src/api
 src/main/apis
 src/ui
@@ -82,11 +94,12 @@ target_include_directories(runner PRIVATE
 src/core
 src/core/process
 src/core/ipc
+src/core/eventBus
+src/core/communication
 src/runner
 src/runner/engine
 src/runner/runtime
 src/runner/runtime/runtimes
-src/core/eventBus
 )
 
 target_link_libraries(EasyScripts PRIVATE nlohmann_json::nlohmann_json spdlog::spdlog Qt6::Widgets Qt6::Core)

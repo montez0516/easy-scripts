@@ -35,7 +35,7 @@ public:
     void closeRead();
     void closeWrite();
 
-    void close();
+    void close() override;
 };
 
 #endif
