@@ -9,7 +9,8 @@ public:
     virtual std::string read() = 0;
     virtual void write(std::string_view message) = 0;
     virtual bool readyRead(std::function<void(std::string_view)> callback) = 0;
-    virtual void closeRead() = 0;
-    virtual void closeWrite() = 0;
+    virtual bool waitForConnection();
+    virtual void closeRead();
+    virtual void closeWrite();
     virtual void close() = 0;
 };

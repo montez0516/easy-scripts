@@ -39,7 +39,8 @@ void Runtime::run(const Message &message)
     process->setCaptureHandles(true);
 
     process->registerReadyReadCallback([this, id](const Message &message)
-                                       { bus_.publish("script.event", message); });
+                                       {spdlog::debug("RUNTIME: id={} name={}", message.id, message.name); 
+                                        bus_.publish("script.event", message); });
 
     process->registerOnFinishedCallback([this, message](DWORD code)
                                         { bus_.publish("script.event", {.type = MessageType::Event, .name = "script.finished", .id = message.id, .data = code}); });

@@ -17,7 +17,7 @@ public:
     std::string read();
     void write(std::string_view message);
     void onMessage(std::function<void(const Message &)> callback);
-
+    bool waitForConnection();
     void closeRead();
     void closeWrite();
     void close();

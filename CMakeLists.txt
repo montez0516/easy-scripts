@@ -33,6 +33,7 @@ src/main.cpp
 
 src/core/paths.cpp
 src/core/process/process.cpp
+src/core/ipc/pipe.cpp
 src/core/ipc/namedPipe.cpp
 src/core/ipc/unnamedPipe.cpp
 src/core/ipc/namedPipeServer.cpp
@@ -63,13 +64,14 @@ src/runner.cpp
 
 src/core/paths.cpp
 src/core/process/process.cpp
+src/core/ipc/pipe.cpp
 src/core/ipc/namedPipe.cpp
 src/core/ipc/unnamedPipe.cpp
 src/core/ipc/namedPipeServer.cpp
 src/core/ipc/namedPipeClient.cpp
 src/core/communication/ipcConnection.cpp
 src/core/communication/messageCodec.cpp
-
+src/core/eventBus/eventBus.cpp
 src/runner/engine/runnerEngine.cpp 
 
 src/runner/runtime/runtimes/pythonRuntime.cpp

@@ -1,3 +1,5 @@
+#pragma once
+
 #include "message.hpp"
 #include <string>
 

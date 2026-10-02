@@ -18,10 +18,19 @@ std::string MessageCodec::encode(const Message &message)
 
 Message MessageCodec::decode(std::string_view data)
 {
-    nlohmann::json json = nlohmann::json::parse(data);
-    return {
-        .type = messageTypeFromString(json.value<std::string_view>("type", "")),
-        .name = json.at("name"),
-        .id = json.value("id", 0),
-        .data = json.value("data", nlohmann::json::object())};
+    try
+    {
+
+        nlohmann::json json = nlohmann::json::parse(data);
+        return {
+            .type = messageTypeFromString(json.value<int>("type", 0)),
+            .name = json.at("name"),
+            .id = json.value("id", ""),
+            .data = json.value("data", nlohmann::json::object())};
+    }
+    catch (nlohmann::json::exception &e)
+    {
+        spdlog::error("MessageCodec(decode): Failed to parse message into json {}\n{}", e.what(), data);
+    }
+    return {};
 }

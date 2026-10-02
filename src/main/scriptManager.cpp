@@ -39,11 +39,12 @@ ScriptManager::ScriptManager(Paths &paths, EventBus &bus, APIRegister &apiRegist
 
 ScriptManager::~ScriptManager()
 {
+  runnerPipe_.close();
   mainPipe_.send(
       {
           .type = MessageType::Event,
-          .name = "shutdown",
-          .id = 0,
+          .name = "runner.shutdown",
+          .id = "scriptManager",
       });
 }
 
@@ -58,10 +59,14 @@ bool ScriptManager::startRunner()
                                              { spdlog::critical("ScriptManager(startRunnner): runner process exited with code {}\n{}", exitCode, runnerProcess_->error()); });
   runnerProcess_->start();
 
-  runnerPipe_ = IPCConnection(std::make_unique<NamedPipeClient>("runner"));
-  runnerPipe_.onMessage([](const Message &message) {
+  if (!mainPipe_.waitForConnection())
+  {
+    spdlog::error("ScriptManager(startRunner): Failed to recieve connection from runner {}", GetLastError());
+  }
 
-  });
+  runnerPipe_ = IPCConnection(std::make_unique<NamedPipeClient>("runner"));
+  runnerPipe_.onMessage([](const Message &message)
+                        { spdlog::debug("ScriptManager(startRunner): {} {}", message.id, message.name); });
   return true;
 }
 
@@ -101,7 +106,7 @@ void ScriptManager::run(std::string scriptName, const std::vector<std::string> &
 
   mainPipe_.send({.type = MessageType::Event,
                   .name = "script.run",
-                  .id = 0,
+                  .id = scriptInfo.get("name"),
                   .data = {
                       {"file", file},
                       {"language", language}}});
@@ -128,7 +133,7 @@ void ScriptManager::handleEvent(const std::string &eventPayload)
         spdlog::error("ScriptManager(handleEvent): method with type {} does not exist", type);
         mainPipe_.send({.type = MessageType::Response,
                         .name = "script.response",
-                        .id = 0,
+                        .id = event["from"],
                         .data = ""});
         return;
       }
@@ -138,10 +143,9 @@ void ScriptManager::handleEvent(const std::string &eventPayload)
 
       APIResponse res = method(req);
 
-      std::string payload = Events::response(event["from"], res.result);
       mainPipe_.send({.type = MessageType::Response,
                       .name = "script.response",
-                      .id = 0,
+                      .id = event["from"],
                       .data = res.result});
     }
     else

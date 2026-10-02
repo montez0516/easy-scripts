@@ -106,6 +106,11 @@ bool NamedPipe::readyRead(std::function<void(std::string_view)> readCallBack)
     return true;
 }
 
+bool NamedPipe::waitForConnection()
+{
+    return ConnectNamedPipe(pipeHandle_, NULL);
+}
+
 bool NamedPipe::isNull()
 {
     return pipeHandle_ == INVALID_HANDLE_VALUE;

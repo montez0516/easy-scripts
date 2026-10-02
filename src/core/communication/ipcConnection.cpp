@@ -35,6 +35,11 @@ void IPCConnection::write(std::string_view message)
     ipcPipe_->write(message);
 }
 
+bool IPCConnection::waitForConnection()
+{
+    return ipcPipe_->waitForConnection();
+}
+
 void IPCConnection::closeRead()
 {
     ipcPipe_->closeRead();

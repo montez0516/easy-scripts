@@ -28,6 +28,7 @@ public:
     std::string read() override;
     void write(std::string_view message) override;
     bool readyRead(std::function<void(std::string_view)> readCallBack);
+    bool waitForConnection() override;
     void close() override;
     bool isNull();
 };

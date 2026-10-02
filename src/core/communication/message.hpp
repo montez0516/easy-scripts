@@ -10,7 +10,8 @@ enum class MessageType
 {
     Request = 1,
     Response,
-    Event
+    Event,
+    Unknown
 };
 
 struct Message
@@ -21,14 +22,15 @@ struct Message
     nlohmann::json data;
 };
 
-constexpr MessageType messageTypeFromString(std::string_view type)
+constexpr MessageType messageTypeFromString(int type)
 {
-    if (type == "1")
+    if (type == 1)
         return MessageType::Request;
-    else if (type == "2")
+    else if (type == 2)
         return MessageType::Response;
-    else if (type == "3")
+    else if (type == 3)
         return MessageType::Event;
+    return MessageType::Unknown;
 }
 
 #endif
