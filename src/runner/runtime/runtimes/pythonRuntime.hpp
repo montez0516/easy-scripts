@@ -16,6 +16,7 @@ public:
 protected:
     std::filesystem::path executable(const std::filesystem::path &script) const override;
     void prepareArguments(const std::filesystem::path &script, std::vector<std::string> &args) const override;
+    std::string name() const override;
 };
 
 #endif

@@ -20,6 +20,10 @@ Runtime::Runtime(Paths &paths, EventBus &bus) : paths_(paths), bus_(bus)
     registerListener();
 }
 
+Runtime::~Runtime()
+{
+    shutdown();
+}
 void Runtime::run(const Message &message)
 {
     nlohmann::json messageData = message.data;
@@ -39,15 +43,14 @@ void Runtime::run(const Message &message)
     process->setCaptureHandles(true);
 
     process->registerReadyReadCallback([this, id](const Message &message)
-                                       {spdlog::debug("RUNTIME: id={} name={}", message.id, message.name); 
-                                        bus_.publish("script.event", message); });
+                                       { bus_.publish("script.event", message); });
 
     process->registerOnFinishedCallback([this, message](DWORD code)
                                         { bus_.publish("script.event", {.type = MessageType::Event, .name = "script.finished", .id = message.id, .data = code}); });
 
     process->start();
 
-    runtimes_[file] = (std::move(process));
+    runtimes_[message.id] = (std::move(process));
 }
 
 std::filesystem::path Runtime::executable(const std::filesystem::path &script) const
@@ -62,10 +65,13 @@ void Runtime::prepareArguments(const std::filesystem::path &script, std::vector<
 
 void Runtime::registerListener()
 {
-    bus_.subscribe("script.response", [this](const Message &message)
+
+    bus_.subscribe("runtime.response", [this](const Message &message)
                    {
         Process *process = getRuntime(message.id);
         process->write(message); });
+    bus_.subscribe("runtime.shutdown", [this](const Message &message)
+                   { shutdown(); });
 }
 
 Process *Runtime::getRuntime(const std::string &name)
@@ -74,4 +80,25 @@ Process *Runtime::getRuntime(const std::string &name)
         return {};
 
     return runtimes_.at(name).get();
+}
+
+void Runtime::shutdown()
+{
+
+    for (const auto &[id, runtime] : runtimes_)
+    {
+
+        runtime->write({.type = MessageType::Event,
+                        .name = "script.shutdown"});
+    }
+
+    for (const auto &[id, runtime] : runtimes_)
+    {
+        DWORD code = runtime->wait();
+    }
+}
+
+std::string Runtime::name() const
+{
+    return "constructor";
 }

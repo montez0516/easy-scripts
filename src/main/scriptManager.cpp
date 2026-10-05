@@ -39,7 +39,6 @@ ScriptManager::ScriptManager(Paths &paths, EventBus &bus, APIRegister &apiRegist
 
 ScriptManager::~ScriptManager()
 {
-  runnerPipe_.close();
   mainPipe_.send(
       {
           .type = MessageType::Event,
@@ -66,7 +65,7 @@ bool ScriptManager::startRunner()
 
   runnerPipe_ = IPCConnection(std::make_unique<NamedPipeClient>("runner"));
   runnerPipe_.onMessage([](const Message &message)
-                        { spdlog::debug("ScriptManager(startRunner): {} {}", message.id, message.name); });
+                        { spdlog::debug("ScriptManager(startRunner): {} {} {}", message.id, message.name, message.data.dump()); });
   return true;
 }
 

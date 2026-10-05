@@ -9,6 +9,10 @@
 #include <iostream>
 #include <thread>
 #include <functional>
+#include <mutex>
+#include <condition_variable>
+
+static constexpr DWORD FORCED_TERMINATION = 1;
 
 namespace fs = std::filesystem;
 
@@ -18,9 +22,12 @@ Process::Process(fs::path executable, std::vector<std::string> arguments) : exe_
 
 Process::~Process()
 {
-    spdlog::debug("Destroying process {}", exe_.string());
-    stop();
-    spdlog::debug("Destroyed process {}", exe_.string());
+    if (waitThread_.joinable())
+        waitThread_.join();
+
+    stdinPipe_.close();
+    stdoutPipe_.close();
+    stderrPipe_.close();
 }
 
 bool Process::start()
@@ -113,11 +120,23 @@ void Process::t_wait()
         spdlog::error("Process(t_wait): GetExitCodeProcess failed ({})", toString(GetError()));
     }
 
+    {
+        std::lock_guard lock(exitMutex_);
+
+        exited_ = true;
+    }
+
     CloseHandle(processInformation_.hProcess);
     CloseHandle(processInformation_.hThread);
 
     processInformation_.hProcess = nullptr;
     processInformation_.hThread = nullptr;
+
+    stdinPipe_.close();
+    stdoutPipe_.close();
+    stderrPipe_.close();
+
+    exitCV_.notify_all();
 
     if (finishCallBack_)
         finishCallBack_(exitCode_);
@@ -130,21 +149,32 @@ DWORD Process::wait()
     return exitCode_;
 }
 
-void Process::stop()
+bool Process::waitFor(std::chrono::milliseconds timeout)
 {
-    spdlog::debug("stopping");
-    CloseHandle(processInformation_.hProcess);
-    CloseHandle(processInformation_.hThread);
+    if (processInformation_.hProcess == nullptr)
+        return true;
 
-    spdlog::debug("stopping 1");
-    processInformation_.hProcess = nullptr;
-    processInformation_.hThread = nullptr;
+    std::unique_lock lock(exitMutex_);
 
-    spdlog::debug("stopping 2");
-    stdinPipe_.close();
-    stdoutPipe_.close();
-    stderrPipe_.close();
-    spdlog::debug("stopping 3");
+    return exitCV_.wait_for(lock, timeout, [this]()
+                            { return exited_; });
+}
+
+bool Process::terminate()
+{
+    if (processInformation_.hProcess == nullptr)
+    {
+        return false;
+    }
+
+    if (!TerminateProcess(processInformation_.hProcess, FORCED_TERMINATION))
+    {
+        spdlog::error("Process(terminate): Failed to terminate process {}", toString(GetError()));
+
+        return false;
+    }
+
+    return true;
 }
 
 static std::map<std::wstring, std::wstring> getCurrentEnvironment()

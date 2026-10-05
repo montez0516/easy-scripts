@@ -22,3 +22,8 @@ void DefaultRuntime::prepareArguments(const std::filesystem::path &script, std::
 {
     args.insert(args.begin(), script.string());
 }
+
+std::string DefaultRuntime::name() const
+{
+    return "default";
+}

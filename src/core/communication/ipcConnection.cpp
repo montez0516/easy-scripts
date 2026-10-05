@@ -2,11 +2,15 @@
 #include "messageCodec.hpp"
 #include "message.hpp"
 #include "../ipc/pipe.hpp"
+#include "messageFramer.hpp"
+
+#include <spdlog/spdlog.h>
 
 #include <string>
 #include <memory>
 #include <functional>
 #include <utility>
+#include <vector>
 
 IPCConnection::IPCConnection() {};
 
@@ -14,15 +18,21 @@ IPCConnection::IPCConnection(std::unique_ptr<Pipe> ipcPipe) : ipcPipe_(std::move
 
 void IPCConnection::send(const Message &message)
 {
-    std::string encodedMessage = MessageCodec::encode(message);
+    std::string encodedMessage = MessageCodec::encode(message) + '\n';
     ipcPipe_.get()->write(encodedMessage);
 }
 
 void IPCConnection::onMessage(std::function<void(const Message &)> callback)
 {
-    ipcPipe_.get()->readyRead([callback](std::string_view message)
-                              { Message decodedMessage = MessageCodec::decode(message);
-                                callback(decodedMessage); });
+    ipcPipe_.get()->readyRead([this, callback](std::string_view message)
+                              {
+                                  std::vector<std::string> messages = framer_.push(message);
+
+                                  for (const std::string &encodedMessage : messages)
+                                  {
+                                      Message decodedMessage = MessageCodec::decode(encodedMessage);
+                                      callback(decodedMessage);
+                                  } });
 }
 
 std::string IPCConnection::read()

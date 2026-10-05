@@ -28,3 +28,8 @@ void PythonRuntime::prepareArguments(const std::filesystem::path &script, std::v
     args.insert(args.begin(), script.string());
     args.insert(args.begin(), "-u");
 }
+
+std::string PythonRuntime::name() const
+{
+    return "python";
+}

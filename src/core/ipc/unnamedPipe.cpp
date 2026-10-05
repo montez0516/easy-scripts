@@ -60,15 +60,26 @@ void UnnamedPipe::write(std::string_view message)
 {
     if (writeHandle_ == INVALID_HANDLE_VALUE)
     {
-        spdlog::critical("UnnamedPipe(write): writeHandle is null");
+        spdlog::critical("UnnamedPipe(write): writeHandle is invalid");
         return;
     }
 
-    if (message.empty())
-        return;
+    std::string payload{message};
+
     DWORD bytesWritten = 0;
 
-    WriteFile(writeHandle_, message.data(), message.size(), &bytesWritten, NULL);
+    if (!WriteFile(
+            writeHandle_,
+            payload.data(),
+            static_cast<DWORD>(payload.size()),
+            &bytesWritten,
+            nullptr))
+    {
+        spdlog::error(
+            "UnnamedPipe(write): WriteFile failed {}",
+            GetLastError());
+        return;
+    }
 }
 
 HANDLE UnnamedPipe::getRead() const
@@ -101,6 +112,7 @@ void UnnamedPipe::closeWrite()
 
 bool UnnamedPipe::readyRead(std::function<void(std::string_view)> readCallBack)
 {
+    spdlog::debug("UnnamedPipe(readyRead): starting readyRead thread");
     if (readHandle_ == INVALID_HANDLE_VALUE)
     {
         spdlog::critical("UnnamedPipe(readyRead): readHandle is invalid");

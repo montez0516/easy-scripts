@@ -27,9 +27,12 @@ protected:
     virtual void prepareArguments(const std::filesystem::path &script, std::vector<std::string> &args) const;
     void registerListener();
     Process *getRuntime(const std::string &name);
+    void shutdown();
+    virtual std::string name() const;
 
 public:
     Runtime(Paths &paths, EventBus &bus);
+    ~Runtime();
     void run(const Message &);
 };
 

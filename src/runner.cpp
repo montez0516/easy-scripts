@@ -52,7 +52,8 @@ int main()
                      { bus.publish(message.name, message); });
 
   std::unique_lock<std::mutex> lock(mtx);
-  cv.wait(lock, [shutdown]()
+  cv.wait(lock, [&shutdown]()
           { return shutdown; });
+
   return 0;
 }

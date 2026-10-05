@@ -32,8 +32,8 @@ public:
 
     bool isNull();
 
-    void closeRead();
-    void closeWrite();
+    void closeRead() override;
+    void closeWrite() override;
 
     void close() override;
 };

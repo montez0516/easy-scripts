@@ -40,6 +40,8 @@ src/core/ipc/namedPipeServer.cpp
 src/core/ipc/namedPipeClient.cpp
 src/core/communication/ipcConnection.cpp
 src/core/communication/messageCodec.cpp
+src/core/communication/messageFramer.cpp
+
 
 src/main/scriptManager.cpp
 src/main/apis/fileAPI.cpp
@@ -71,6 +73,7 @@ src/core/ipc/namedPipeServer.cpp
 src/core/ipc/namedPipeClient.cpp
 src/core/communication/ipcConnection.cpp
 src/core/communication/messageCodec.cpp
+src/core/communication/messageFramer.cpp
 src/core/eventBus/eventBus.cpp
 src/runner/engine/runnerEngine.cpp 
 

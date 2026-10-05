@@ -3,6 +3,7 @@
 #include "../ipc/pipe.hpp"
 #include "message.hpp"
 #include "messageCodec.hpp"
+#include "messageFramer.hpp"
 
 #include <memory>
 #include <functional>
@@ -24,4 +25,5 @@ public:
 
 private:
     std::unique_ptr<Pipe> ipcPipe_;
+    MessageFramer framer_;
 };
