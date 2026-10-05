@@ -55,3 +55,8 @@ std::filesystem::path Paths::scripts() const
 {
     return root_ / "scripts";
 }
+
+std::filesystem::path Paths::sdk() const
+{
+    return root_ / "sdk";
+}

@@ -118,7 +118,7 @@ void ScriptManager::run(std::string scriptName, const std::vector<std::string> &
                   .data = {
                       {"file", file},
                       {"language", language}}});
-  scriptInfo.running = true;
+  // scriptInfo.running = true;
   spdlog::debug("ScriptManager(run): Ran script", language, file);
 }
 

@@ -16,6 +16,7 @@ public:
   std::filesystem::path runner() const;
   std::filesystem::path python() const;
   std::filesystem::path scripts() const;
+  std::filesystem::path sdk() const;
 };
 
 #endif

@@ -26,6 +26,7 @@ std::filesystem::path PythonRuntime::executable(const std::filesystem::path &scr
 void PythonRuntime::prepareArguments(const std::filesystem::path &script, std::vector<std::string> &args) const
 {
     args.insert(args.begin(), script.string());
+    args.insert(args.begin(), (paths_.sdk() / "easyscripts" / "bootstrap.py").string());
     args.insert(args.begin(), "-u");
 }
 

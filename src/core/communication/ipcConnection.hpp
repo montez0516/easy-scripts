@@ -18,6 +18,7 @@ public:
     std::string read();
     void write(std::string_view message);
     void onMessage(std::function<void(const Message &)> callback);
+    void onData(std::function<void(std::string_view)> callback);
     bool waitForConnection();
     void closeRead();
     void closeWrite();

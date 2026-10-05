@@ -76,6 +76,11 @@ bool Process::start()
 
         if (readyReadCallBack_)
             stdoutPipe_.onMessage(readyReadCallBack_);
+
+        stderrPipe_.onData([this](std::string_view message)
+                           {
+                               std::lock_guard lock(stderrMutex_);
+                               stderrBuffer_.append(message); });
     }
 
     waitThread_ = std::thread(&Process::t_wait, this);
@@ -244,7 +249,7 @@ void Process::clearCurrentDirectory()
 
 std::string Process::error()
 {
-    return stderrPipe_.read();
+    return stderrBuffer_;
 }
 
 void Process::registerReadyReadCallback(std::function<void(const Message &)> callback)

@@ -23,6 +23,7 @@ int main(int argc, char **argv)
   spdlog::info("APPLICATION NOT IN DEBUG MODE LOG LEVEL INFO");
 #endif
   spdlog::set_pattern("[%m/%d %T.%f %p][%^%l%$] %v");
+
   Paths paths{};
   EventBus bus;
   APIRegister apiRegister;

@@ -74,6 +74,9 @@ private:
   std::condition_variable exitCV_;
   bool exited_ = false;
   DWORD exitCode_ = STILL_ACTIVE;
+
+  std::string stderrBuffer_;
+  std::mutex stderrMutex_;
 };
 
 #endif

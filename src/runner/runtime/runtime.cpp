@@ -46,8 +46,11 @@ void Runtime::run(const Message &message)
     process->registerReadyReadCallback([this, id](const Message &message)
                                        { bus_.publish("script.event", message); });
 
-    process->registerOnFinishedCallback([this, message](DWORD code)
-                                        { bus_.publish("script.event", {.type = MessageType::Event, .name = "script.finished", .id = message.id, .data = code}); });
+    Process *processPtr = process.get();
+    process->registerOnFinishedCallback([this, message, processPtr](DWORD code)
+                                        {
+                                            std::string errorMsg = processPtr->error();
+                                            bus_.publish("script.event", {.type = MessageType::Event, .name = "script.finished", .id = message.id, .data = {{"code", code}, {"error", errorMsg}}}); });
 
     process->start();
 

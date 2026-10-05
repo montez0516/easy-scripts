@@ -35,6 +35,11 @@ void IPCConnection::onMessage(std::function<void(const Message &)> callback)
                                   } });
 }
 
+void IPCConnection::onData(std::function<void(std::string_view)> callback)
+{
+    ipcPipe_->readyRead(std::move(callback));
+}
+
 std::string IPCConnection::read()
 {
     return ipcPipe_->read();

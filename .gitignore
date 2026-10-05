@@ -2,8 +2,8 @@
 **/bin
 **/.vscode
 *.exe
-*.py
 **/CMakeFiles
 **/CMakeCache.txt
 **/scripts
 **/release
+**/__pycache__
