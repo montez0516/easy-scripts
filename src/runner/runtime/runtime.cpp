@@ -14,6 +14,7 @@
 #include <memory>
 #include <utility>
 #include <sstream>
+#include <chrono>
 
 Runtime::Runtime(Paths &paths, EventBus &bus) : paths_(paths), bus_(bus)
 {
@@ -94,7 +95,10 @@ void Runtime::shutdown()
 
     for (const auto &[id, runtime] : runtimes_)
     {
-        DWORD code = runtime->wait();
+        if (!runtime->waitFor(std::chrono::milliseconds(3000)))
+        {
+            runtime->terminate();
+        }
     }
 }
 

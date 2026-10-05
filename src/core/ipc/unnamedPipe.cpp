@@ -135,7 +135,7 @@ bool UnnamedPipe::readyRead(std::function<void(std::string_view)> readCallBack)
             else{
                 DWORD code = GetLastError();
 
-                if(code != 109)
+                if(code != ERROR_BROKEN_PIPE)
                 {
                     spdlog::error("UnnamedPipe(readyRead): failed to peek into readHandle. {}", code);
                 }
@@ -156,4 +156,18 @@ bool UnnamedPipe::isNull()
 void UnnamedPipe::close()
 {
     threadLoop_.store(false);
+    if (readyReadThread_.joinable())
+        readyReadThread_.join();
+
+    if (readHandle_ != INVALID_HANDLE_VALUE)
+    {
+        CloseHandle(readHandle_);
+        readHandle_ = INVALID_HANDLE_VALUE;
+    }
+
+    if (writeHandle_ != INVALID_HANDLE_VALUE)
+    {
+        CloseHandle(writeHandle_);
+        writeHandle_ = INVALID_HANDLE_VALUE;
+    }
 }

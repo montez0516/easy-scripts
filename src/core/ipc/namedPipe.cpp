@@ -97,7 +97,9 @@ bool NamedPipe::readyRead(std::function<void(std::string_view)> readCallBack)
                 }
             }
             else{
-                spdlog::error("NamedPipe(readyRead): failed to peek into readHandle {}", GetLastError());
+                DWORD code = GetLastError();
+                if(code != ERROR_BROKEN_PIPE)
+                    spdlog::error("NamedPipe(readyRead): failed to peek into readHandle {}", GetLastError());
                 return;
             }
             std::this_thread::sleep_for(std::chrono::milliseconds(100));
@@ -119,4 +121,12 @@ bool NamedPipe::isNull()
 void NamedPipe::close()
 {
     threadLoop_.store(false);
+    if (readyReadThread_.joinable())
+        readyReadThread_.join();
+
+    if (pipeHandle_ != INVALID_HANDLE_VALUE)
+    {
+        CloseHandle(pipeHandle_);
+        pipeHandle_ = INVALID_HANDLE_VALUE;
+    }
 }

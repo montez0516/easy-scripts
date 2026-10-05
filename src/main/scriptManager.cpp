@@ -14,6 +14,7 @@
 #include <iostream>
 #include <memory>
 #include <optional>
+#include <chrono>
 
 ScriptManager::ScriptManager(Paths &paths, EventBus &bus, APIRegister &apiRegister) : paths_(paths), bus_(bus), apiRegister_(apiRegister)
 {
@@ -45,6 +46,14 @@ ScriptManager::~ScriptManager()
           .name = "runner.shutdown",
           .id = "scriptManager",
       });
+
+  if (!runnerProcess_->waitFor(std::chrono::milliseconds(5000)))
+  {
+    runnerProcess_->terminate();
+  }
+
+  mainPipe_.close();
+  runnerPipe_.close();
 }
 
 bool ScriptManager::startRunner()
