@@ -57,8 +57,8 @@ src/ui/centralWidget.hpp
 src/ui/centralWidget.cpp
 src/ui/reuseables/gridWidget.hpp
 src/ui/reuseables/gridWIdget.cpp
-src/ui/scripts/scriptCard.hpp
-src/ui/scripts/scriptCard.cpp
+src/ui/main/scriptCard.hpp
+src/ui/main/scriptCard.cpp
 src/ui/reuseables/navBar.hpp
 src/ui/reuseables/navBar.cpp
 src/ui/reuseables/iconButton.hpp
@@ -100,7 +100,7 @@ src/api
 src/main/apis
 src/ui
 src/ui/reuseables
-src/ui/scripts
+src/ui/main
 )
 
 target_include_directories(runner PRIVATE 

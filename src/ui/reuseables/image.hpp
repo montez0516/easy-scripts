@@ -3,17 +3,26 @@
 #include <QWidget>
 #include <QLabel>
 #include <QVBoxLayout>
+#include <QString>
+#include <QPixmap>
 
 #include <string>
 
 class Image : public QWidget
 {
+    Q_OBJECT
+
 public:
-    Image(const std::string &src, QWidget *parent = nullptr);
-    void setSource(const std::string &src);
+    explicit Image(const QString &src, QWidget *parent = nullptr);
+
+protected:
+    void resizeEvent(QResizeEvent *event) override;
 
 private:
-    std::string source_;
+    QString source_;
+    QPixmap pixmap_;
     QLabel *image_;
     QVBoxLayout *layout_;
-}
+
+    void updatePixmap();
+};

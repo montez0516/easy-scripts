@@ -8,6 +8,7 @@ class NavBar : public QWidget
 {
 public:
     NavBar(QBoxLayout::Direction direction, QWidget *parent = nullptr);
+    void addWidget(QWidget *widget);
 
 private:
     QBoxLayout *layout_;

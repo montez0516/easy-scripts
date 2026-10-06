@@ -1,9 +1,10 @@
 #include "centralWidget.hpp"
 #include "../api/register.hpp"
 #include "../main/scriptManager.hpp"
-#include "scripts/scriptCard.hpp"
+#include "main/scriptCard.hpp"
 #include "reuseables/gridWidget.hpp"
 #include "reuseables/navBar.hpp"
+#include "reuseables/iconButton.hpp"
 
 #include <nlohmann/json.hpp>
 
@@ -42,4 +43,10 @@ CentralWidget::CentralWidget(APIRegister &apiRegister, QWidget *parent) : QWidge
     navBar_ = new NavBar(QBoxLayout::Direction::LeftToRight);
     navBar_->setObjectName("centralBar");
     layout_->addWidget(navBar_, 1);
+
+    for (int i = 0; i < 3; i++)
+    {
+        IconButton *button = new IconButton("C:\\Users\\efish\\Pictures\\2026-07-29_051941_474474.png");
+        navBar_->addWidget(button);
+    }
 }
