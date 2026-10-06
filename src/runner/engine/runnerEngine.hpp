@@ -1,5 +1,4 @@
-#ifndef RUNNER_ENGINE_H
-#define RUNNER_ENGINE_H
+#pragma once
 
 #include "../runtime/runtimeManager.hpp"
 #include "../../core/paths.hpp"
@@ -21,5 +20,3 @@ public:
 
     void initialize();
 };
-
-#endif

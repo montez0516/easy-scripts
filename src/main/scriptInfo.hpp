@@ -1,5 +1,4 @@
-#ifndef SCRIPT_INFO_H
-#define SCRIPT_INFO_H
+#pragma once
 
 #include "../core/paths.hpp"
 
@@ -25,5 +24,3 @@ private:
     void findScriptFile();
     void validateInfo();
 };
-
-#endif

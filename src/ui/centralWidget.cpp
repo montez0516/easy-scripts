@@ -1,13 +1,16 @@
 #include "centralWidget.hpp"
 #include "../api/register.hpp"
 #include "../main/scriptManager.hpp"
-#include "scriptCard.hpp"
-#include "scriptGrid.hpp"
+#include "scripts/scriptCard.hpp"
+#include "reuseables/gridWidget.hpp"
+#include "reuseables/navBar.hpp"
 
 #include <nlohmann/json.hpp>
 
 #include <QWidget>
 #include <QSize>
+#include <QBoxLayout>
+#include <QSizePolicy>
 
 #include <vector>
 
@@ -25,12 +28,18 @@ CentralWidget::CentralWidget(APIRegister &apiRegister, QWidget *parent) : QWidge
 
     layout_ = new QVBoxLayout(this);
 
-    scriptGrid_ = new ScriptGrid(this);
-    layout_->addWidget(scriptGrid_, 1);
+    scriptGrid_ = new GridWidget();
+    scriptGrid_->setObjectName("scriptGrid");
+
+    layout_->addWidget(scriptGrid_, 9);
 
     for (int i = 0; i < scriptsList.size(); i++)
     {
         ScriptCard *scriptCard = new ScriptCard(scriptsList[i], apiRegister_, this);
-        scriptGrid_->addScript(scriptCard);
+        scriptGrid_->addWidget(scriptCard);
     }
+
+    navBar_ = new NavBar(QBoxLayout::Direction::LeftToRight);
+    navBar_->setObjectName("centralBar");
+    layout_->addWidget(navBar_, 1);
 }

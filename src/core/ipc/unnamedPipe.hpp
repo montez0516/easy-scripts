@@ -1,5 +1,4 @@
-#ifndef UNNAMED_PIPE_H
-#define UNNAMED_PIPE_H
+#pragma once
 
 #include "pipe.hpp"
 
@@ -37,5 +36,3 @@ public:
 
     void close() override;
 };
-
-#endif

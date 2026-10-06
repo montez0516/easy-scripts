@@ -1,5 +1,4 @@
-#ifndef RUNTIME_H
-#define RUNTIME_H
+#pragma once
 
 #include "../../core/process/process.hpp"
 #include "../../core/paths.hpp"
@@ -35,5 +34,3 @@ public:
     ~Runtime();
     void run(const Message &);
 };
-
-#endif

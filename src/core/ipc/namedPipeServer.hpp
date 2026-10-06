@@ -1,5 +1,4 @@
-#ifndef NAMED_PIPE_SERVER_H
-#define NAMED_PIPE_SERVER_H
+#pragma once
 
 #include "namedPipe.hpp"
 
@@ -11,5 +10,3 @@ public:
     NamedPipeServer(std::string pipeName);
     bool waitForConnection();
 };
-
-#endif

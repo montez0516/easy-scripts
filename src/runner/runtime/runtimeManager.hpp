@@ -1,5 +1,4 @@
-#ifndef RUNTIME_MANAGER_H
-#define RUNTIME_MANAGER_H
+#pragma once
 
 #include "runtime.hpp"
 
@@ -15,5 +14,3 @@ public:
     void registerRunTime(const std::string &language, std::unique_ptr<Runtime>);
     Runtime *getRuntime(const std::string &language);
 };
-
-#endif

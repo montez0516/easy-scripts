@@ -1,8 +1,5 @@
-#ifndef ROUTER_H
-#define ROUTER_H
+#pragma once
 
 class APIRouter
 {
 };
-
-#endif

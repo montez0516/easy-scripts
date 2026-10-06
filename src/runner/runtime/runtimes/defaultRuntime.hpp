@@ -1,5 +1,4 @@
-#ifndef DEF_RUNTIME_H
-#define DEF_RUNTIME_H
+#pragma once
 
 #include "../runtime.hpp"
 #include "../../../core/process/process.hpp"
@@ -19,5 +18,3 @@ protected:
     void prepareArguments(const std::filesystem::path &script, std::vector<std::string> &args) const override;
     std::string name() const override;
 };
-
-#endif

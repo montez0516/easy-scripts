@@ -1,5 +1,4 @@
-#ifndef MEDIA_API_H
-#define MEDIA_API_H
+#pragma once
 
 #include "../../api/register.hpp"
 
@@ -11,5 +10,3 @@ public:
     APIResponse message(APIRequest request);
     APIResponse input(APIRequest request);
 };
-
-#endif

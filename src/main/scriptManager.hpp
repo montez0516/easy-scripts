@@ -1,5 +1,4 @@
-#ifndef SCRIPT_MANAGER_H
-#define SCRIPT_MANAGER_H
+#pragma once
 
 #include "scriptInfo.hpp"
 #include "../core/process/process.hpp"
@@ -49,5 +48,3 @@ private:
   ScriptInfo &getScript(std::string id);
   bool hasScript(std::string id);
 };
-
-#endif

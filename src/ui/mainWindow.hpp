@@ -1,5 +1,4 @@
-#ifndef MAIN_WINDOW_H
-#define MAIN_WINDOW_H
+#pragma once
 
 #include "centralWidget.hpp"
 #include "../api/register.hpp"
@@ -16,4 +15,3 @@ private:
     CentralWidget *centralWidget_;
     APIRegister &apiRegister_;
 };
-#endif

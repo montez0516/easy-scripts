@@ -1,5 +1,4 @@
-#ifndef NAMED_PIPE_CLIENT_H
-#define NAMED_PIPE_CLIENT_H
+#pragma once
 
 #include "namedPipe.hpp"
 
@@ -10,5 +9,3 @@ class NamedPipeClient : public NamedPipe
 public:
     NamedPipeClient(std::string pipeName);
 };
-
-#endif

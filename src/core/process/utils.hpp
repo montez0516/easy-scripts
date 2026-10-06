@@ -1,5 +1,4 @@
-#ifndef PROCESS_UTILS_H
-#define PROCESS_UTILS_H
+#pragma once
 
 #include <string>
 #include <vector>
@@ -138,5 +137,3 @@ static std::wstring quoteWindowsArgument(const std::wstring &argument)
 
     return result;
 }
-
-#endif

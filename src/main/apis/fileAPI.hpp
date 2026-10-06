@@ -1,5 +1,4 @@
-#ifndef FILE_API_H
-#define FILE_API_H
+#pragma once
 
 #include "../../api/register.hpp"
 
@@ -10,5 +9,3 @@ public:
 
     APIResponse openFilePicker(APIRequest request);
 };
-
-#endif

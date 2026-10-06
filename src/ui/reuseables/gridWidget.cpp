@@ -1,5 +1,4 @@
-#include "scriptGrid.hpp"
-#include "scriptCard.hpp"
+#include "gridWidget.hpp"
 
 #include <QWidget>
 #include <QGridLayout>
@@ -8,22 +7,20 @@
 
 #include <algorithm>
 
-ScriptGrid::ScriptGrid(QWidget *parent) : QWidget(parent)
+GridWidget::GridWidget(QWidget *parent) : QWidget(parent)
 {
-    setObjectName("ScriptGrid");
-
     layout_ = new QGridLayout(this);
     layout_->setSpacing(16);
     layout_->setContentsMargins(0, 0, 0, 0);
 }
 
-void ScriptGrid::addScript(ScriptCard *scriptCard)
+void GridWidget::addWidget(QWidget *widget)
 {
-    scripts_.append(scriptCard);
+    widgets_.append(widget);
     updateGrid();
 }
 
-void ScriptGrid::updateGrid()
+void GridWidget::updateGrid()
 {
 
     constexpr int minimumScriptWidth = 250;
@@ -38,16 +35,16 @@ void ScriptGrid::updateGrid()
     }
 
     // Re-add them based on the new column count
-    for (int i = 0; i < scripts_.size(); ++i)
+    for (int i = 0; i < widgets_.size(); ++i)
     {
         int row = i / columns;
         int column = i % columns;
 
-        layout_->addWidget(scripts_[i], row, column);
+        layout_->addWidget(widgets_[i], row, column);
     }
 }
 
-void ScriptGrid::resizeEvent(QResizeEvent *event)
+void GridWidget::resizeEvent(QResizeEvent *event)
 {
     QWidget::resizeEvent(event);
     updateGrid();

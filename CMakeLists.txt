@@ -55,10 +55,16 @@ src/ui/themeManager.cpp
 src/ui/themeManager.hpp
 src/ui/centralWidget.hpp
 src/ui/centralWidget.cpp
-src/ui/scriptCard.hpp
-src/ui/scriptCard.cpp
-src/ui/scriptGrid.hpp
-src/ui/scriptGrid.cpp
+src/ui/reuseables/gridWidget.hpp
+src/ui/reuseables/gridWIdget.cpp
+src/ui/scripts/scriptCard.hpp
+src/ui/scripts/scriptCard.cpp
+src/ui/reuseables/navBar.hpp
+src/ui/reuseables/navBar.cpp
+src/ui/reuseables/iconButton.hpp
+src/ui/reuseables/iconButton.cpp
+src/ui/reuseables/image.hpp
+src/ui/reuseables/image.cpp
 )
 
 add_executable(runner
@@ -93,6 +99,8 @@ src/core/communication
 src/api
 src/main/apis
 src/ui
+src/ui/reuseables
+src/ui/scripts
 )
 
 target_include_directories(runner PRIVATE 

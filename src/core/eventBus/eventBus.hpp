@@ -1,5 +1,4 @@
-#ifndef EVENT_BUS_H
-#define EVENT_BUS_H
+#pragma once
 
 #include "../communication/message.hpp"
 
@@ -22,5 +21,3 @@ public:
 private:
     std::map<std::string, std::vector<Method>> methods_;
 };
-
-#endif

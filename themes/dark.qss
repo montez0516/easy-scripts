@@ -21,3 +21,9 @@ QMainWindow{
 {
     font-size:20pt;
 }
+
+#centralBar
+{
+    background-color: lightgrey;
+    border-radius: 10px;
+}

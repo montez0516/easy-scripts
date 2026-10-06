@@ -1,5 +1,4 @@
-#ifndef PROCESS_H
-#define PROCESS_H
+#pragma once
 
 #include "../ipc/unnamedPipe.hpp"
 #include "../communication/ipcConnection.hpp"
@@ -78,5 +77,3 @@ private:
   std::string stderrBuffer_;
   std::mutex stderrMutex_;
 };
-
-#endif

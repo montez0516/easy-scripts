@@ -1,5 +1,4 @@
-#ifndef REGISTER_H
-#define REGISTER_H
+#pragma once
 
 #include <spdlog/spdlog.h>
 #include <nlohmann/json.hpp>
@@ -33,5 +32,3 @@ public:
     std::function<APIResponse(APIRequest)> getMethod(std::string methodName);
     bool hasMethod(std::string methodName);
 };
-
-#endif

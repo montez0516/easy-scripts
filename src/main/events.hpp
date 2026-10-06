@@ -1,5 +1,4 @@
-#ifndef EVENTS_H
-#define EVENTS_H
+#pragma once
 
 #include <nlohmann/json.hpp>
 
@@ -28,5 +27,3 @@ namespace Events
         return nlohmann::json({{"type", "shutdown"}}).dump();
     };
 }
-
-#endif

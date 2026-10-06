@@ -1,5 +1,4 @@
-#ifndef PATHS_H
-#define PATHS_H
+#pragma once
 
 #include <filesystem>
 #include <string>
@@ -18,5 +17,3 @@ public:
   std::filesystem::path scripts() const;
   std::filesystem::path sdk() const;
 };
-
-#endif

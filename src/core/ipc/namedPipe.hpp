@@ -1,5 +1,4 @@
-#ifndef NAMED_PIPE_H
-#define NAMED_PIPE_H
+#pragma once
 
 #include "pipe.hpp"
 
@@ -32,5 +31,3 @@ public:
     void close() override;
     bool isNull();
 };
-
-#endif
