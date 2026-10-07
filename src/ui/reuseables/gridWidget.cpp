@@ -23,10 +23,10 @@ void GridWidget::addWidget(QWidget *widget)
 void GridWidget::updateGrid()
 {
 
-    constexpr int minimumScriptWidth = 250;
+    constexpr int minimumWidgetWidth = 250;
     int width = this->width();
 
-    int columns = std::max(2, (width + layout_->horizontalSpacing()) / (minimumScriptWidth + layout_->horizontalSpacing()));
+    int columns = std::max(1, (width + layout_->horizontalSpacing()) / (minimumWidgetWidth + layout_->horizontalSpacing()));
 
     while (QLayoutItem *item = layout_->takeAt(0))
     {

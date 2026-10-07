@@ -6,10 +6,11 @@
 #include <QString>
 #include <QFile>
 
+QString ThemeManager::theme_;
+
 void ThemeManager::loadThemeFile(const QString &theme)
 {
     QString fileName = "./themes/" + theme + ".qss";
-    spdlog::debug("ThemeManager: {}", fileName.toStdString());
 
     QFile file(fileName);
 
@@ -20,4 +21,11 @@ void ThemeManager::loadThemeFile(const QString &theme)
     }
 
     qApp->setStyleSheet(file.readAll());
+
+    theme_ = theme;
+}
+
+QString ThemeManager::currentTheme()
+{
+    return theme_;
 }

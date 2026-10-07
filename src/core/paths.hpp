@@ -16,4 +16,6 @@ public:
   std::filesystem::path python() const;
   std::filesystem::path scripts() const;
   std::filesystem::path sdk() const;
+  std::filesystem::path resources() const;
+  std::filesystem::path icons() const;
 };

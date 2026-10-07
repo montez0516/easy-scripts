@@ -6,17 +6,22 @@
 #include <QVBoxLayout>
 #include <QString>
 #include <Qt>
+#include <QSizePolicy>
 
 Image::Image(const QString &src, QWidget *parent)
     : QWidget(parent),
       source_(src),
       pixmap_(src)
 {
+    setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+
     layout_ = new QVBoxLayout(this);
     layout_->setContentsMargins(0, 0, 0, 0);
 
     image_ = new QLabel(this);
     image_->setAlignment(Qt::AlignCenter);
+
+    image_->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
     layout_->addWidget(image_);
 

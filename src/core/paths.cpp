@@ -60,3 +60,13 @@ std::filesystem::path Paths::sdk() const
 {
     return root_ / "sdk";
 }
+
+std::filesystem::path Paths::resources() const
+{
+    return root_ / "resources";
+}
+
+std::filesystem::path Paths::icons() const
+{
+    return resources() / "icons";
+}

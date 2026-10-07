@@ -1,6 +1,7 @@
 #include "centralWidget.hpp"
 #include "../api/register.hpp"
-#include "../main/scriptManager.hpp"
+#include "../core/paths.hpp"
+#include "themeManager.hpp"
 #include "main/scriptCard.hpp"
 #include "reuseables/gridWidget.hpp"
 #include "reuseables/navBar.hpp"
@@ -12,10 +13,12 @@
 #include <QSize>
 #include <QBoxLayout>
 #include <QSizePolicy>
+#include <Qt>
 
 #include <vector>
+#include <filesystem>
 
-CentralWidget::CentralWidget(APIRegister &apiRegister, QWidget *parent) : QWidget(parent), apiRegister_(apiRegister)
+CentralWidget::CentralWidget(APIRegister &apiRegister, Paths &paths, QWidget *parent) : QWidget(parent), apiRegister_(apiRegister), paths_(paths)
 {
     setObjectName("CentralWidget");
 
@@ -32,7 +35,7 @@ CentralWidget::CentralWidget(APIRegister &apiRegister, QWidget *parent) : QWidge
     scriptGrid_ = new GridWidget();
     scriptGrid_->setObjectName("scriptGrid");
 
-    layout_->addWidget(scriptGrid_, 9);
+    layout_->addWidget(scriptGrid_, 1);
 
     for (int i = 0; i < scriptsList.size(); i++)
     {
@@ -41,12 +44,24 @@ CentralWidget::CentralWidget(APIRegister &apiRegister, QWidget *parent) : QWidge
     }
 
     navBar_ = new NavBar(QBoxLayout::Direction::LeftToRight);
-    navBar_->setObjectName("centralBar");
-    layout_->addWidget(navBar_, 1);
+    navBar_->setObjectName("CentralNavBar");
+    navBar_->setFixedHeight(65);
 
-    for (int i = 0; i < 3; i++)
+    layout_->addWidget(navBar_);
+
+    std::filesystem::path iconsPath = paths_.icons();
+    QString currentTheme = ThemeManager::currentTheme();
+
+    for (const QString &page : {"script", "create", "settings"})
     {
-        IconButton *button = new IconButton("C:\\Users\\efish\\Pictures\\2026-07-29_051941_474474.png");
+        QString fileName = page + "-" + currentTheme + ".svg";
+
+        QString iconLocation = QString::fromStdString(
+            (iconsPath / fileName.toStdString()).string());
+
+        IconButton *button = new IconButton(page, iconLocation, navBar_);
+        connect(button, &QPushButton::clicked, this, [page]()
+                { qDebug() << page; });
         navBar_->addWidget(button);
     }
 }

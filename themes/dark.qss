@@ -22,10 +22,9 @@ QMainWindow{
     font-size:20pt;
 }
 
-#centralBar
-{
-    background-color: lightgrey;
-    border-radius: 10px;
+#CentralNavBar{
+    background: lightgrey;
+    border-radius:10px;
 }
 
 QPushButton {
@@ -40,4 +39,10 @@ QPushButton:hover {
 
 QPushButton:pressed {
     background: #cccccc;
+}
+
+#IconButtonText
+{
+    font-size:16px;
+    font-weight: 500;
 }

@@ -1,29 +1,57 @@
 #include "iconButton.hpp"
+#include "image.hpp"
 
-#include <QWidget>
 #include <QPushButton>
 #include <QString>
-#include <QIcon>
-#include <QSize>
+#include <QLabel>
+#include <QVBoxLayout>
 #include <Qt>
 
-IconButton::IconButton(const QString &icon, QWidget *parent) : QPushButton(parent)
+IconButton::IconButton(
+    const QString &text,
+    const QString &icon,
+    QWidget *parent) : QPushButton(parent)
 {
-    setIcon(QIcon(icon));
+    setObjectName("IconButton");
     setCursor(Qt::PointingHandCursor);
-    updateIconSize();
+
+    setSizePolicy(
+        QSizePolicy::Expanding,
+        QSizePolicy::Expanding);
+
+    layout_ = new QVBoxLayout(this);
+    layout_->setContentsMargins(8, 6, 8, 6);
+    layout_->setSpacing(2);
+
+    icon_ = new Image(icon, this);
+    text_ = new QLabel(text, this);
+
+    text_->setObjectName("IconButtonText");
+
+    icon_->setAttribute(Qt::WA_TransparentForMouseEvents);
+    text_->setAttribute(Qt::WA_TransparentForMouseEvents);
+
+    text_->setAlignment(Qt::AlignCenter);
+
+    layout_->addWidget(icon_, 1);
+    layout_->addWidget(text_);
 }
 
 void IconButton::resizeEvent(QResizeEvent *event)
 {
     QPushButton::resizeEvent(event);
-    updateIconSize();
+
+    qDebug() << "IconButton:" << size();
+    qDebug() << "Icon:" << icon_->size();
+    qDebug() << "Text:" << text_->size();
 }
 
-void IconButton::updateIconSize()
+QSize IconButton::sizeHint() const
 {
-    int dimension = std::min(width(), height());
-    int iconDimension = dimension / 2;
+    return QSize(75, 75);
+}
 
-    setIconSize(QSize(iconDimension, iconDimension));
+QSize IconButton::minimumSizeHint() const
+{
+    return QSize(50, 50);
 }
