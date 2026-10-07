@@ -132,6 +132,10 @@ install(TARGETS EasyScripts
 RUNTIME DESTINATION .
 )
 
+install(DIRECTORY resources DESTINATION .)
+install(DIRECTORY themes DESTINATION .)
+install(DIRECTORY sdk DESTINATION .)
+
 install(TARGETS runner
     RUNTIME DESTINATION bin
 )
