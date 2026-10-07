@@ -70,3 +70,8 @@ std::filesystem::path Paths::icons() const
 {
     return resources() / "icons";
 }
+
+std::filesystem::path Paths::themes() const
+{
+    return resources() / "themes";
+}

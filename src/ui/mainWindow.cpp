@@ -18,7 +18,7 @@ MainWindow::MainWindow(APIRegister &apiRegister, Paths &paths) : QMainWindow(nul
 
     resize(width / 2, height / 2);
 
-    ThemeManager::loadThemeFile("dark");
+    ThemeManager::loadThemeFile(paths_, "dark");
 
     centralWidget_ = new CentralWidget(apiRegister_, paths_, this);
     setCentralWidget(centralWidget_);

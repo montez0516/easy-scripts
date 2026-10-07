@@ -1,4 +1,5 @@
 #include "themeManager.hpp"
+#include "../core/paths.hpp"
 
 #include <spdlog/spdlog.h>
 
@@ -6,13 +7,16 @@
 #include <QString>
 #include <QFile>
 
+#include <filesystem>
+
 QString ThemeManager::theme_;
 
-void ThemeManager::loadThemeFile(const QString &theme)
+void ThemeManager::loadThemeFile(Paths &paths, const QString &theme)
 {
-    QString fileName = "./themes/" + theme + ".qss";
+    std::filesystem::path themesDir = paths.themes();
+    QString themesFile = QString::fromStdString((themesDir / (theme.toStdString() + ".qss")).string());
 
-    QFile file(fileName);
+    QFile file(themesFile);
 
     if (!file.open(QFile::ReadOnly | QFile::Text))
     {

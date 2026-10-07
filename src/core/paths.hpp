@@ -18,4 +18,5 @@ public:
   std::filesystem::path sdk() const;
   std::filesystem::path resources() const;
   std::filesystem::path icons() const;
+  std::filesystem::path themes() const;
 };
