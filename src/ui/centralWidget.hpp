@@ -7,6 +7,8 @@
 
 #include <QWidget>
 #include <QVBoxLayout>
+#include <QStackedLayout>
+
 #include <vector>
 
 class CentralWidget : public QWidget
@@ -18,6 +20,8 @@ private:
     APIRegister &apiRegister_;
     Paths &paths_;
     QVBoxLayout *layout_;
+    QStackedLayout *stackedLayout_;
     GridWidget *scriptGrid_;
     NavBar *navBar_;
+    std::vector<QString> pages_ = {"script", "create", "settings"};
 };

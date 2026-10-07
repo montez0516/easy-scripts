@@ -65,6 +65,9 @@ src/ui/reuseables/iconButton.hpp
 src/ui/reuseables/iconButton.cpp
 src/ui/reuseables/image.hpp
 src/ui/reuseables/image.cpp
+src/ui/main/scriptPage.hpp
+src/ui/main/createPage.hpp
+src/ui/main/createPage.cpp
 )
 
 add_executable(runner
