@@ -2,6 +2,7 @@
 #define SCRIPT_CARD_H
 
 #include "../api/register.hpp"
+#include "../reuseables/iconButton.hpp"
 
 #include <nlohmann/json.hpp>
 

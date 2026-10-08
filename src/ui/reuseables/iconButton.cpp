@@ -40,10 +40,6 @@ IconButton::IconButton(
 void IconButton::resizeEvent(QResizeEvent *event)
 {
     QPushButton::resizeEvent(event);
-
-    qDebug() << "IconButton:" << size();
-    qDebug() << "Icon:" << icon_->size();
-    qDebug() << "Text:" << text_->size();
 }
 
 QSize IconButton::sizeHint() const
