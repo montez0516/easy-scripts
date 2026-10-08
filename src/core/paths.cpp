@@ -5,6 +5,8 @@
 #include <string>
 #include <iostream>
 
+std::filesystem::path Paths::root_;
+
 Paths::Paths()
 {
     char path[MAX_PATH];
@@ -27,17 +29,17 @@ Paths::Paths()
 #endif
 }
 
-std::filesystem::path Paths::root() const
+std::filesystem::path Paths::root()
 {
     return root_;
 }
 
-std::filesystem::path Paths::bin() const
+std::filesystem::path Paths::bin()
 {
     return root_ / "bin";
 }
 
-std::filesystem::path Paths::runner() const
+std::filesystem::path Paths::runner()
 {
 #if defined(BUILD_DEV)
     return root_ / "build" / "runner.exe";
@@ -46,32 +48,32 @@ std::filesystem::path Paths::runner() const
 #endif
 }
 
-std::filesystem::path Paths::python() const
+std::filesystem::path Paths::python()
 {
     return root_ / "bin" / "python" / "python.exe";
 }
 
-std::filesystem::path Paths::scripts() const
+std::filesystem::path Paths::scripts()
 {
     return root_ / "scripts";
 }
 
-std::filesystem::path Paths::sdk() const
+std::filesystem::path Paths::sdk()
 {
     return root_ / "sdk";
 }
 
-std::filesystem::path Paths::resources() const
+std::filesystem::path Paths::resources()
 {
     return root_ / "resources";
 }
 
-std::filesystem::path Paths::icons() const
+std::filesystem::path Paths::icons()
 {
     return resources() / "icons";
 }
 
-std::filesystem::path Paths::themes() const
+std::filesystem::path Paths::themes()
 {
     return resources() / "themes";
 }

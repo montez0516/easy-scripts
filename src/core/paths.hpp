@@ -6,17 +6,17 @@
 class Paths
 {
 private:
-  std::filesystem::path root_;
+  static std::filesystem::path root_;
 
 public:
   Paths();
-  std::filesystem::path root() const;
-  std::filesystem::path bin() const;
-  std::filesystem::path runner() const;
-  std::filesystem::path python() const;
-  std::filesystem::path scripts() const;
-  std::filesystem::path sdk() const;
-  std::filesystem::path resources() const;
-  std::filesystem::path icons() const;
-  std::filesystem::path themes() const;
+  static std::filesystem::path root();
+  static std::filesystem::path bin();
+  static std::filesystem::path runner();
+  static std::filesystem::path python();
+  static std::filesystem::path scripts();
+  static std::filesystem::path sdk();
+  static std::filesystem::path resources();
+  static std::filesystem::path icons();
+  static std::filesystem::path themes();
 };
