@@ -73,7 +73,7 @@ src/ui/main/ScriptPage.h
 src/ui/main/CreatePage.h
 src/ui/main/CreatePage.cpp
 src/ui/UIContext.h
-src/ui/UIContext.cpp
+src/ui/main/ScriptPage.cpp
 )
 
 add_executable(runner

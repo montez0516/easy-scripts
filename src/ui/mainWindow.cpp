@@ -1,6 +1,8 @@
 #include "MainWindow.h"
+
 #include "ThemeManager.h"
 #include "CentralWidget.h"
+#include "UIContext.h"
 #include "../api/Register.h"
 #include "../core/Paths.h"
 
@@ -9,7 +11,7 @@
 #include <QGuiApplication>
 #include <QScreen>
 
-MainWindow::MainWindow(APIRegister &apiRegister, Paths &paths) : QMainWindow(nullptr), apiRegister_(apiRegister), paths_(paths)
+MainWindow::MainWindow(UIContext &uiContext) : QMainWindow(nullptr), uiContext_(uiContext)
 {
     QScreen *screen = QGuiApplication::primaryScreen();
     QRect rect = screen->geometry();
@@ -18,9 +20,9 @@ MainWindow::MainWindow(APIRegister &apiRegister, Paths &paths) : QMainWindow(nul
 
     resize(width / 2, height / 2);
 
-    ThemeManager::loadThemeFile(paths_, "dark");
+    ThemeManager::loadThemeFile(uiContext_.paths, "dark");
 
-    centralWidget_ = new CentralWidget(apiRegister_, paths_, this);
+    centralWidget_ = new CentralWidget(uiContext_, this);
     setCentralWidget(centralWidget_);
 
     show();

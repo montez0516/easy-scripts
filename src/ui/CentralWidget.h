@@ -1,5 +1,6 @@
 #pragma once
 
+#include "UIContext.h"
 #include "reuseables/GridWidget.h"
 #include "reuseables/NavBar.h"
 #include "../api/Register.h"
@@ -14,11 +15,10 @@
 class CentralWidget : public QWidget
 {
 public:
-    CentralWidget(APIRegister &apiRegister, Paths &paths, QWidget *parent = nullptr);
+    CentralWidget(UIContext &uiContext, QWidget *parent = nullptr);
 
 private:
-    APIRegister &apiRegister_;
-    Paths &paths_;
+    UIContext &uiContext_;
     QVBoxLayout *layout_;
     QStackedLayout *stackedLayout_;
     GridWidget *scriptGrid_;

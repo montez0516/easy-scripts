@@ -5,6 +5,7 @@
 #include "main/apis/FileSystemAPI.h"
 #include "main/apis/MediaAPI.h"
 #include "ui/MainWindow.h"
+#include "ui/UIContext.h"
 
 #include <spdlog/spdlog.h>
 #include <QApplication>
@@ -35,7 +36,9 @@ int main(int argc, char **argv)
 
   QApplication app{argc, argv};
 
-  MainWindow window{apiRegister, paths};
+  UIContext uiContext = {.paths = paths, .eventBus = bus, .apiRegister = apiRegister};
+
+  MainWindow window{uiContext};
 
   return app.exec();
 }

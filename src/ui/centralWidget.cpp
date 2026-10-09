@@ -1,6 +1,8 @@
 #include "CentralWidget.h"
+
 #include "../api/Register.h"
 #include "../core/Paths.h"
+
 #include "ThemeManager.h"
 #include "main/ScriptCard.h"
 #include "main/CreatePage.h"
@@ -8,6 +10,7 @@
 #include "reuseables/NavBar.h"
 #include "reuseables/IconButton.h"
 #include "reuseables/FlowLayout.h"
+#include "UIContext.h"
 
 #include <nlohmann/json.hpp>
 
@@ -20,11 +23,11 @@
 #include <vector>
 #include <filesystem>
 
-CentralWidget::CentralWidget(APIRegister &apiRegister, Paths &paths, QWidget *parent) : QWidget(parent), apiRegister_(apiRegister), paths_(paths)
+CentralWidget::CentralWidget(UIContext &uiContext, QWidget *parent) : QWidget(parent), uiContext_(uiContext)
 {
     setObjectName("CentralWidget");
 
-    auto method = apiRegister_.getMethod("scripts.list");
+    auto method = uiContext.apiRegister.getMethod("scripts.list");
 
     if (!method)
         return;
@@ -44,12 +47,12 @@ CentralWidget::CentralWidget(APIRegister &apiRegister, Paths &paths, QWidget *pa
 
     for (int i = 0; i < scriptsList.size(); i++)
     {
-        ScriptCard *scriptCard = new ScriptCard(scriptsList[i], apiRegister_, this);
+        ScriptCard *scriptCard = new ScriptCard(scriptsList[i], uiContext_.apiRegister, this);
         scriptGrid_->addWidget(scriptCard);
     }
 
-    CreatePage *createPage = new CreatePage(apiRegister_);
-    CreatePage *settingsPage = new CreatePage(apiRegister_);
+    CreatePage *createPage = new CreatePage(uiContext_.apiRegister);
+    CreatePage *settingsPage = new CreatePage(uiContext_.apiRegister);
 
     stackedLayout_->addWidget(createPage);
     stackedLayout_->addWidget(settingsPage);
@@ -60,7 +63,7 @@ CentralWidget::CentralWidget(APIRegister &apiRegister, Paths &paths, QWidget *pa
 
     layout_->addWidget(navBar_);
 
-    std::filesystem::path iconsPath = paths_.icons();
+    std::filesystem::path iconsPath = uiContext_.paths.icons();
     QString currentTheme = ThemeManager::currentTheme();
 
     for (size_t i = 0; i < pages_.size(); i++)

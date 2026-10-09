@@ -1,6 +1,7 @@
 #pragma once
 
 #include "CentralWidget.h"
+#include "UIContext.h"
 #include "../api/Register.h"
 #include "../core/Paths.h"
 
@@ -10,10 +11,9 @@ class MainWindow : public QMainWindow
 {
 
 public:
-    MainWindow(APIRegister &apiRegister, Paths &paths);
+    MainWindow(UIContext &uiContext);
 
 private:
     CentralWidget *centralWidget_;
-    APIRegister &apiRegister_;
-    Paths &paths_;
+    UIContext &uiContext_;
 };
