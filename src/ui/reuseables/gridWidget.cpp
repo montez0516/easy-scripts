@@ -1,6 +1,6 @@
-#include "gridWidget.hpp"
+#include "GridWidget.h"
 
-#include "flowLayout.hpp"
+#include "FlowLayout.h"
 
 #include <QWidget>
 #include <QGridLayout>

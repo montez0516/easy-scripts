@@ -1,5 +1,5 @@
-#include "iconButton.hpp"
-#include "image.hpp"
+#include "IconButton.h"
+#include "Image.h"
 
 #include <QPushButton>
 #include <QString>

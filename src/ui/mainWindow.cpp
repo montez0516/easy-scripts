@@ -1,8 +1,8 @@
-#include "mainWindow.hpp"
-#include "themeManager.hpp"
-#include "centralWidget.hpp"
-#include "../api/register.hpp"
-#include "../core/paths.hpp"
+#include "MainWindow.h"
+#include "ThemeManager.h"
+#include "CentralWidget.h"
+#include "../api/Register.h"
+#include "../core/Paths.h"
 
 #include <QMainWindow>
 #include <QRect>

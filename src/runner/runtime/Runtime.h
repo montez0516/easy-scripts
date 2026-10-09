@@ -1,9 +1,9 @@
 #pragma once
 
-#include "../../core/process/process.hpp"
-#include "../../core/paths.hpp"
-#include "../../core/eventBus/eventBus.hpp"
-#include "../../core/communication/message.hpp"
+#include "../../core/process/ProcessHandler.h"
+#include "../../core/Paths.h"
+#include "../../core/eventBus/EventBus.h"
+#include "../../core/communication/Message.h"
 
 #include <filesystem>
 #include <vector>

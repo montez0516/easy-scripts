@@ -1,6 +1,6 @@
 #pragma once
 
-#include "message.hpp"
+#include "Message.h"
 #include <string>
 
 class MessageCodec

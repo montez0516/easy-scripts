@@ -1,10 +1,9 @@
-#include "runtime.hpp"
+#include "Runtime.h"
 
-#include "../../core/process/process.hpp"
-#include "../../core/paths.hpp"
-#include "../../core/eventBus/eventBus.hpp"
-#include "../../main/scriptManager.hpp"
-#include "../../core/communication/message.hpp"
+#include "../../core/Paths.h"
+#include "../../core/eventBus/EventBus.h"
+#include "../../core/communication/Message.h"
+#include "../../core/process/ProcessHandler.h"
 
 #include <spdlog/spdlog.h>
 

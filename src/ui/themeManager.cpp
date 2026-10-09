@@ -1,5 +1,5 @@
-#include "themeManager.hpp"
-#include "../core/paths.hpp"
+#include "ThemeManager.h"
+#include "../core/Paths.h"
 
 #include <spdlog/spdlog.h>
 

@@ -1,8 +1,8 @@
 #pragma once
 
-#include "../../api/register.hpp"
-#include "../reuseables/gridWidget.hpp"
-#include "scriptCard.hpp"
+#include "../../api/Register.h"
+#include "../reuseables/GridWidget.h"
+#include "ScriptCard.h"
 
 #include <QWidget>
 #include <QVBoxLayout>

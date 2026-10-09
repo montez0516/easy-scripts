@@ -1,4 +1,4 @@
-#include "image.hpp"
+#include "Image.h"
 
 #include <QWidget>
 #include <QLabel>

@@ -1,5 +1,5 @@
-#include "eventBus.hpp"
-#include "../communication/message.hpp"
+#include "EventBus.h"
+#include "../communication/message.h"
 
 void EventBus::subscribe(const std::string &name, Method method)
 {

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "image.hpp"
+#include "Image.h"
 
 #include <QPushButton>
 #include <QString>

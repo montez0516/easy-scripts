@@ -1,5 +1,5 @@
-#include "fileAPI.hpp"
-#include "../../api/register.hpp"
+#include "FileSystemAPI.h"
+#include "../../api/Register.h"
 
 #include <windows.h>
 #include <commdlg.h>

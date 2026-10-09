@@ -1,8 +1,8 @@
-#include "scriptCard.hpp"
-#include "../api/register.hpp"
-#include "../../core/paths.hpp"
-#include "iconButton.hpp"
-#include "../themeManager.hpp"
+#include "ScriptCard.h"
+#include "../api/Register.h"
+#include "../../core/Paths.h"
+#include "IconButton.h"
+#include "../ThemeManager.h"
 
 #include <nlohmann/json.hpp>
 

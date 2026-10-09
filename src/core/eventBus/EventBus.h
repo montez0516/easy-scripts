@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../communication/message.hpp"
+#include "../communication/Message.h"
 
 #include <spdlog/spdlog.h>
 #include <nlohmann/json.hpp>

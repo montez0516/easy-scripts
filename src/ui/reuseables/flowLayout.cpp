@@ -1,4 +1,4 @@
-#include "flowLayout.hpp"
+#include "FlowLayout.h"
 
 #include <QLayout>
 #include <QWidget>
@@ -127,7 +127,6 @@ int FlowLayout::doLayout(const QRect &rect, bool testOnly) const
         (availableWidth + spacing) /
             (minimumCardWidth + spacing));
 
-    // No need for more columns than widgets
     columns = std::min(
         columns,
         std::max(1, static_cast<int>(itemList.size())));

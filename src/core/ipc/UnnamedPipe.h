@@ -1,6 +1,6 @@
 #pragma once
 
-#include "pipe.hpp"
+#include "Pipe.h"
 
 #include <windows.h>
 #include <string>
@@ -15,7 +15,7 @@ private:
     HANDLE readHandle_ = INVALID_HANDLE_VALUE;
     HANDLE writeHandle_ = INVALID_HANDLE_VALUE;
 
-    std::atomic_bool threadLoop_{true};
+    std::atomic<bool> threadLoop_{true};
     std::function<void(std::string_view)> readyReadCallBack_;
     std::thread readyReadThread_;
 

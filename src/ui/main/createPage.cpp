@@ -1,5 +1,5 @@
-#include "createPage.hpp"
-#include "../../api/register.hpp"
+#include "CreatePage.h"
+#include "../../api/Register.h"
 
 #include <QWidget>
 #include <QVBoxLayout>

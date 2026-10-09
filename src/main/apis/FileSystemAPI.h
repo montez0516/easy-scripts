@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../../api/register.hpp"
+#include "../../api/Register.h"
 
 class FileAPI
 {

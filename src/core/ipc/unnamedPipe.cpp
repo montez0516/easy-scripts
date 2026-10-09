@@ -1,5 +1,5 @@
-#include "unnamedPipe.hpp"
-#include "../process/utils.hpp"
+#include "UnnamedPipe.h"
+#include "../process/Utils.h"
 
 #include <spdlog/spdlog.h>
 

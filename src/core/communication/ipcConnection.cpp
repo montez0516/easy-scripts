@@ -1,8 +1,8 @@
-#include "ipcConnection.hpp"
-#include "messageCodec.hpp"
-#include "message.hpp"
-#include "../ipc/pipe.hpp"
-#include "messageFramer.hpp"
+#include "IPCConnection.h"
+#include "MessageCodec.h"
+#include "Message.h"
+#include "../ipc/Pipe.h"
+#include "MessageFramer.h"
 
 #include <spdlog/spdlog.h>
 

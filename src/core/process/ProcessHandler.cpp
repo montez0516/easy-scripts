@@ -1,5 +1,8 @@
-#include "process.hpp"
-#include "utils.hpp"
+#include "ProcessHandler.h"
+
+#include "Utils.h"
+#include "../communication/Message.h"
+#include "../communication/IPCConnection.h"
 
 #include <spdlog/spdlog.h>
 

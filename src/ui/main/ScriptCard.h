@@ -1,8 +1,8 @@
 #ifndef SCRIPT_CARD_H
 #define SCRIPT_CARD_H
 
-#include "../api/register.hpp"
-#include "../reuseables/iconButton.hpp"
+#include "../api/Register.h"
+#include "../reuseables/IconButton.h"
 
 #include <nlohmann/json.hpp>
 

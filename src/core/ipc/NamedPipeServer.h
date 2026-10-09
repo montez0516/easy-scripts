@@ -1,6 +1,6 @@
 #pragma once
 
-#include "namedPipe.hpp"
+#include "NamedPipe.h"
 
 #include <string>
 

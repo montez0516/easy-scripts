@@ -1,4 +1,4 @@
-#include "register.hpp"
+#include "Register.h"
 
 bool APIRegister::registerMethod(std::string methodName, std::function<APIResponse(APIRequest)> method)
 {

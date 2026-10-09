@@ -1,5 +1,5 @@
-#include "mediaAPI.hpp"
-#include "../../api/register.hpp"
+#include "MediaAPI.h"
+#include "../../api/Register.h"
 
 #include <iostream>
 

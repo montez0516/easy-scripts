@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../../api/register.hpp"
+#include "../../api/Register.h"
 
 #include <QWidget>
 #include <QVBoxLayout>

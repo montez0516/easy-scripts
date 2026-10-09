@@ -1,10 +1,10 @@
-#include "runner/engine/runnerEngine.hpp"
-#include "core/paths.hpp"
-#include "core/ipc/namedPipeServer.hpp"
-#include "core/ipc/namedPipeClient.hpp"
-#include "core/eventBus/eventBus.hpp"
-#include "core/communication/ipcConnection.hpp"
-#include "core/communication/message.hpp"
+#include "runner/engine/RunnerEngine.h"
+#include "core/Paths.h"
+#include "core/ipc/NamedPipeServer.h"
+#include "core/ipc/NamedPipeClient.h"
+#include "core/eventBus/EventBus.h"
+#include "core/communication/IPCConnection.h"
+#include "core/communication/Message.h"
 
 #include <spdlog/spdlog.h>
 #include <nlohmann/json.hpp>

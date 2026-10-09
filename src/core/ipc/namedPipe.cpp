@@ -1,10 +1,13 @@
-#include "namedPipe.hpp"
+#include "NamedPipe.h"
 
 #include <spdlog/spdlog.h>
-#include <nlohmann/json.hpp>
 
+#include <functional>
+#include <thread>
+#include <atomic>
 #include <windows.h>
 #include <string>
+#include <string_view>
 #include <utility>
 #include <cstdint>
 

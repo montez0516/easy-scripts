@@ -1,4 +1,4 @@
-#include "paths.hpp"
+#include "Paths.h"
 
 #include <windows.h>
 #include <filesystem>

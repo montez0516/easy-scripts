@@ -1,9 +1,9 @@
 #pragma once
 
-#include "../ipc/pipe.hpp"
-#include "message.hpp"
-#include "messageCodec.hpp"
-#include "messageFramer.hpp"
+#include "../ipc/Pipe.h"
+#include "Message.h"
+#include "MessageCodec.h"
+#include "MessageFramer.h"
 
 #include <memory>
 #include <functional>

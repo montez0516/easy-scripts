@@ -1,8 +1,8 @@
 #pragma once
 
-#include "../runtime/runtimeManager.hpp"
-#include "../../core/paths.hpp"
-#include "../../core/eventBus/eventBus.hpp"
+#include "../runtime/RuntimeManager.h"
+#include "../../core/Paths.h"
+#include "../../core/eventBus/EventBus.h"
 
 #include <vector>
 #include <string>

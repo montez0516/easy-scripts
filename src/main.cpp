@@ -1,10 +1,10 @@
-#include "core/eventBus/eventBus.hpp"
-#include "main/scriptManager.hpp"
-#include "core/paths.hpp"
-#include "api/register.hpp"
-#include "main/apis/fileAPI.hpp"
-#include "main/apis/mediaAPI.hpp"
-#include "ui/mainWindow.hpp"
+#include "core/eventBus/EventBus.h"
+#include "main/ScriptManager.h"
+#include "core/Paths.h"
+#include "api/Register.h"
+#include "main/apis/FileSystemAPI.h"
+#include "main/apis/MediaAPI.h"
+#include "ui/MainWindow.h"
 
 #include <spdlog/spdlog.h>
 #include <QApplication>

@@ -1,8 +1,8 @@
 #pragma once
 
-#include "../ipc/unnamedPipe.hpp"
-#include "../communication/ipcConnection.hpp"
-#include "../communication/message.hpp"
+#include "../ipc/UnnamedPipe.h"
+#include "../communication/IPCConnection.h"
+#include "../communication/Message.h"
 
 #include <filesystem>
 #include <map>

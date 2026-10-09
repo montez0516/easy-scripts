@@ -1,13 +1,13 @@
-#include "centralWidget.hpp"
-#include "../api/register.hpp"
-#include "../core/paths.hpp"
-#include "themeManager.hpp"
-#include "main/scriptCard.hpp"
-#include "main/createPage.hpp"
-#include "reuseables/gridWidget.hpp"
-#include "reuseables/navBar.hpp"
-#include "reuseables/iconButton.hpp"
-#include "reuseables/flowLayout.hpp"
+#include "CentralWidget.h"
+#include "../api/Register.h"
+#include "../core/Paths.h"
+#include "ThemeManager.h"
+#include "main/ScriptCard.h"
+#include "main/CreatePage.h"
+#include "reuseables/GridWidget.h"
+#include "reuseables/NavBar.h"
+#include "reuseables/IconButton.h"
+#include "reuseables/FlowLayout.h"
 
 #include <nlohmann/json.hpp>
 

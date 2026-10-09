@@ -1,4 +1,4 @@
-#include "navBar.hpp"
+#include "NavBar.h"
 
 #include <QWidget>
 #include <QBoxLayout>

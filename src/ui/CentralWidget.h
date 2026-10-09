@@ -1,9 +1,9 @@
 #pragma once
 
-#include "reuseables/gridWidget.hpp"
-#include "reuseables/navBar.hpp"
-#include "../api/register.hpp"
-#include "../core/paths.hpp"
+#include "reuseables/GridWidget.h"
+#include "reuseables/NavBar.h"
+#include "../api/Register.h"
+#include "../core/Paths.h"
 
 #include <QWidget>
 #include <QVBoxLayout>

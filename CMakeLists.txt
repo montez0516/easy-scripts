@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 4.0.0)
 
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 project(EasyScripts)
 
@@ -7,7 +9,7 @@ include(FetchContent)
 
 FetchContent_Declare(
     spdlog
-    GIT_REPOSITORY https://github.com/gabime/spdlog.git
+    GIT_REPOSITORY https://Github.com/gabime/spdlog.git
     GIT_TAG v1.17.0
 )
 
@@ -16,7 +18,7 @@ FetchContent_MakeAvailable(spdlog)
 
 FetchContent_Declare(
 json
-GIT_REPOSITORY https://github.com/nlohmann/json.git
+GIT_REPOSITORY https://Github.com/nlohmann/json.git
 GIT_TAG v3.12.0
 )
 
@@ -31,67 +33,69 @@ find_package(Qt6 REQUIRED COMPONENTS Core Widgets)
 add_executable(EasyScripts
 src/main.cpp
 
-src/core/paths.cpp
-src/core/process/process.cpp
-src/core/ipc/pipe.cpp
-src/core/ipc/namedPipe.cpp
-src/core/ipc/unnamedPipe.cpp
-src/core/ipc/namedPipeServer.cpp
-src/core/ipc/namedPipeClient.cpp
-src/core/communication/ipcConnection.cpp
-src/core/communication/messageCodec.cpp
-src/core/communication/messageFramer.cpp
+src/core/Paths.cpp
+src/core/process/ProcessHandler.cpp
+src/core/ipc/Pipe.cpp
+src/core/ipc/NamedPipe.cpp
+src/core/ipc/UnnamedPipe.cpp
+src/core/ipc/NamedPipeServer.cpp
+src/core/ipc/NamedPipeClient.cpp
+src/core/communication/IPCConnection.cpp
+src/core/communication/MessageCodec.cpp
+src/core/communication/MessageFramer.cpp
 
 
-src/main/scriptManager.cpp
-src/main/apis/fileAPI.cpp
-src/main/apis/mediaAPI.cpp
-src/main/scriptInfo.cpp
+src/main/ScriptManager.cpp
+src/main/ScriptInfo.cpp
+src/main/apis/FileSystemAPI.cpp
+src/main/apis/MediaAPI.cpp
 
-src/api/register.cpp
+src/api/Register.cpp
 
-src/ui/mainWindow.cpp
-src/ui/themeManager.cpp
-src/ui/themeManager.hpp
-src/ui/centralWidget.hpp
-src/ui/centralWidget.cpp
-src/ui/reuseables/gridWidget.hpp
-src/ui/reuseables/gridWIdget.cpp
-src/ui/reuseables/navBar.hpp
-src/ui/reuseables/navBar.cpp
-src/ui/reuseables/iconButton.hpp
-src/ui/reuseables/iconButton.cpp
-src/ui/reuseables/image.hpp
-src/ui/reuseables/image.cpp
-src/ui/reuseables/flowLayout.hpp
-src/ui/reuseables/flowLayout.cpp
-src/ui/main/scriptCard.hpp
-src/ui/main/scriptCard.cpp
-src/ui/main/scriptPage.hpp
-src/ui/main/createPage.hpp
-src/ui/main/createPage.cpp
+src/ui/MainWindow.cpp
+src/ui/ThemeManager.cpp
+src/ui/ThemeManager.h
+src/ui/CentralWidget.h
+src/ui/CentralWidget.cpp
+src/ui/reuseables/GridWidget.h
+src/ui/reuseables/GridWidget.cpp
+src/ui/reuseables/NavBar.h
+src/ui/reuseables/NavBar.cpp
+src/ui/reuseables/IconButton.h
+src/ui/reuseables/IconButton.cpp
+src/ui/reuseables/Image.h
+src/ui/reuseables/Image.cpp
+src/ui/reuseables/FlowLayout.h
+src/ui/reuseables/FlowLayout.cpp
+src/ui/main/ScriptCard.h
+src/ui/main/ScriptCard.cpp
+src/ui/main/ScriptPage.h
+src/ui/main/CreatePage.h
+src/ui/main/CreatePage.cpp
+src/ui/UIContext.h
+src/ui/UIContext.cpp
 )
 
 add_executable(runner
 src/runner.cpp
 
-src/core/paths.cpp
-src/core/process/process.cpp
-src/core/ipc/pipe.cpp
-src/core/ipc/namedPipe.cpp
-src/core/ipc/unnamedPipe.cpp
-src/core/ipc/namedPipeServer.cpp
-src/core/ipc/namedPipeClient.cpp
-src/core/communication/ipcConnection.cpp
-src/core/communication/messageCodec.cpp
-src/core/communication/messageFramer.cpp
-src/core/eventBus/eventBus.cpp
+src/core/Paths.cpp
+src/core/process/ProcessHandler.cpp
+src/core/ipc/Pipe.cpp
+src/core/ipc/NamedPipe.cpp
+src/core/ipc/UnnamedPipe.cpp
+src/core/ipc/NamedPipeServer.cpp
+src/core/ipc/NamedPipeClient.cpp
+src/core/communication/IPCConnection.cpp
+src/core/communication/MessageCodec.cpp
+src/core/communication/MessageFramer.cpp
+src/core/eventBus/EventBus.cpp
 
-src/runner/engine/runnerEngine.cpp 
-src/runner/runtime/runtimes/pythonRuntime.cpp
-src/runner/runtime/runtimes/defaultRuntime.cpp
-src/runner/runtime/runtimeManager.cpp
-src/runner/runtime/runtime.cpp
+src/runner/engine/RunnerEngine.cpp 
+src/runner/runtime/Runtimes/PythonRuntime.cpp
+src/runner/runtime/Runtimes/DefaultRuntime.cpp
+src/runner/runtime/RuntimeManager.cpp
+src/runner/runtime/Runtime.cpp
 )
 
 target_include_directories(EasyScripts PRIVATE 

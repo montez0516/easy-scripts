@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../core/paths.hpp"
+#include "../core/Paths.h"
 
 #include <QApplication>
 #include <QString>

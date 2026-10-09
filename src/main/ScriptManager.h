@@ -1,13 +1,13 @@
 #pragma once
 
-#include "scriptInfo.hpp"
-#include "../core/process/process.hpp"
-#include "../core/ipc/namedPipeServer.hpp"
-#include "../core/ipc/namedPipeClient.hpp"
-#include "../core/paths.hpp"
-#include "../core/eventBus/eventBus.hpp"
-#include "../api/register.hpp"
-#include "../core/communication/ipcConnection.hpp"
+#include "scriptInfo.h"
+#include "../core/process/ProcessHandler.h"
+#include "../core/ipc/NamedPipeServer.h"
+#include "../core/ipc/NamedPipeClient.h"
+#include "../core/Paths.h"
+#include "../core/eventBus/EventBus.h"
+#include "../api/Register.h"
+#include "../core/communication/IPCConnection.h"
 
 #include <nlohmann/json.hpp>
 

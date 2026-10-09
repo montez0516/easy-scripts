@@ -1,5 +1,5 @@
-#include "scriptInfo.hpp"
-#include "../core/paths.hpp"
+#include "ScriptInfo.h"
+#include "../core/Paths.h"
 
 #include <nlohmann/json.hpp>
 

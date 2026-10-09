@@ -1,6 +1,6 @@
-#include "namedPipeServer.hpp"
-#include "namedPipe.hpp"
-#include "../process/utils.hpp"
+#include "NamedPipeServer.h"
+#include "NamedPipe.h"
+#include "../process/Utils.h"
 #include <spdlog/spdlog.h>
 
 #include <windows.h>

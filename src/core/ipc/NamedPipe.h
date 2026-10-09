@@ -1,13 +1,15 @@
 #pragma once
 
-#include "pipe.hpp"
+#include "Pipe.h"
 
 #include <nlohmann/json.hpp>
+
 #include <windows.h>
 #include <string>
 #include <functional>
 #include <thread>
 #include <atomic>
+
 #define PIPE_PREFIX "\\\\.\\pipe\\"
 
 class NamedPipe : public Pipe

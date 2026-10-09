@@ -1,5 +1,5 @@
-#include "messageCodec.hpp"
-#include "message.hpp"
+#include "MessageCodec.h"
+#include "Message.h"
 
 #include <nlohmann/json.hpp>
 #include <spdlog/spdlog.h>
