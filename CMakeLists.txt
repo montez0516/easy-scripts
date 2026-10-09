@@ -57,19 +57,19 @@ src/ui/centralWidget.hpp
 src/ui/centralWidget.cpp
 src/ui/reuseables/gridWidget.hpp
 src/ui/reuseables/gridWIdget.cpp
-src/ui/main/scriptCard.hpp
-src/ui/main/scriptCard.cpp
 src/ui/reuseables/navBar.hpp
 src/ui/reuseables/navBar.cpp
 src/ui/reuseables/iconButton.hpp
 src/ui/reuseables/iconButton.cpp
 src/ui/reuseables/image.hpp
 src/ui/reuseables/image.cpp
+src/ui/reuseables/flowLayout.hpp
+src/ui/reuseables/flowLayout.cpp
+src/ui/main/scriptCard.hpp
+src/ui/main/scriptCard.cpp
 src/ui/main/scriptPage.hpp
 src/ui/main/createPage.hpp
 src/ui/main/createPage.cpp
-src/ui/reuseables/flowLayout.hpp
-src/ui/reuseables/flowLayout.cpp
 )
 
 add_executable(runner

@@ -116,8 +116,8 @@ QSize FlowLayout::minimumSize() const
 
 int FlowLayout::doLayout(const QRect &rect, bool testOnly) const
 {
-    constexpr int minimumCardWidth = 320;
-    constexpr int cardHeight = 200;
+    constexpr int minimumCardWidth = 220;
+    constexpr int cardHeight = 150;
 
     int spacing = horizontalSpacing();
     int availableWidth = rect.width();
