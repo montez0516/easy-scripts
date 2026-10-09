@@ -1,5 +1,7 @@
 #pragma once
 
+#include "flowLayout.hpp"
+
 #include <QWidget>
 #include <QGridLayout>
 #include <QEvent>
@@ -9,12 +11,8 @@ class GridWidget : public QWidget
 public:
     GridWidget(QWidget *parent = nullptr);
     void addWidget(QWidget *widget);
-    void updateGrid();
-
-protected:
-    void resizeEvent(QResizeEvent *event) override;
 
 private:
-    QGridLayout *layout_;
+    FlowLayout *layout_;
     QVector<QWidget *> widgets_;
 };

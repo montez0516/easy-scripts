@@ -16,6 +16,10 @@ ScriptCard::ScriptCard(nlohmann::json scriptInfo, APIRegister &apiRegister, QWid
 {
     setObjectName("ScriptCard");
 
+    setMinimumWidth(320);
+    setMinimumHeight(200);
+    setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+
     std::string backgroundColor = scriptInfo.value("backgroundColor", "grey");
     std::string name = scriptInfo.value("name", "");
 

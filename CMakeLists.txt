@@ -68,6 +68,8 @@ src/ui/reuseables/image.cpp
 src/ui/main/scriptPage.hpp
 src/ui/main/createPage.hpp
 src/ui/main/createPage.cpp
+src/ui/reuseables/flowLayout.hpp
+src/ui/reuseables/flowLayout.cpp
 )
 
 add_executable(runner
