@@ -6,6 +6,7 @@
 #include "ThemeManager.h"
 #include "main/ScriptCard.h"
 #include "main/CreatePage.h"
+#include "main/ScriptPage.h"
 #include "reuseables/GridWidget.h"
 #include "reuseables/NavBar.h"
 #include "reuseables/IconButton.h"
@@ -40,20 +41,11 @@ CentralWidget::CentralWidget(UIContext &uiContext, QWidget *parent) : QWidget(pa
 
     layout_->addLayout(stackedLayout_, 1);
 
-    scriptGrid_ = new GridWidget();
-    scriptGrid_->setObjectName("scriptGrid");
-
-    stackedLayout_->addWidget(scriptGrid_);
-
-    for (int i = 0; i < scriptsList.size(); i++)
-    {
-        ScriptCard *scriptCard = new ScriptCard(scriptsList[i], uiContext_.apiRegister, this);
-        scriptGrid_->addWidget(scriptCard);
-    }
-
+    ScriptPage *scriptPage = new ScriptPage(uiContext_);
     CreatePage *createPage = new CreatePage(uiContext_.apiRegister);
     CreatePage *settingsPage = new CreatePage(uiContext_.apiRegister);
 
+    stackedLayout_->addWidget(scriptPage);
     stackedLayout_->addWidget(createPage);
     stackedLayout_->addWidget(settingsPage);
 

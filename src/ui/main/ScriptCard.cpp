@@ -1,7 +1,6 @@
 #include "ScriptCard.h"
-#include "../api/Register.h"
-#include "../../core/Paths.h"
 #include "IconButton.h"
+#include "../../core/Paths.h"
 #include "../ThemeManager.h"
 
 #include <nlohmann/json.hpp>
@@ -12,7 +11,7 @@
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 
-ScriptCard::ScriptCard(nlohmann::json scriptInfo, APIRegister &apiRegister, QWidget *parent) : QWidget(parent), apiRegister_(apiRegister), scriptInfo_(scriptInfo)
+ScriptCard::ScriptCard(nlohmann::json scriptInfo, QWidget *parent) : QWidget(parent), scriptInfo_(scriptInfo)
 {
     setObjectName("ScriptCard");
 
@@ -56,10 +55,5 @@ void ScriptCard::mousePressEvent(QMouseEvent *event)
 
     std::string name = scriptInfo_.value("name", "");
 
-    auto method = apiRegister_.getMethod("scripts.run");
-
-    if (!method)
-        return;
-
-    APIResponse response = method({.params = name});
+    emit runRequested(name);
 }

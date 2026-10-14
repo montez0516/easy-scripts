@@ -43,7 +43,7 @@ src/core/ipc/NamedPipeClient.cpp
 src/core/communication/IPCConnection.cpp
 src/core/communication/MessageCodec.cpp
 src/core/communication/MessageFramer.cpp
-
+src/core/eventBus/EventBus.cpp
 
 src/main/ScriptManager.cpp
 src/main/ScriptInfo.cpp

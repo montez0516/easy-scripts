@@ -29,14 +29,12 @@ ScriptManager::ScriptManager(Paths &paths, EventBus &bus, APIRegister &apiRegist
 
   apiRegister_.registerMethod("scripts.list", [this](APIRequest request)
                               { return list(request); });
-  apiRegister_.registerMethod("scripts.run", [this](APIRequest request)
-                              {
-                                APIResponse response;
-                                response.status = true;
-
-                                this->run(request.params, {});
-
-                                return response; });
+  bus_.subscribe("scripts.run", [this](const Message &message)
+                 {
+                   std::string name = message.data.at("name");
+                   std::vector<std::string> args = message.data.value<std::vector<std::string>>("args", {});
+                   run(name, args);
+                 });
 }
 
 ScriptManager::~ScriptManager()
