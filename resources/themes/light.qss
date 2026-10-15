@@ -1,0 +1,48 @@
+*{
+    color:white;
+    font-family:"Arial", sans-serif;
+}
+
+QMainWindow{
+    background-color:white;
+    
+}
+
+#CentralWidget{
+    background-color:white;
+    border: 2px solid black;
+}
+
+#ScriptCard{
+    border-radius: 10px;
+}
+
+#ScriptCard > QLabel
+{
+    font-size:20pt;
+}
+
+#CentralNavBar{
+    background: lightgrey;
+    border-radius:10px;
+}
+
+QPushButton {
+    border: none;
+    border-radius: 6px;
+    padding: 8px;
+}
+
+QPushButton:hover {
+    background: #e5e5e5;
+}
+
+QPushButton:pressed {
+    background: #cccccc;
+}
+
+#IconButtonText
+{
+    font-size:16px;
+    font-weight: 500;
+}

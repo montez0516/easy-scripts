@@ -55,8 +55,8 @@ CentralWidget::CentralWidget(UIContext &uiContext, QWidget *parent) : QWidget(pa
 
     layout_->addWidget(navBar_);
 
-    std::filesystem::path iconsPath = uiContext_.paths.icons();
     QString currentTheme = ThemeManager::currentTheme();
+    std::filesystem::path iconsPath = uiContext_.paths.icons() / currentTheme.toStdString();
 
     for (size_t i = 0; i < pages_.size(); i++)
     {

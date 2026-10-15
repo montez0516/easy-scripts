@@ -27,7 +27,7 @@ ScriptPage::ScriptPage(UIContext &uiContext, QWidget *parent) : QWidget(parent),
 
     for (nlohmann::json &scriptInfo : scriptsList)
     {
-        ScriptCard *scriptCard = new ScriptCard(scriptInfo);
+        ScriptCard *scriptCard = new ScriptCard(scriptInfo, this);
         connect(scriptCard, &ScriptCard::runRequested, this, &ScriptPage::sendRunRequest);
         layout_->addWidget(scriptCard);
     }

@@ -33,13 +33,15 @@ ScriptCard::ScriptCard(nlohmann::json scriptInfo, QWidget *parent) : QWidget(par
     QHBoxLayout *buttonsLayout_ = new QHBoxLayout();
     layout_->addLayout(buttonsLayout_);
 
-    QString startIcon = QString::fromStdString((Paths::icons() / ("start-" + ThemeManager::currentTheme() + ".svg").toStdString()).string());
+    QString currentTheme = ThemeManager::currentTheme();
+
+    QString startIcon = QString::fromStdString((Paths::icons() / currentTheme.toStdString() / ("start-" + currentTheme + ".svg").toStdString()).string());
     IconButton *startButton = new IconButton("", startIcon);
     startButton->setFixedSize(65, 65);
 
     buttonsLayout_->addWidget(startButton, 0, Qt::AlignLeft);
 
-    QString optionsIcon = QString::fromStdString((Paths::icons() / ("options-" + ThemeManager::currentTheme() + ".svg").toStdString()).string());
+    QString optionsIcon = QString::fromStdString((Paths::icons() / currentTheme.toStdString() / ("options-" + currentTheme + ".svg").toStdString()).string());
     IconButton *optionsButton = new IconButton("", optionsIcon);
     optionsButton->setFixedSize(65, 65);
     buttonsLayout_->addWidget(optionsButton, 0, Qt::AlignRight);

@@ -20,7 +20,7 @@ MainWindow::MainWindow(UIContext &uiContext) : QMainWindow(nullptr), uiContext_(
 
     resize(width / 2, height / 2);
 
-    ThemeManager::loadThemeFile(uiContext_.paths, "dark");
+    ThemeManager::loadThemeFile(uiContext_.paths, "light");
 
     centralWidget_ = new CentralWidget(uiContext_, this);
     setCentralWidget(centralWidget_);
