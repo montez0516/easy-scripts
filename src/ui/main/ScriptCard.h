@@ -2,6 +2,8 @@
 #define SCRIPT_CARD_H
 
 #include "../reuseables/IconButton.h"
+#include "../../core/eventBus/EventBus.h"
+#include "../../core/communication/Message.h"
 
 #include <nlohmann/json.hpp>
 
@@ -16,18 +18,28 @@ class ScriptCard : public QWidget
 {
     Q_OBJECT
 public:
-    ScriptCard(nlohmann::json scriptInfo, QWidget *parent = nullptr);
+    ScriptCard(nlohmann::json scriptInfo, EventBus &bus, QWidget *parent = nullptr);
 
 protected:
     void mousePressEvent(QMouseEvent *event) override;
 
-signals:
-    void runRequested(std::string_view name);
+public slots:
+    void handleStartButtonClick();
 
 private:
     nlohmann::json scriptInfo_;
     QLabel *nameLabel_;
     QVBoxLayout *layout_;
+    IconButton *startButton_;
+    IconButton *optionsButton_;
+    EventBus &bus_;
+    bool running{false};
+
+    void registerListeners();
+    void handleStart();
+    void handleFinished();
+    void handleError(const Message &message);
+    void handleMedia(const Message &message);
 };
 
 #endif

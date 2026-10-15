@@ -14,6 +14,7 @@ class Image : public QWidget
 
 public:
     explicit Image(const QString &src, QWidget *parent = nullptr);
+    void changeSource(const QString &src);
 
 protected:
     void resizeEvent(QResizeEvent *event) override;

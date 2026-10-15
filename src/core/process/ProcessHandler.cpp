@@ -146,6 +146,7 @@ void Process::t_wait()
 
     exitCV_.notify_all();
 
+    spdlog::debug("Calling finished callback");
     if (finishCallBack_)
         finishCallBack_(exitCode_);
 }

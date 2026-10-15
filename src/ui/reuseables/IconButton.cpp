@@ -51,3 +51,8 @@ QSize IconButton::minimumSizeHint() const
 {
     return QSize(50, 50);
 }
+
+void IconButton::setIcon(const QString &icon)
+{
+    icon_->changeSource(icon);
+}

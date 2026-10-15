@@ -27,13 +27,8 @@ ScriptPage::ScriptPage(UIContext &uiContext, QWidget *parent) : QWidget(parent),
 
     for (nlohmann::json &scriptInfo : scriptsList)
     {
-        ScriptCard *scriptCard = new ScriptCard(scriptInfo, this);
-        connect(scriptCard, &ScriptCard::runRequested, this, &ScriptPage::sendRunRequest);
+        ScriptCard *scriptCard = new ScriptCard(scriptInfo, uiContext_.eventBus, this);
         layout_->addWidget(scriptCard);
+        scriptLookup[scriptInfo.at("name")] = scriptCard;
     }
-}
-
-void ScriptPage::sendRunRequest(std::string_view name)
-{
-    uiContext_.eventBus.publish("scripts.run", {.type = MessageType::Request, .name = "scripts.run", .id = "ScriptPage", .data = {{"name", name}}});
 }

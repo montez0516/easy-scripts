@@ -31,10 +31,9 @@ ScriptManager::ScriptManager(Paths &paths, EventBus &bus, APIRegister &apiRegist
                               { return list(request); });
   bus_.subscribe("scripts.run", [this](const Message &message)
                  {
-                   std::string name = message.data.at("name");
-                   std::vector<std::string> args = message.data.value<std::vector<std::string>>("args", {});
-                   run(name, args);
-                 });
+                   std::string name = message.id;
+                  //  std::vector<std::string> args = message.data.value<std::vector<std::string>>("args", {});
+                   run(name, {}); });
 }
 
 ScriptManager::~ScriptManager()
@@ -72,8 +71,9 @@ bool ScriptManager::startRunner()
   }
 
   runnerPipe_ = IPCConnection(std::make_unique<NamedPipeClient>("runner"));
-  runnerPipe_.onMessage([](const Message &message)
-                        { spdlog::debug("ScriptManager(startRunner): {} {} {}", message.id, message.name, message.data.dump()); });
+  runnerPipe_.onMessage([this](const Message &message)
+                        { spdlog::debug("Recieved message from runner {}", message.name);
+                          bus_.publish(message.name, message); });
   return true;
 }
 

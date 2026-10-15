@@ -2,6 +2,8 @@
 #include "IconButton.h"
 #include "../../core/Paths.h"
 #include "../ThemeManager.h"
+#include "../../core/eventBus/EventBus.h"
+#include "../../core/communication/Message.h"
 
 #include <nlohmann/json.hpp>
 
@@ -10,14 +12,19 @@
 #include <QLabel>
 #include <QVBoxLayout>
 #include <QHBoxLayout>
+#include <QIcon>
 
-ScriptCard::ScriptCard(nlohmann::json scriptInfo, QWidget *parent) : QWidget(parent), scriptInfo_(scriptInfo)
+ScriptCard::ScriptCard(nlohmann::json scriptInfo, EventBus &bus, QWidget *parent) : QWidget(parent), scriptInfo_(scriptInfo), bus_(bus)
 {
     setObjectName("ScriptCard");
 
     setMinimumWidth(220);
     setMinimumHeight(150);
     setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+
+    setAttribute(Qt::WA_StyledBackground);
+
+    registerListeners();
 
     std::string backgroundColor = scriptInfo.value("backgroundColor", "grey");
     std::string name = scriptInfo.value("name", "");
@@ -36,15 +43,16 @@ ScriptCard::ScriptCard(nlohmann::json scriptInfo, QWidget *parent) : QWidget(par
     QString currentTheme = ThemeManager::currentTheme();
 
     QString startIcon = QString::fromStdString((Paths::icons() / currentTheme.toStdString() / ("start-" + currentTheme + ".svg").toStdString()).string());
-    IconButton *startButton = new IconButton("", startIcon);
-    startButton->setFixedSize(65, 65);
+    startButton_ = new IconButton("", startIcon);
+    startButton_->setFixedSize(65, 65);
+    connect(startButton_, QPushButton::clicked, this, &ScriptCard::handleStartButtonClick);
 
-    buttonsLayout_->addWidget(startButton, 0, Qt::AlignLeft);
+    buttonsLayout_->addWidget(startButton_, 0, Qt::AlignLeft);
 
-    QString optionsIcon = QString::fromStdString((Paths::icons() / currentTheme.toStdString() / ("options-" + currentTheme + ".svg").toStdString()).string());
-    IconButton *optionsButton = new IconButton("", optionsIcon);
-    optionsButton->setFixedSize(65, 65);
-    buttonsLayout_->addWidget(optionsButton, 0, Qt::AlignRight);
+    // QString optionsIcon = QString::fromStdString((Paths::icons() / currentTheme.toStdString() / ("options-" + currentTheme + ".svg").toStdString()).string());
+    // optionsButton_ = new IconButton("", optionsIcon);
+    // optionsButton_->setFixedSize(65, 65);
+    // buttonsLayout_->addWidget(optionsButton_, 0, Qt::AlignRight);
 
     nameLabel_ = new QLabel(QString::fromStdString(name), this);
 
@@ -57,5 +65,69 @@ void ScriptCard::mousePressEvent(QMouseEvent *event)
 
     std::string name = scriptInfo_.value("name", "");
 
-    emit runRequested(name);
+    bus_.publish("scripts.run", {.type = MessageType::Request, .name = "scripts.run", .id = name});
+}
+
+void ScriptCard::registerListeners()
+{
+    bus_.subscribe("scripts.state", [this](const Message &message)
+                   {
+                       std::string name = scriptInfo_.value("name", "");
+                       std::string type = message.data.value("state", "");
+
+                       spdlog::debug("State event recieved {}", type);
+                       if (message.id != name || message.id.empty())
+                           return;
+
+                       if (type == "scripts.started")
+                           handleStart();
+                       else if (type == "scripts.finished")
+                           handleFinished();
+                       else if (type == "scripts.error")
+                           handleError(message); });
+    bus_.subscribe("scripts.media", [this](const Message &message)
+                   {
+                       std::string id = scriptInfo_.value("name", "");
+                       if (message.id != id || message.id.empty())
+                           return;
+
+                       handleMedia(message); });
+}
+
+void ScriptCard::handleStartButtonClick()
+{
+    bus_.publish(running ? "scripts.pause" : "scripts.run", {.type = MessageType::Request, .id = scriptInfo_.value("name", ""), .data = {}});
+}
+
+void ScriptCard::handleStart()
+{
+    spdlog::debug("Handling start event");
+    running = true;
+    QString currentTheme = ThemeManager::currentTheme();
+
+    QString pauseIcon = QString::fromStdString((Paths::icons() / currentTheme.toStdString() / ("pause-" + currentTheme + ".svg").toStdString()).string());
+    startButton_->setIcon(pauseIcon);
+}
+
+void ScriptCard::handleFinished()
+{
+    running = false;
+    QString currentTheme = ThemeManager::currentTheme();
+
+    QString startIcon = QString::fromStdString((Paths::icons() / currentTheme.toStdString() / ("start-" + currentTheme + ".svg").toStdString()).string());
+    startButton_->setIcon(startIcon);
+}
+
+void ScriptCard::handleError(const Message &message)
+{
+    running = false;
+
+    QString errorIcon = QString::fromStdString((Paths::icons() / "error.svg").string());
+    startButton_->setIcon(errorIcon);
+    spdlog::error("Error occured in script {} {}", message.data.value("code", "unknown"), message.data.value<std::string>("error", ""));
+}
+
+void ScriptCard::handleMedia(const Message &message)
+{
+    spdlog::debug("Recieved media event {} {}", message.name, message.data.dump());
 }

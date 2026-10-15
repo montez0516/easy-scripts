@@ -8,6 +8,7 @@
 #include <QVBoxLayout>
 
 #include <string_view>
+#include <unordered_map>
 
 class ScriptPage : public QWidget
 {
@@ -15,10 +16,8 @@ class ScriptPage : public QWidget
 public:
     explicit ScriptPage(UIContext &uiContext, QWidget *parent = nullptr);
 
-public slots:
-    void sendRunRequest(std::string_view name);
-
 private:
     UIContext &uiContext_;
     FlowLayout *layout_;
+    std::unordered_map<std::string, ScriptCard *> scriptLookup;
 };

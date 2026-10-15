@@ -45,3 +45,9 @@ void Image::updatePixmap()
             Qt::KeepAspectRatio,
             Qt::SmoothTransformation));
 }
+
+void Image::changeSource(const QString &src)
+{
+    pixmap_.load(src);
+    updatePixmap();
+}

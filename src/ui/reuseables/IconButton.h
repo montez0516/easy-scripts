@@ -15,6 +15,7 @@ public:
     explicit IconButton(const QString &text, const QString &icon, QWidget *parent = nullptr);
     QSize sizeHint() const override;
     QSize minimumSizeHint() const override;
+    void setIcon(const QString &icon);
 
 protected:
     void resizeEvent(QResizeEvent *event);

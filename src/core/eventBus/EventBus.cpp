@@ -11,7 +11,10 @@ void EventBus::publish(
     const Message &message)
 {
     if (!methods_.contains(name))
+    {
+        spdlog::debug("No methods found for {}", name);
         return;
+    }
 
     std::vector<Method> methods = methods_.at(name);
 

@@ -10,22 +10,18 @@ class EasyScriptsAPI:
         self.shutdown_event = threading.Event()
 
         self.thread = threading.Thread(
-            target=self.monitorEvents
+            target=self.monitorEvents,
+            daemon=True
         )
 
         self.thread.start()
 
     def monitorEvents(self):
-        file = open("file.txt", "a")
         for line in sys.stdin:
             try:
                 message = json.loads(line)
-                file.write(message.get("name"))
                 if message.get("name") == "script.shutdown":
-                    file.write("shutting down\n")
                     self.shutdown_event.set()
-                    file.write("shut down\n")
-                    file.close()
                     return
 
             except json.JSONDecodeError:

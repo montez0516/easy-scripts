@@ -48,12 +48,20 @@ void Runtime::run(const Message &message)
     Process *processPtr = process.get();
     process->registerOnFinishedCallback([this, message, processPtr](DWORD code)
                                         {
+                                            spdlog::debug("process finished");
                                             std::string errorMsg = processPtr->error();
-                                            bus_.publish("script.event", {.type = MessageType::Event, .name = "script.finished", .id = message.id, .data = {{"code", code}, {"error", errorMsg}}}); });
+                                            bus_.publish("script.event", {.type = MessageType::Event,
+                                                                          .name = "scripts.state",
+                                                                          .id = message.id,
+                                                                          .data = {
+                                                                            {"state", code != 0 ? "scripts.error" : "scripts.finished"},
+                                                                            {"code", code},
+                                                                            {"error", errorMsg}}}); });
 
     process->start();
 
     runtimes_[message.id] = (std::move(process));
+    bus_.publish("script.event", {.type = MessageType::Event, .name = "scripts.state", .id = id, .data = {{"state", "scripts.started"}}});
 }
 
 std::filesystem::path Runtime::executable(const std::filesystem::path &script) const
