@@ -3,12 +3,17 @@
 #include "ScriptCard.h"
 #include "../UIContext.h"
 #include "../reuseables/FlowLayout.h"
+#include "DetailsPage.h"
+
+#include <nlohmann/json.hpp>
 
 #include <QWidget>
 #include <QVBoxLayout>
+#include <QStackedLayout>
 
 #include <string_view>
 #include <unordered_map>
+#include <cstdint>
 
 class ScriptPage : public QWidget
 {
@@ -16,8 +21,14 @@ class ScriptPage : public QWidget
 public:
     explicit ScriptPage(UIContext &uiContext, QWidget *parent = nullptr);
 
+public slots:
+    void displayDetailsPage(const nlohmann::json &info);
+
 private:
     UIContext &uiContext_;
-    FlowLayout *layout_;
-    std::unordered_map<std::string, ScriptCard *> scriptLookup;
+    QStackedLayout *layout_;
+    QWidget *scriptPage_;
+    FlowLayout *scriptLayout_;
+    DetailsPage *detailsPage_;
+    std::unordered_map<std::string, ScriptCard *> scriptLookup_;
 };

@@ -26,6 +26,10 @@ protected:
 public slots:
     void handleStartButtonClick();
 
+signals:
+    void requestDetailsPage(const nlohmann::json &info);
+    void requestOutputPage(const nlohmann::json &info);
+
 private:
     nlohmann::json scriptInfo_;
     QLabel *nameLabel_;

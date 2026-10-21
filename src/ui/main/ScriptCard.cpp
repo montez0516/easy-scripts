@@ -63,9 +63,7 @@ void ScriptCard::mousePressEvent(QMouseEvent *event)
 {
     QWidget::mousePressEvent(event);
 
-    std::string name = scriptInfo_.value("name", "");
-
-    bus_.publish("scripts.run", {.type = MessageType::Request, .name = "scripts.run", .id = name});
+    emit requestDetailsPage(scriptInfo_);
 }
 
 void ScriptCard::registerListeners()
@@ -85,13 +83,6 @@ void ScriptCard::registerListeners()
                            handleFinished();
                        else if (type == "scripts.error")
                            handleError(message); });
-    bus_.subscribe("scripts.media", [this](const Message &message)
-                   {
-                       std::string id = scriptInfo_.value("name", "");
-                       if (message.id != id || message.id.empty())
-                           return;
-
-                       handleMedia(message); });
 }
 
 void ScriptCard::handleStartButtonClick()

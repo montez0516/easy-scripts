@@ -3,21 +3,31 @@
 #include "../communication/Message.h"
 
 #include <spdlog/spdlog.h>
-#include <nlohmann/json.hpp>
 
 #include <string>
-#include <map>
+#include <unordered_map>
 #include <vector>
 #include <functional>
+#include <cstdint>
+#include <atomic>
+#include <mutex>
+
+using Method = std::function<void(const Message &)>;
+struct Subscription
+{
+    std::uint64_t id;
+    Method method;
+};
 
 class EventBus
 {
 public:
-    using Method = std::function<void(const Message &)>;
-
-    void subscribe(const std::string &name, Method method);
+    std::uint64_t subscribe(const std::string &name, Method method);
     void publish(const std::string &name, const Message &message);
+    void unsubscribe(const std::string &name, std::uint64_t id);
 
 private:
-    std::map<std::string, std::vector<Method>> methods_;
+    std::uint64_t idCounter_;
+    std::mutex subscriptionMutex_;
+    std::unordered_map<std::string, std::vector<Subscription>> subscriptions_;
 };

@@ -74,6 +74,8 @@ src/ui/main/CreatePage.h
 src/ui/main/CreatePage.cpp
 src/ui/UIContext.h
 src/ui/main/ScriptPage.cpp
+src/ui/main/DetailsPage.h
+src/ui/main/DetailsPage.cpp
 )
 
 add_executable(runner

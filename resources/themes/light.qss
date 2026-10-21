@@ -1,5 +1,5 @@
 *{
-    color:white;
+    color:black;
     font-family:"Arial", sans-serif;
 }
 
@@ -33,11 +33,11 @@ QPushButton {
     padding: 8px;
 }
 
-QPushButton:hover {
+#NavBar > QPushButton:hover{
     background: #e5e5e5;
 }
 
-QPushButton:pressed {
+#NavBar > QPushButton:pressed{
     background: #cccccc;
 }
 
@@ -45,4 +45,9 @@ QPushButton:pressed {
 {
     font-size:16px;
     font-weight: 500;
+}
+
+#DetailsPage > #ScriptName
+{
+    font-size:25pt;
 }

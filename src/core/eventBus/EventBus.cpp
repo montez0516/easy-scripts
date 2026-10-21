@@ -1,31 +1,68 @@
 #include "EventBus.h"
 #include "../communication/message.h"
 
-void EventBus::subscribe(const std::string &name, Method method)
+#include <spdlog/spdlog.h>
+
+#include <cstdint>
+#include <vector>
+#include <unordered_map>
+#include <string>
+#include <algorithm>
+#include <mutex>
+#include <utility>
+
+std::uint64_t EventBus::subscribe(const std::string &name, Method method)
 {
-    methods_[name].push_back(method);
+    std::lock_guard lock(subscriptionMutex_);
+    std::uint64_t id = idCounter_++;
+    Subscription s;
+    s.id = id;
+    s.method = std::move(method);
+    subscriptions_[name].push_back(std::move(s));
+    return id;
 }
 
 void EventBus::publish(
     const std::string &name,
     const Message &message)
 {
-    if (!methods_.contains(name))
+    std::vector<Subscription> subscriptions;
+
     {
-        spdlog::debug("No methods found for {}", name);
+        std::lock_guard lock(subscriptionMutex_);
+        if (!subscriptions_.contains(name))
+            return;
+
+        subscriptions = subscriptions_.at(name);
+    }
+
+    for (Subscription &subscription : subscriptions)
+    {
+        subscription.method(message);
+    }
+}
+
+void EventBus::unsubscribe(const std::string &name, std::uint64_t id)
+{
+    std::lock_guard lock(subscriptionMutex_);
+    if (!subscriptions_.contains(name))
+        return;
+
+    std::vector<Subscription> &subscriptions = subscriptions_.at(name);
+
+    auto it = std::find_if(subscriptions.begin(), subscriptions.end(), [id](const Subscription &s)
+                           { return s.id == id; });
+
+    if (it == subscriptions.end())
+    {
+        spdlog::debug("Method with id {} not found", id);
         return;
     }
 
-    std::vector<Method> methods = methods_.at(name);
+    subscriptions.erase(it);
 
-    spdlog::debug(
-        "EventBus::publish name={} handlers={} thread={}",
-        name,
-        methods.size(),
-        std::hash<std::thread::id>{}(std::this_thread::get_id()));
-
-    for (Method &method : methods)
+    if (subscriptions.empty())
     {
-        method(message);
+        subscriptions_.erase(name);
     }
 }
