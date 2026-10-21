@@ -20,7 +20,7 @@ class EasyScriptsAPI:
         for line in sys.stdin:
             try:
                 message = json.loads(line)
-                if message.get("name") == "script.shutdown":
+                if message.get("name") == "scripts.shutdown":
                     self.shutdown_event.set()
                     return
 

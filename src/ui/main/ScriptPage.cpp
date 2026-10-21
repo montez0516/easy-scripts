@@ -27,8 +27,7 @@ ScriptPage::ScriptPage(UIContext &uiContext, QWidget *parent) : QWidget(parent),
     connect(detailsPage_, &DetailsPage::closeDetailsPage, this, [this]()
             {
                 layout_->setCurrentIndex(0);
-                detailsPage_->deactivate();
-            });
+                detailsPage_->deactivate(); });
     connect(detailsPage_, &DetailsPage::requestScriptStart, this, &ScriptPage::sendStartRequest);
     connect(detailsPage_, &DetailsPage::requestScriptStop, this, &ScriptPage::sendStopRequest);
 
@@ -69,5 +68,5 @@ void ScriptPage::sendStartRequest(const std::string &id, std::vector<std::string
 
 void ScriptPage::sendStopRequest(const std::string &id)
 {
-    uiContext_.eventBus.publish("scripts.stop", {.type = MessageType::Request, .id = id});
+    uiContext_.eventBus.publish("scripts.stop", {.type = MessageType::Request, .name = "scripts.stop", .id = id});
 }

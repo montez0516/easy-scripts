@@ -24,17 +24,19 @@ IconButton::IconButton(
     layout_->setSpacing(2);
 
     icon_ = new Image(icon, this);
-    text_ = new QLabel(text, this);
-
-    text_->setObjectName("IconButtonText");
-
     icon_->setAttribute(Qt::WA_TransparentForMouseEvents);
-    text_->setAttribute(Qt::WA_TransparentForMouseEvents);
-
-    text_->setAlignment(Qt::AlignCenter);
-
     layout_->addWidget(icon_, 1);
-    layout_->addWidget(text_);
+
+    if (!text.isEmpty())
+    {
+        text_ = new QLabel(text, this);
+
+        text_->setObjectName("IconButtonText");
+
+        text_->setAttribute(Qt::WA_TransparentForMouseEvents);
+        text_->setAlignment(Qt::AlignCenter);
+        layout_->addWidget(text_);
+    }
 }
 
 void IconButton::resizeEvent(QResizeEvent *event)

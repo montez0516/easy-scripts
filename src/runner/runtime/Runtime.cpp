@@ -79,13 +79,23 @@ void Runtime::registerListener()
 
     bus_.subscribe("runtime.response", [this](const Message &message)
                    {
-        Process *process = getRuntime(message.id);
+        Process *process = getRuntimeProcess(message.id);
         process->write(message); });
     bus_.subscribe("runtime.shutdown", [this](const Message &message)
                    { shutdown(); });
+    bus_.subscribe("scripts.stop", [this](const Message &message)
+                   {
+                       Process *process = getRuntimeProcess(message.id);
+                       if (process == nullptr)
+                           return;
+
+                       process->write({.type = MessageType::Event, .name = "scripts.shutdown", .id = message.id});
+
+                       if (!process->waitFor(std::chrono::milliseconds(3000)))
+                           process->terminate(); });
 }
 
-Process *Runtime::getRuntime(const std::string &name)
+Process *Runtime::getRuntimeProcess(const std::string &name)
 {
     if (runtimes_.find(name) == runtimes_.end())
         return {};
@@ -100,7 +110,7 @@ void Runtime::shutdown()
     {
 
         runtime->write({.type = MessageType::Event,
-                        .name = "script.shutdown"});
+                        .name = "scripts.shutdown"});
     }
 
     for (const auto &[id, runtime] : runtimes_)

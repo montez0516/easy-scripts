@@ -32,8 +32,10 @@ ScriptManager::ScriptManager(Paths &paths, EventBus &bus, APIRegister &apiRegist
   bus_.subscribe("scripts.run", [this](const Message &message)
                  {
                    std::string name = message.id;
-                  //  std::vector<std::string> args = message.data.value<std::vector<std::string>>("args", {});
+                   //  std::vector<std::string> args = message.data.value<std::vector<std::string>>("args", {});
                    run(name, {}); });
+  bus_.subscribe("scripts.stop", [this](const Message &message)
+                 { mainPipe_.send(message); });
 }
 
 ScriptManager::~ScriptManager()
