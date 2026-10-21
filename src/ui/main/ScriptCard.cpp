@@ -87,7 +87,11 @@ void ScriptCard::registerListeners()
 
 void ScriptCard::handleStartButtonClick()
 {
-    bus_.publish(running ? "scripts.pause" : "scripts.run", {.type = MessageType::Request, .id = scriptInfo_.value("name", ""), .data = {}});
+    std::string id = scriptInfo_.value("name", "");
+    if (!running)
+        emit requestScriptStart(id, {});
+    else
+        emit requestScriptStop(id);
 }
 
 void ScriptCard::handleStart()
@@ -116,9 +120,4 @@ void ScriptCard::handleError(const Message &message)
     QString errorIcon = QString::fromStdString((Paths::icons() / "error.svg").string());
     startButton_->setIcon(errorIcon);
     spdlog::error("Error occured in script {} {}", message.data.value("code", "unknown"), message.data.value<std::string>("error", ""));
-}
-
-void ScriptCard::handleMedia(const Message &message)
-{
-    spdlog::debug("Recieved media event {} {}", message.name, message.data.dump());
 }

@@ -23,6 +23,8 @@ public:
 
 public slots:
     void displayDetailsPage(const nlohmann::json &info);
+    void sendStartRequest(const std::string &id, std::vector<std::string> args);
+    void sendStopRequest(const std::string &id);
 
 private:
     UIContext &uiContext_;

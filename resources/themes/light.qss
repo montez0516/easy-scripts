@@ -51,3 +51,9 @@ QPushButton {
 {
     font-size:25pt;
 }
+
+#DetailsPage > QTextBrowser, QTextEdit{
+    background:white;
+    border:1px solid dimgrey;
+    border-radius:5px;
+}

@@ -27,7 +27,7 @@ public:
     void unsubscribe(const std::string &name, std::uint64_t id);
 
 private:
-    std::uint64_t idCounter_;
+    std::uint64_t idCounter_{1};
     std::mutex subscriptionMutex_;
     std::unordered_map<std::string, std::vector<Subscription>> subscriptions_;
 };

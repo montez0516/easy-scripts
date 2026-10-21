@@ -28,7 +28,8 @@ public slots:
 
 signals:
     void requestDetailsPage(const nlohmann::json &info);
-    void requestOutputPage(const nlohmann::json &info);
+    void requestScriptStart(const std::string &id, std::vector<std::string> args);
+    void requestScriptStop(const std::string &id);
 
 private:
     nlohmann::json scriptInfo_;
@@ -43,7 +44,6 @@ private:
     void handleStart();
     void handleFinished();
     void handleError(const Message &message);
-    void handleMedia(const Message &message);
 };
 
 #endif
