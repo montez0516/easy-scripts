@@ -1,6 +1,7 @@
 #include "DetailsPage.h"
 #include "../reuseables/IconButton.h"
-#include "../ThemeManager.h"
+#include "../utils/ThemeManager.h"
+#include "../utils/IconManager.h"
 #include "../../core/eventBus/EventBus.h"
 #include "../../core/communication/Message.h"
 
@@ -28,7 +29,8 @@ DetailsPage::DetailsPage(EventBus &bus, QWidget *parent) : QWidget(parent), bus_
     topLayout_ = new QHBoxLayout();
     layout_->addLayout(topLayout_, 1);
 
-    QString startIcon = QString::fromStdString((Paths::icons() / currentTheme.toStdString() / ("start-" + currentTheme + ".svg").toStdString()).string());
+    // QString startIcon = IconManager::getIcon("start");
+    QString startIcon = IconManager::getIcon("start");
     startButton_ = new IconButton("", startIcon);
     connect(startButton_, &QPushButton::clicked, this, &DetailsPage::handleStartButtonClick);
     topLayout_->addWidget(startButton_, 1);
@@ -37,7 +39,7 @@ DetailsPage::DetailsPage(EventBus &bus, QWidget *parent) : QWidget(parent), bus_
     scriptName_->setObjectName("ScriptName");
     topLayout_->addWidget(scriptName_, 8);
 
-    QString closeIcon = QString::fromStdString((Paths::icons() / currentTheme.toStdString() / ("close-" + currentTheme + ".svg").toStdString()).string());
+    QString closeIcon = IconManager::getIcon("close");
     IconButton *closeButton = new IconButton("", closeIcon);
     connect(closeButton, QPushButton::clicked, this, [this]()
             {
@@ -143,8 +145,9 @@ void DetailsPage::handleStart()
     running_ = true;
     QString currentTheme = ThemeManager::currentTheme();
 
-    QString pauseIcon = QString::fromStdString((Paths::icons() / currentTheme.toStdString() / ("pause-" + currentTheme + ".svg").toStdString()).string());
+    QString pauseIcon = IconManager::getIcon("pause");
     startButton_->setIcon(pauseIcon);
+    fileEdit_->hide();
 }
 
 void DetailsPage::handleFinished()
@@ -152,8 +155,9 @@ void DetailsPage::handleFinished()
     running_ = false;
     QString currentTheme = ThemeManager::currentTheme();
 
-    QString startIcon = QString::fromStdString((Paths::icons() / currentTheme.toStdString() / ("start-" + currentTheme + ".svg").toStdString()).string());
+    QString startIcon = IconManager::getIcon("start");
     startButton_->setIcon(startIcon);
+    fileEdit_->show();
 }
 
 void DetailsPage::handleError(const Message &message)

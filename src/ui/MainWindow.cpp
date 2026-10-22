@@ -1,6 +1,6 @@
 #include "MainWindow.h"
 
-#include "ThemeManager.h"
+#include "utils/ThemeManager.h"
 #include "CentralWidget.h"
 #include "UIContext.h"
 #include "../api/Register.h"

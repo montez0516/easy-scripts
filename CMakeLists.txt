@@ -53,8 +53,8 @@ src/main/apis/MediaAPI.cpp
 src/api/Register.cpp
 
 src/ui/MainWindow.cpp
-src/ui/ThemeManager.cpp
-src/ui/ThemeManager.h
+src/ui/utils/ThemeManager.cpp
+src/ui/utils/ThemeManager.h
 src/ui/CentralWidget.h
 src/ui/CentralWidget.cpp
 src/ui/reuseables/GridWidget.h
@@ -76,6 +76,8 @@ src/ui/UIContext.h
 src/ui/main/ScriptPage.cpp
 src/ui/main/DetailsPage.h
 src/ui/main/DetailsPage.cpp
+src/ui/utils/IconManager.h
+src/ui/utils/IconManager.cpp
 )
 
 add_executable(runner

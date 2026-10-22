@@ -1,7 +1,8 @@
 #include "ScriptCard.h"
 #include "IconButton.h"
 #include "../../core/Paths.h"
-#include "../ThemeManager.h"
+#include "../utils/ThemeManager.h"
+#include "../utils/IconManager.h"
 #include "../../core/eventBus/EventBus.h"
 #include "../../core/communication/Message.h"
 
@@ -42,14 +43,14 @@ ScriptCard::ScriptCard(nlohmann::json scriptInfo, EventBus &bus, QWidget *parent
 
     QString currentTheme = ThemeManager::currentTheme();
 
-    QString startIcon = QString::fromStdString((Paths::icons() / currentTheme.toStdString() / ("start-" + currentTheme + ".svg").toStdString()).string());
+    QString startIcon = IconManager::getIcon("start");
     startButton_ = new IconButton("", startIcon);
     startButton_->setFixedSize(65, 65);
     connect(startButton_, QPushButton::clicked, this, &ScriptCard::handleStartButtonClick);
 
     buttonsLayout_->addWidget(startButton_, 0, Qt::AlignLeft);
 
-    // QString optionsIcon = QString::fromStdString((Paths::icons() / currentTheme.toStdString() / ("options-" + currentTheme + ".svg").toStdString()).string());
+    // QString optionsIcon = IconManager::getIcon("options");
     // optionsButton_ = new IconButton("", optionsIcon);
     // optionsButton_->setFixedSize(65, 65);
     // buttonsLayout_->addWidget(optionsButton_, 0, Qt::AlignRight);
@@ -100,7 +101,7 @@ void ScriptCard::handleStart()
     running = true;
     QString currentTheme = ThemeManager::currentTheme();
 
-    QString pauseIcon = QString::fromStdString((Paths::icons() / currentTheme.toStdString() / ("pause-" + currentTheme + ".svg").toStdString()).string());
+    QString pauseIcon = IconManager::getIcon("pause");
     startButton_->setIcon(pauseIcon);
 }
 
@@ -109,7 +110,7 @@ void ScriptCard::handleFinished()
     running = false;
     QString currentTheme = ThemeManager::currentTheme();
 
-    QString startIcon = QString::fromStdString((Paths::icons() / currentTheme.toStdString() / ("start-" + currentTheme + ".svg").toStdString()).string());
+    QString startIcon = IconManager::getIcon("start");
     startButton_->setIcon(startIcon);
 }
 

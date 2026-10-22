@@ -3,7 +3,8 @@
 #include "../api/Register.h"
 #include "../core/Paths.h"
 
-#include "ThemeManager.h"
+#include "utils/ThemeManager.h"
+#include "utils/IconManager.h"
 #include "main/ScriptCard.h"
 #include "main/CreatePage.h"
 #include "main/ScriptPage.h"
@@ -63,10 +64,9 @@ CentralWidget::CentralWidget(UIContext &uiContext, QWidget *parent) : QWidget(pa
         QString page = pages_[i];
         QString fileName = page + "-" + currentTheme + ".svg";
 
-        QString iconLocation = QString::fromStdString(
-            (iconsPath / fileName.toStdString()).string());
+        QString buttonIcon = IconManager::getIcon(page);
 
-        IconButton *button = new IconButton(page, iconLocation, navBar_);
+        IconButton *button = new IconButton(page, buttonIcon, navBar_);
         connect(button, &QPushButton::clicked, this, [i, this]()
                 { stackedLayout_->setCurrentIndex(i); });
         navBar_->addWidget(button);
