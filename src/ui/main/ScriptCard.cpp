@@ -68,7 +68,7 @@ void ScriptCard::registerListeners()
                        std::string type = message.data.value("state", "");
 
                        spdlog::debug("State event recieved {}", type);
-                       if (message.id != name || message.id.empty())
+                       if (message.scriptName != name || message.scriptName.empty())
                            return;
 
                        if (type == "scripts.started")

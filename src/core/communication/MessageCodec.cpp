@@ -9,8 +9,8 @@
 std::string MessageCodec::encode(const Message &message)
 {
     nlohmann::json json = nlohmann::json({{"type", message.type},
-                                          {"name", message.name},
-                                          {"id", message.id},
+                                          {"scriptName", message.scriptName},
+                                          {"promiseID", message.promiseID},
                                           {"data", message.data}});
 
     return json.dump();
@@ -23,9 +23,9 @@ Message MessageCodec::decode(std::string_view data)
 
         nlohmann::json json = nlohmann::json::parse(data);
         return {
-            .type = messageTypeFromString(json.value<int>("type", 0)),
-            .name = json.at("name"),
-            .id = json.value("id", ""),
+            .type = json.at("type"),
+            .scriptName = json.at("scriptName"),
+            .promiseID = json.value("promiseID", ""),
             .data = json.value("data", nlohmann::json::object())};
     }
     catch (nlohmann::json::exception &e)

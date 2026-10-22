@@ -26,26 +26,11 @@ ScriptManager::ScriptManager(Paths &paths, EventBus &bus, APIRegister &apiRegist
   }
   registerEventListeners();
   loadScripts();
-
-  apiRegister_.registerMethod("scripts.list", [this](APIRequest request)
-                              { return list(request); });
-  bus_.subscribe("scripts.run", [this](const Message &message)
-                 {
-                   std::string name = message.id;
-                   //  std::vector<std::string> args = message.data.value<std::vector<std::string>>("args", {});
-                   run(name, {}); });
-  bus_.subscribe("scripts.stop", [this](const Message &message)
-                 { mainPipe_.send(message); });
 }
 
 ScriptManager::~ScriptManager()
 {
-  mainPipe_.send(
-      {
-          .type = MessageType::Event,
-          .name = "runner.shutdown",
-          .id = "scriptManager",
-      });
+  mainPipe_.send({.type = "runner.shutdown"});
 
   if (!runnerProcess_->waitFor(std::chrono::milliseconds(5000)))
   {
@@ -74,8 +59,7 @@ bool ScriptManager::startRunner()
 
   runnerPipe_ = IPCConnection(std::make_unique<NamedPipeClient>("runner"));
   runnerPipe_.onMessage([this](const Message &message)
-                        { spdlog::debug("Recieved message from runner {}", message.name);
-                          bus_.publish(message.name, message); });
+                        { bus_.publish(message.type, message); });
   return true;
 }
 
@@ -113,69 +97,38 @@ void ScriptManager::run(std::string scriptName, const std::vector<std::string> &
 
   spdlog::debug("Running script {} {}", language, file);
 
-  mainPipe_.send({.type = MessageType::Event,
-                  .name = "script.run",
-                  .id = scriptInfo.get("name"),
+  mainPipe_.send({.type = "scripts.run",
+                  .scriptName = scriptInfo.get("name"),
                   .data = {
                       {"file", file},
                       {"language", language}}});
-  // scriptInfo.running = true;
   spdlog::debug("ScriptManager(run): Ran script", language, file);
-}
-
-void ScriptManager::handleEvent(const std::string &eventPayload)
-{
-  spdlog::debug("ScriptManager(handleEvent): {}", eventPayload);
-  try
-  {
-    nlohmann::json event = nlohmann::json::parse(eventPayload);
-
-    std::string type = event["type"];
-
-    if (type != "finished")
-    {
-
-      auto method = apiRegister_.getMethod(type);
-
-      if (!method)
-      {
-        spdlog::error("ScriptManager(handleEvent): method with type {} does not exist", type);
-        mainPipe_.send({.type = MessageType::Response,
-                        .name = "script.response",
-                        .id = event["from"],
-                        .data = ""});
-        return;
-      }
-
-      APIRequest req;
-      req.params = event.value("payload", "");
-
-      APIResponse res = method(req);
-
-      mainPipe_.send({.type = MessageType::Response,
-                      .name = "script.response",
-                      .id = event["from"],
-                      .data = res.result});
-    }
-    else
-    {
-      std::string scriptName = event["from"];
-
-      if (!hasScript(scriptName))
-        return;
-      ScriptInfo &scriptInfo = getScript(event["from"]);
-      scriptInfo.running = false;
-      spdlog::debug("ScriptManager(handleEvent): script no longer running {}", scriptInfo.get("name"));
-    }
-  }
-  catch (nlohmann::json::exception &e)
-  {
-    spdlog::critical("ScriptManager(handleEvent): failed to parse event payload {}", e.what(), eventPayload);
-  }
 }
 
 void ScriptManager::registerEventListeners()
 {
+  apiRegister_.registerMethod("scripts.list", [this](APIRequest request)
+                              { return list(request); });
+  bus_.subscribe("scripts.run", [this](const Message &message)
+                 {
+                   std::string name = message.scriptName;
+                   //  std::vector<std::string> args = message.data.value<std::vector<std::string>>("args", {});
+                   run(name, {}); });
+  bus_.subscribe("scripts.stop", [this](const Message &message)
+                 { mainPipe_.send(message); });
+  bus_.subscribe("scripts.state", [this](const Message &message)
+                 {
+                   std::string state = message.data.at("state");
+                   ScriptInfo &scriptInfo = getScript(message.scriptName);
+
+                   if (state == "scripts.started")
+                   {
+                     scriptInfo.running = true;
+                   }
+                   else if (state == "scripts.finished" || state == "scripts.error")
+                   {
+                     scriptInfo.running = false;
+                   } });
 }
 
 APIResponse ScriptManager::list(APIRequest request)

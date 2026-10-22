@@ -1,7 +1,8 @@
 import json
 import threading
 import sys
-from easyscripts import Dispatcher
+from .dispatcher import Dispatcher
+
 
 class EasyScriptsAPI:
     

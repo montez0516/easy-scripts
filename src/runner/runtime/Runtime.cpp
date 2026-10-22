@@ -28,7 +28,7 @@ void Runtime::run(const Message &message)
 {
     nlohmann::json messageData = message.data;
 
-    std::string id = message.id;
+    std::string name = message.scriptName;
     std::string file = messageData.at("file");
     std::vector<std::string> args = messageData.value<std::vector<std::string>>("args", {});
 
@@ -42,26 +42,25 @@ void Runtime::run(const Message &message)
     process->setCurrentDirectory(absFile.parent_path());
     process->setCaptureHandles(true);
 
-    process->registerReadyReadCallback([this, id](const Message &message)
+    process->registerReadyReadCallback([this, name](const Message &message)
                                        { bus_.publish("script.event", message); });
 
     Process *processPtr = process.get();
-    process->registerOnFinishedCallback([this, message, processPtr](DWORD code)
+    process->registerOnFinishedCallback([this, name, processPtr](DWORD code)
                                         {
                                             spdlog::debug("process finished");
                                             std::string errorMsg = processPtr->error();
-                                            bus_.publish("script.event", {.type = MessageType::Event,
-                                                                          .name = "scripts.state",
-                                                                          .id = message.id,
+                                            bus_.publish("script.event", {.type = "scripts.state",
+                                                                          .scriptName = name,
                                                                           .data = {
-                                                                            {"state", code != 0 ? "scripts.error" : "scripts.finished"},
-                                                                            {"code", code},
-                                                                            {"error", errorMsg}}}); });
+                                                                              {"state", code != 0 ? "scripts.error" : "scripts.finished"},
+                                                                              {"code", code},
+                                                                              {"error", errorMsg}}}); });
 
     process->start();
 
-    runtimes_[message.id] = (std::move(process));
-    bus_.publish("script.event", {.type = MessageType::Event, .name = "scripts.state", .id = id, .data = {{"state", "scripts.started"}}});
+    runtimes_[name] = (std::move(process));
+    bus_.publish("script.event", {.type = "scripts.state", .scriptName = name, .data = {{"state", "scripts.started"}}});
 }
 
 std::filesystem::path Runtime::executable(const std::filesystem::path &script) const
@@ -79,17 +78,17 @@ void Runtime::registerListener()
 
     bus_.subscribe("runtime.response", [this](const Message &message)
                    {
-        Process *process = getRuntimeProcess(message.id);
+        Process *process = getRuntimeProcess(message.scriptName);
         process->write(message); });
     bus_.subscribe("runtime.shutdown", [this](const Message &message)
                    { shutdown(); });
     bus_.subscribe("scripts.stop", [this](const Message &message)
                    {
-                       Process *process = getRuntimeProcess(message.id);
+                       Process *process = getRuntimeProcess(message.scriptName);
                        if (process == nullptr)
                            return;
 
-                       process->write({.type = MessageType::Event, .name = "scripts.shutdown", .id = message.id});
+                       process->write({.type = "scripts.shutdown"});
 
                        if (!process->waitFor(std::chrono::milliseconds(3000)))
                            process->terminate(); });
@@ -109,8 +108,7 @@ void Runtime::shutdown()
     for (const auto &[id, runtime] : runtimes_)
     {
 
-        runtime->write({.type = MessageType::Event,
-                        .name = "scripts.shutdown"});
+        runtime->write({.type = "scripts.shutdown"});
     }
 
     for (const auto &[id, runtime] : runtimes_)

@@ -63,10 +63,10 @@ void ScriptPage::displayDetailsPage(const nlohmann::json &info)
 
 void ScriptPage::sendStartRequest(const std::string &id, std::vector<std::string> args)
 {
-    uiContext_.eventBus.publish("scripts.run", {.type = MessageType::Request, .id = id, .data = {{"args", args}}});
+    uiContext_.eventBus.publish("scripts.run", {.scriptName = id, .data = {{"args", args}}});
 }
 
 void ScriptPage::sendStopRequest(const std::string &id)
 {
-    uiContext_.eventBus.publish("scripts.stop", {.type = MessageType::Request, .name = "scripts.stop", .id = id});
+    uiContext_.eventBus.publish("scripts.stop", {.type = "scripts.stop", .scriptName = id});
 }

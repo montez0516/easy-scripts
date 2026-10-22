@@ -7,3 +7,4 @@
 **/scripts
 **/release
 **/__pycache__
+**/*.egg-info

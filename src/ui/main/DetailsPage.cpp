@@ -104,7 +104,7 @@ void DetailsPage::activate()
                         std::string name = scriptInfo_.value("name", "");
                         std::string type = message.data.value("state", "");
 
-                        if (message.id != name || message.id.empty())
+                        if (message.scriptName != name || message.scriptName.empty())
                             return;
                             spdlog::debug("State event recieved in DetailsPage");
                         if (type == "scripts.started")

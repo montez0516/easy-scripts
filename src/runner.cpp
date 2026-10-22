@@ -49,7 +49,7 @@ int main()
                 { runnerPipe.send(message); });
 
   mainPipe.onMessage([&bus](const Message &message)
-                     { bus.publish(message.name, message); });
+                     { bus.publish(message.type, message); });
 
   std::unique_lock<std::mutex> lock(mtx);
   cv.wait(lock, [&shutdown]()
