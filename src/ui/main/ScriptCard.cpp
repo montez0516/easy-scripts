@@ -41,19 +41,12 @@ ScriptCard::ScriptCard(nlohmann::json scriptInfo, EventBus &bus, QWidget *parent
     QHBoxLayout *buttonsLayout_ = new QHBoxLayout();
     layout_->addLayout(buttonsLayout_);
 
-    QString currentTheme = ThemeManager::currentTheme();
-
     QString startIcon = IconManager::getIcon("start");
     startButton_ = new IconButton("", startIcon);
     startButton_->setFixedSize(65, 65);
     connect(startButton_, QPushButton::clicked, this, &ScriptCard::handleStartButtonClick);
 
     buttonsLayout_->addWidget(startButton_, 0, Qt::AlignLeft);
-
-    // QString optionsIcon = IconManager::getIcon("options");
-    // optionsButton_ = new IconButton("", optionsIcon);
-    // optionsButton_->setFixedSize(65, 65);
-    // buttonsLayout_->addWidget(optionsButton_, 0, Qt::AlignRight);
 
     nameLabel_ = new QLabel(QString::fromStdString(name), this);
 
@@ -99,16 +92,14 @@ void ScriptCard::handleStart()
 {
     spdlog::debug("Handling start event");
     running = true;
-    QString currentTheme = ThemeManager::currentTheme();
 
-    QString pauseIcon = IconManager::getIcon("pause");
-    startButton_->setIcon(pauseIcon);
+    QString stopIcon = IconManager::getIcon("stop");
+    startButton_->setIcon(stopIcon);
 }
 
 void ScriptCard::handleFinished()
 {
     running = false;
-    QString currentTheme = ThemeManager::currentTheme();
 
     QString startIcon = IconManager::getIcon("start");
     startButton_->setIcon(startIcon);
@@ -118,7 +109,7 @@ void ScriptCard::handleError(const Message &message)
 {
     running = false;
 
-    QString errorIcon = QString::fromStdString((Paths::icons() / "error.svg").string());
+    QString errorIcon = IconManager::getIcon("error");
     startButton_->setIcon(errorIcon);
     spdlog::error("Error occured in script {} {}", message.data.value("code", "unknown"), message.data.value<std::string>("error", ""));
 }

@@ -1,8 +1,6 @@
 #include "CentralWidget.h"
-
 #include "../api/Register.h"
 #include "../core/Paths.h"
-
 #include "utils/ThemeManager.h"
 #include "utils/IconManager.h"
 #include "main/ScriptCard.h"
@@ -56,14 +54,9 @@ CentralWidget::CentralWidget(UIContext &uiContext, QWidget *parent) : QWidget(pa
 
     layout_->addWidget(navBar_);
 
-    QString currentTheme = ThemeManager::currentTheme();
-    std::filesystem::path iconsPath = uiContext_.paths.icons() / currentTheme.toStdString();
-
     for (size_t i = 0; i < pages_.size(); i++)
     {
         QString page = pages_[i];
-        QString fileName = page + "-" + currentTheme + ".svg";
-
         QString buttonIcon = IconManager::getIcon(page);
 
         IconButton *button = new IconButton(page, buttonIcon, navBar_);

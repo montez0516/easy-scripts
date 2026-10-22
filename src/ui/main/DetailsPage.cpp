@@ -20,8 +20,6 @@ DetailsPage::DetailsPage(EventBus &bus, QWidget *parent) : QWidget(parent), bus_
 {
     setObjectName("DetailsPage");
 
-    QString currentTheme = ThemeManager::currentTheme();
-
     layout_ = new QVBoxLayout(this);
     layout_->setContentsMargins(0, 0, 0, 0);
     layout_->setSpacing(8);
@@ -145,15 +143,14 @@ void DetailsPage::handleStart()
     running_ = true;
     QString currentTheme = ThemeManager::currentTheme();
 
-    QString pauseIcon = IconManager::getIcon("pause");
-    startButton_->setIcon(pauseIcon);
+    QString stopIcon = IconManager::getIcon("stop");
+    startButton_->setIcon(stopIcon);
     fileEdit_->hide();
 }
 
 void DetailsPage::handleFinished()
 {
     running_ = false;
-    QString currentTheme = ThemeManager::currentTheme();
 
     QString startIcon = IconManager::getIcon("start");
     startButton_->setIcon(startIcon);
@@ -164,7 +161,7 @@ void DetailsPage::handleError(const Message &message)
 {
     running_ = false;
 
-    QString errorIcon = QString::fromStdString((Paths::icons() / "error.svg").string());
+    QString errorIcon = IconManager::getIcon("error");
     startButton_->setIcon(errorIcon);
     spdlog::error("Error occured in script {} {}", message.data.value("code", "unknown"), message.data.value<std::string>("error", ""));
 }
