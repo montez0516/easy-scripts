@@ -1,13 +1,13 @@
 import json
 import threading
 import sys
-
+from easyscripts import Dispatcher
 
 class EasyScriptsAPI:
     
     def __init__(self, name: str):
-        self.name = name
         self.shutdown_event = threading.Event()
+        self.dispatcher = Dispatcher(name)
 
         self.thread = threading.Thread(
             target=self.monitorEvents,
@@ -28,13 +28,3 @@ class EasyScriptsAPI:
                 pass
     def wait(self, timeout=None):
         return self.shutdown_event.wait(timeout)
-
-    def sendEvent(self, event_type: str, data=None):
-        message = {
-            "type": 3,
-            "id": self.name,
-            "name": event_type,
-            "data": data
-        }
-
-        print(json.dumps(message), flush=True)
