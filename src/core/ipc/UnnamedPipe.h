@@ -3,10 +3,8 @@
 #include "Pipe.h"
 
 #include <windows.h>
-#include <string>
-#include <thread>
-#include <functional>
-#include <atomic>
+#include <span>
+#include <cstddef>
 
 class UnnamedPipe : public Pipe
 {
@@ -15,24 +13,13 @@ private:
     HANDLE readHandle_ = INVALID_HANDLE_VALUE;
     HANDLE writeHandle_ = INVALID_HANDLE_VALUE;
 
-    std::atomic<bool> threadLoop_{true};
-    std::function<void(std::string_view)> readyReadCallBack_;
-    std::thread readyReadThread_;
-
 public:
     UnnamedPipe();
     ~UnnamedPipe();
 
-    std::string read() override;
-    void write(std::string_view message) override;
-    bool readyRead(std::function<void(std::string_view)> callback) override;
-    HANDLE getRead() const;
-    HANDLE getWrite() const;
+    ReadResult read(std::span<std::byte> buffer) override;
+    WriteResult write(std::span<const std::byte> buffer) override;
 
-    bool isNull();
-
-    void closeRead() override;
-    void closeWrite() override;
-
-    void close() override;
+    HANDLE getReadHandle() const override;
+    HANDLE getWriteHandle() const override;
 };

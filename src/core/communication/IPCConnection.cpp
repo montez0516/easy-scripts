@@ -11,6 +11,9 @@
 #include <functional>
 #include <utility>
 #include <vector>
+#include <array>
+#include <span>
+#include <cstddef>
 
 IPCConnection::IPCConnection() {};
 
@@ -25,43 +28,71 @@ void IPCConnection::send(const Message &message)
     if (ipcPipe_.get() == nullptr)
         return;
     std::string encodedMessage = MessageCodec::encode(message) + '\n';
-    ipcPipe_.get()->write(encodedMessage);
+    ipcPipe_.get()->write(std::as_bytes(std::span(encodedMessage)));
 }
 
 void IPCConnection::onMessage(std::function<void(const Message &)> callback)
 {
-    if (ipcPipe_.get() == nullptr)
-        return;
-    ipcPipe_.get()->readyRead([this, callback](std::string_view message)
-                              {
-                                  std::vector<std::string> messages = framer_.push(message);
-
-                                  for (const std::string &encodedMessage : messages)
-                                  {
-                                      Message decodedMessage = MessageCodec::decode(encodedMessage);
-                                      callback(decodedMessage);
-                                  } });
+    if (!onDataCallback_)
+        onMessageCallback_ = std::move(callback);
 }
 
 void IPCConnection::onData(std::function<void(std::string_view)> callback)
 {
-    if (ipcPipe_.get() == nullptr)
-        return;
-    ipcPipe_->readyRead(std::move(callback));
+    if (!onMessageCallback_)
+        onDataCallback_ = std::move(callback);
 }
 
-std::string IPCConnection::read()
+void IPCConnection::readLoop()
 {
-    if (ipcPipe_.get() == nullptr)
-        return "";
-    return ipcPipe_->read();
+    std::array<std::byte, 4096> buffer;
+
+    while (true)
+    {
+        std::vector<std::string> messages{};
+
+        ReadResult result = ipcPipe_->read(buffer);
+
+        switch (result.status)
+        {
+        case READ_SUCCESS:
+        {
+            std::string_view data(reinterpret_cast<const char *>(buffer.data()), result.bytesRead);
+
+            if (onDataCallback_)
+                onDataCallback_(data);
+
+            else if (onMessageCallback_)
+            {
+                messages = framer_.push(data);
+                for (const auto &message : messages)
+                {
+                    Message decodedMessage = MessageCodec::decode(message);
+
+                    if (onMessageCallback_)
+                        onMessageCallback_(decodedMessage);
+                }
+            }
+            break;
+        }
+        case READ_EOF:
+        {
+            return;
+        }
+        case READ_ERROR:
+        {
+            spdlog::error("Error while reading from pipe {}", result.errorCode);
+            return;
+        }
+        }
+    }
 }
 
 void IPCConnection::write(std::string_view message)
 {
     if (ipcPipe_.get() == nullptr)
         return;
-    ipcPipe_->write(message);
+    ipcPipe_->write(std::as_bytes(std::span(message)));
 }
 
 bool IPCConnection::waitForConnection()
@@ -75,19 +106,12 @@ void IPCConnection::closeRead()
 {
     if (ipcPipe_.get() == nullptr)
         return;
-    ipcPipe_->closeRead();
+    ipcPipe_->closeReadHandle();
 }
 
 void IPCConnection::closeWrite()
 {
     if (ipcPipe_.get() == nullptr)
         return;
-    ipcPipe_->closeWrite();
-}
-
-void IPCConnection::close()
-{
-    if (ipcPipe_.get() == nullptr)
-        return;
-    ipcPipe_->close();
+    ipcPipe_->closeWriteHandle();
 }
