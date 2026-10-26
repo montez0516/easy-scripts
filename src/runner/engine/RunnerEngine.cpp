@@ -29,7 +29,7 @@ std::vector<std::string> split(std::string &str, char delim)
 
 Engine::Engine(Paths &paths, EventBus &bus) : paths_(paths), bus_(bus)
 {
-    bus_.subscribe("script.run", [this](const Message &message)
+    bus_.subscribe("scripts.run", [this](const Message &message)
                    {
                        std::string language = message.data.value("language", "default");
                        Runtime *runtime = runtimeManager_.getRuntime(language);

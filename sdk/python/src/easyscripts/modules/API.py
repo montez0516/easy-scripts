@@ -1,5 +1,5 @@
-from .. import Dispatcher
+from ..dispatcher import EventDispatcher
 
 class API:
-    def __init__(self, dispatcher : Dispatcher):
+    def __init__(self, dispatcher : EventDispatcher):
         self.dispatcher = dispatcher

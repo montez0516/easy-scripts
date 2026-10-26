@@ -15,7 +15,7 @@ class EventDispatcher:
         }
 
         print(json.dumps(event), flush=True)
-    async def request(self):
+    async def request(self, event_type : str, payload : dict = {}):
         loop = asyncio.get_running_loop()
 
         req_id = str(uuid.uuid4())
@@ -24,6 +24,14 @@ class EventDispatcher:
         self._pending[req_id] = future
 
         event = {
-            "type":3,
-            "id":
+            "type":event_type,
+            "scriptName":self.id,
+            "payloadID": req_id,
+            "data":payload
         }
+
+        try:
+            print(json.dumps(event), flush=True)
+            return await future
+        finally:
+            self._pending.pop(req_id)

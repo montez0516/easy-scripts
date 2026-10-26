@@ -1,14 +1,17 @@
 import json
 import threading
 import sys
-from .dispatcher import Dispatcher
-
+from .dispatcher import EventDispatcher
+from .modules import FileAPI, MediaAPI
 
 class EasyScriptsAPI:
     
     def __init__(self, name: str):
         self.shutdown_event = threading.Event()
-        self.dispatcher = Dispatcher(name)
+        self.dispatcher = EventDispatcher(name)
+        self.files : FileAPI = FileAPI(self.dispatcher)
+        self.media : MediaAPI = MediaAPI(self.dispatcher)
+
 
         self.thread = threading.Thread(
             target=self.monitorEvents,

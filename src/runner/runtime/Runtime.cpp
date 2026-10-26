@@ -48,7 +48,6 @@ void Runtime::run(const Message &message)
     Process *processPtr = process.get();
     process->registerOnFinishedCallback([this, name, processPtr](DWORD code)
                                         {
-                                            spdlog::debug("process finished");
                                             std::string errorMsg = processPtr->error();
                                             bus_.publish("script.event", {.type = "scripts.state",
                                                                           .scriptName = name,
