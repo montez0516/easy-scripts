@@ -28,6 +28,9 @@ FetchContent_MakeAvailable(json)
 set(CMAKE_AUTOMOC ON)
 set(Qt6_DIR "C:\\Qt\\6.11.2\\mingw_64\\lib\\cmake\\Qt6")
 
+set(CMAKE_FIND_LIBRARY_PREFIXES ".a")
+set(BUILD_SHARED_LIBS OFF)
+
 find_package(Qt6 REQUIRED COMPONENTS Core Widgets)
 
 add_executable(EasyScripts
@@ -128,8 +131,8 @@ src/runner/runtime
 src/runner/runtime/runtimes
 )
 
-target_link_libraries(EasyScripts PRIVATE nlohmann_json::nlohmann_json spdlog::spdlog Qt6::Widgets Qt6::Core)
-target_link_libraries(runner PRIVATE nlohmann_json::nlohmann_json spdlog::spdlog)
+target_link_libraries(EasyScripts PRIVATE -static nlohmann_json::nlohmann_json spdlog::spdlog Qt6::Widgets Qt6::Core)
+target_link_libraries(runner PRIVATE -static nlohmann_json::nlohmann_json spdlog::spdlog)
 
 target_compile_definitions(EasyScripts PRIVATE 
     $<$<CONFIG:Debug>:BUILD_DEV=1>
@@ -146,9 +149,6 @@ RUNTIME DESTINATION .
 )
 
 install(DIRECTORY resources DESTINATION .)
-install(DIRECTORY themes DESTINATION .)
 install(DIRECTORY sdk DESTINATION .)
 
-install(TARGETS runner
-    RUNTIME DESTINATION bin
-)
+install(TARGETS runner RUNTIME DESTINATION bin)

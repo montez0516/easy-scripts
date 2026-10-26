@@ -77,8 +77,13 @@ void Runtime::registerListener()
 
     bus_.subscribe("runtime.response", [this](const Message &message)
                    {
-        Process *process = getRuntimeProcess(message.scriptName);
-        process->write(message); });
+                       Process *process = getRuntimeProcess(message.scriptName);
+                       if (process == nullptr)
+                           return;
+                       spdlog::debug("Writing message to process {}::{}()", message.scriptName, message.type, message.data.dump());
+                       process->write(message);
+                       spdlog::debug("Wrote message to process {}", message.scriptName);
+                   });
     bus_.subscribe("runtime.shutdown", [this](const Message &message)
                    { shutdown(); });
     bus_.subscribe("scripts.stop", [this](const Message &message)
@@ -96,7 +101,7 @@ void Runtime::registerListener()
 Process *Runtime::getRuntimeProcess(const std::string &name)
 {
     if (runtimes_.find(name) == runtimes_.end())
-        return {};
+        return nullptr;
 
     return runtimes_.at(name).get();
 }

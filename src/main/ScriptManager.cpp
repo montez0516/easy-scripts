@@ -49,7 +49,9 @@ bool ScriptManager::startRunner()
       std::filesystem::absolute(paths_.runner()),
       std::vector<std::string>{});
   runnerProcess_->registerOnFinishedCallback([this](DWORD exitCode)
-                                             { spdlog::critical("ScriptManager(startRunnner): runner process exited with code {}\n{}", exitCode, runnerProcess_->error()); });
+                                             {
+                                               spdlog::critical("ScriptManager(startRunnner): runner process exited with code {}\n{}", exitCode, runnerProcess_->error());
+                                               exit(exitCode); });
   runnerProcess_->start();
 
   if (!mainPipe_.waitForConnection())
@@ -60,6 +62,17 @@ bool ScriptManager::startRunner()
   runnerPipe_ = IPCConnection(std::make_unique<NamedPipeClient>("runner"));
   runnerPipe_.onMessage([this](const Message &message)
                         { bus_.publish(message.type, message); });
+  bus_.subscribe("files.filepicker", [this](const Message &message)
+                 {
+                  spdlog::debug("testing filepicker {}({})::{}", message.scriptName, message.promiseID, message.type);
+                   auto method = apiRegister_.getMethod("files.filepicker");
+
+                   if (!method)
+                     return;
+
+                   APIResponse response = method({});
+
+                   mainPipe_.send({.type = "runtime.response", .scriptName = message.scriptName, .promiseID = message.promiseID, .data = response.result}); });
   return true;
 }
 

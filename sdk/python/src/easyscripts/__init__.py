@@ -1,2 +1,2 @@
-from .easyscripts import EasyScriptsAPI
-from .dispatcher import EventDispatcher
+from .EasyScripts import EasyScriptsAPI
+from .EventDispatcher import EventDispatcher

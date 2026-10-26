@@ -94,7 +94,7 @@ void DetailsPage::activate()
                                         {
             std::string type = message.data.value<std::string>("type", "");
 
-            if(type == "message")
+            if(type == "text")
             {
                 emit stdoutRecieved(QString::fromStdString(message.data.value<std::string>("text", "")));
             } });
@@ -163,5 +163,5 @@ void DetailsPage::handleError(const Message &message)
 
     QString errorIcon = IconManager::getIcon("error");
     startButton_->setIcon(errorIcon);
-    spdlog::error("Error occured in script {} {}", message.data.value("code", "unknown"), message.data.value<std::string>("error", ""));
+    spdlog::error("Error occured in script {}", message.data.value<std::string>("error", ""));
 }
