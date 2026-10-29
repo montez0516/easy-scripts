@@ -17,9 +17,9 @@ public:
     UnnamedPipe();
     ~UnnamedPipe();
 
-    ReadResult read(std::span<std::byte> buffer) override;
-    WriteResult write(std::span<const std::byte> buffer) override;
-
     HANDLE getReadHandle() const override;
     HANDLE getWriteHandle() const override;
+
+    void closeReadHandle() override;
+    void closeWriteHandle() override;
 };

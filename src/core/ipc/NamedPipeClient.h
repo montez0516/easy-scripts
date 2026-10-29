@@ -7,5 +7,5 @@
 class NamedPipeClient : public NamedPipe
 {
 public:
-    NamedPipeClient(std::string pipeName);
+    NamedPipeClient(const std::string &pipeName);
 };

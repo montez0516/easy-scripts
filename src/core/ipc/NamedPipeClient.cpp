@@ -1,18 +1,17 @@
 #include "NamedPipeClient.h"
 #include "NamedPipe.h"
-#include "../process/Utils.h"
+#include "../utils/windows/WindowsUtils.h"
+#include "../utils/Conversion.h"
 
 #include <spdlog/spdlog.h>
 
 #include <windows.h>
 #include <string>
-#include <utility>
 
-NamedPipeClient::NamedPipeClient(std::string pipeName)
+NamedPipeClient::NamedPipeClient(const std::string &pipeName)
 {
-    pipeName_ = std::move(pipeName);
     pipeHandle_ = CreateFileW(
-        toWstring(PIPE_PREFIX + pipeName_).c_str(),
+        Utils::Conversion::toWstring(PIPE_PREFIX + pipeName).c_str(),
         GENERIC_READ | GENERIC_WRITE,
         0,
         NULL,
@@ -22,6 +21,6 @@ NamedPipeClient::NamedPipeClient(std::string pipeName)
 
     if (pipeHandle_ == INVALID_HANDLE_VALUE)
     {
-        spdlog::critical("NamedPipeClient(): Failed to connect to pipe. Error: {}\n", GetLastError());
+        spdlog::critical("NamedPipeClient(): Failed to connect to pipe. Error: {}\n", Utils::Windows::GetError());
     }
 }

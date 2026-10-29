@@ -5,9 +5,9 @@
 #include "../communication/Message.h"
 
 #include <filesystem>
-#include <map>
 #include <optional>
 #include <string>
+#include <unordered_map>
 #include <thread>
 #include <vector>
 #include <windows.h>
@@ -15,6 +15,7 @@
 #include <chrono>
 #include <mutex>
 #include <condition_variable>
+#include <memory>
 
 namespace fs = std::filesystem;
 
@@ -35,7 +36,7 @@ public:
   void write(const Message &message);
   std::string error();
 
-  void setEnvironment(const std::map<std::wstring, std::wstring> &variables);
+  void setEnvironment(const std::unordered_map<std::wstring, std::wstring> &variables);
   void clearEnvironment();
 
   void setCurrentDirectory(const std::wstring &dir);
@@ -47,9 +48,9 @@ public:
   void registerOnFinishedCallback(std::function<void(DWORD)> finishCallBack);
 
 private:
-  IPCConnection stdinPipe_;
-  IPCConnection stdoutPipe_;
-  IPCConnection stderrPipe_;
+  std::unique_ptr<IPCConnection> stdinPipe_;
+  std::unique_ptr<IPCConnection> stdoutPipe_;
+  std::unique_ptr<IPCConnection> stderrPipe_;
 
   fs::path exe_;
   std::vector<std::string> args_;

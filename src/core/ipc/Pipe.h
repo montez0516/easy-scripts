@@ -34,8 +34,10 @@ struct WriteResult
 class Pipe
 {
 public:
-    virtual ReadResult read(std::span<std::byte> buffer) = 0;
-    virtual WriteResult write(std::span<const std::byte> buffer) = 0;
+    ReadResult read(std::span<std::byte> buffer);
+    WriteResult write(std::span<const std::byte> buffer);
+
+    virtual ~Pipe() = default;
 
     virtual HANDLE getReadHandle() const = 0;
     virtual HANDLE getWriteHandle() const = 0;
@@ -43,5 +45,5 @@ public:
     virtual void closeReadHandle() = 0;
     virtual void closeWriteHandle() = 0;
 
-    virtual bool waitForConnection() = 0;
+    virtual bool waitForConnection();
 };

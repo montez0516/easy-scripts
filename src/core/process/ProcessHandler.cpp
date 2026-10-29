@@ -1,15 +1,17 @@
 #include "ProcessHandler.h"
 
-#include "Utils.h"
 #include "../communication/Message.h"
 #include "../communication/IPCConnection.h"
+#include "../utils/Conversion.h"
+#include "../utils/windows/WindowsUtils.h"
+#include "../utils/windows/Environment.h"
 
 #include <spdlog/spdlog.h>
 
 #include <windows.h>
+#include <unordered_map>
 #include <utility>
 #include <filesystem>
-#include <iostream>
 #include <thread>
 #include <functional>
 #include <mutex>
@@ -28,9 +30,8 @@ Process::~Process()
     if (waitThread_.joinable())
         waitThread_.join();
 
-    stdinPipe_.close();
-    stdoutPipe_.close();
-    stderrPipe_.close();
+    stdoutPipe_->waitForReader();
+    stderrPipe_->waitForReader();
 }
 
 bool Process::start()
@@ -67,21 +68,21 @@ bool Process::start()
                         &startupInfo_,
                         &processInformation_))
     {
-        spdlog::error("Process(start): CreateProcessW failed {} {}", toString(GetError()), exe_.string());
+        spdlog::error("Process(start): CreateProcessW failed {} {}", Utils::Windows::GetError(), exe_.string());
         return false;
     }
 
     if (captureHandles_)
     {
-        stdinPipe_.closeRead();
-        stdoutPipe_.closeWrite();
-        stderrPipe_.closeWrite();
+        stdinPipe_->closeRead();
+        stdoutPipe_->closeWrite();
+        stderrPipe_->closeWrite();
 
         if (readyReadCallBack_)
-            stdoutPipe_.onMessage(readyReadCallBack_);
+            stdoutPipe_->onMessage(readyReadCallBack_);
 
-        stderrPipe_.onData([this](std::string_view message)
-                           {
+        stderrPipe_->onData([this](std::string_view message)
+                            {
                                std::lock_guard lock(stderrMutex_);
                                stderrBuffer_.append(message); });
     }
@@ -90,24 +91,19 @@ bool Process::start()
     return true;
 }
 
-std::string Process::read()
-{
-    return stdoutPipe_.read();
-}
-
 void Process::write(const Message &message)
 {
-    stdinPipe_.send(message);
+    stdinPipe_->send(message);
 }
 
 std::wstring Process::buildCommandLine()
 {
-    std::wstring cmd = quoteWindowsArgument(exe_.wstring());
+    std::wstring cmd = Utils::Windows::quoteWindowsArgument(exe_.wstring());
 
     for (const auto &arg : args_)
     {
         cmd += L' ';
-        cmd += quoteWindowsArgument(toWstring(arg));
+        cmd += Utils::Windows::quoteWindowsArgument(Utils::Conversion::toWstring(arg));
     }
 
     return cmd;
@@ -125,7 +121,7 @@ void Process::t_wait()
 
     if (!GetExitCodeProcess(processInformation_.hProcess, &exitCode_))
     {
-        spdlog::error("Process(t_wait): GetExitCodeProcess failed ({})", toString(GetError()));
+        spdlog::error("Process(t_wait): GetExitCodeProcess failed ({})", Utils::Windows::GetError());
     }
 
     {
@@ -140,9 +136,8 @@ void Process::t_wait()
     processInformation_.hProcess = nullptr;
     processInformation_.hThread = nullptr;
 
-    stdinPipe_.close();
-    stdoutPipe_.close();
-    stderrPipe_.close();
+    stdoutPipe_->waitForReader();
+    stderrPipe_->waitForReader();
 
     exitCV_.notify_all();
 
@@ -178,7 +173,7 @@ bool Process::terminate()
 
     if (!TerminateProcess(processInformation_.hProcess, FORCED_TERMINATION))
     {
-        spdlog::error("Process(terminate): Failed to terminate process {}", toString(GetError()));
+        spdlog::error("Process(terminate): Failed to terminate process {}", Utils::Windows::GetError());
 
         return false;
     }
@@ -186,38 +181,10 @@ bool Process::terminate()
     return true;
 }
 
-static std::map<std::wstring, std::wstring> getCurrentEnvironment()
-{
-    std::map<std::wstring, std::wstring> variables;
-
-    LPWCH currentEnvironment = GetEnvironmentStringsW();
-
-    if (currentEnvironment == nullptr)
-    {
-        std::cerr << "Could not find Environment" << std::endl;
-        return variables;
-    }
-
-    for (const wchar_t *current = currentEnvironment; *current != L'\0'; current += std::wcslen(current) + 1)
-    {
-        std::wstring entry(current);
-
-        std::size_t separator = entry[0] == L'=' ? entry.find(L'=', 1) : entry.find(L'=');
-
-        if (separator != std::wstring::npos)
-        {
-            variables.emplace(entry.substr(0, separator), entry.substr(separator + 1));
-        }
-    }
-
-    FreeEnvironmentStringsW(currentEnvironment);
-    return variables;
-}
-
 void Process::setEnvironment(
-    const std::map<std::wstring, std::wstring> &overrides)
+    const std::unordered_map<std::wstring, std::wstring> &overrides)
 {
-    std::map<std::wstring, std::wstring> variables = getCurrentEnvironment();
+    std::unordered_map<std::wstring, std::wstring> variables = Utils::Windows::Environment::getCurrent();
 
     for (const auto &[name, value] : overrides)
         variables[name] = value;
@@ -274,17 +241,17 @@ bool Process::captureProcessHandles()
 
     startupInfo_.dwFlags = STARTF_USESTDHANDLES;
 
-    startupInfo_.hStdInput = stdinPipe->getRead();
-    startupInfo_.hStdOutput = stdoutPipe->getWrite();
-    startupInfo_.hStdError = stderrPipe->getWrite();
+    startupInfo_.hStdInput = stdinPipe->getReadHandle();
+    startupInfo_.hStdOutput = stdoutPipe->getWriteHandle();
+    startupInfo_.hStdError = stderrPipe->getWriteHandle();
 
-    SetHandleInformation(stdinPipe->getWrite(), HANDLE_FLAG_INHERIT, 0);
-    SetHandleInformation(stdoutPipe->getRead(), HANDLE_FLAG_INHERIT, 0);
-    SetHandleInformation(stderrPipe->getRead(), HANDLE_FLAG_INHERIT, 0);
+    SetHandleInformation(stdinPipe->getWriteHandle(), HANDLE_FLAG_INHERIT, 0);
+    SetHandleInformation(stdoutPipe->getReadHandle(), HANDLE_FLAG_INHERIT, 0);
+    SetHandleInformation(stderrPipe->getReadHandle(), HANDLE_FLAG_INHERIT, 0);
 
-    stdinPipe_ = IPCConnection(std::move(stdinPipe));
-    stdoutPipe_ = IPCConnection(std::move(stdoutPipe));
-    stderrPipe_ = IPCConnection(std::move(stderrPipe));
+    stdinPipe_ = std::make_unique<IPCConnection>(std::move(stdinPipe));
+    stdoutPipe_ = std::make_unique<IPCConnection>(std::move(stdoutPipe));
+    stderrPipe_ = std::make_unique<IPCConnection>(std::move(stderrPipe));
 
     return true;
 }

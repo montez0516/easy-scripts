@@ -7,6 +7,6 @@
 class NamedPipeServer : public NamedPipe
 {
 public:
-    NamedPipeServer(std::string pipeName);
+    NamedPipeServer(const std::string &pipeName);
     bool waitForConnection();
 };

@@ -37,6 +37,9 @@ add_executable(EasyScripts
 src/main.cpp
 
 src/core/Paths.cpp
+src/core/utils/Conversion.cpp
+src/core/utils/windows/WindowsUtils.cpp
+src/core/utils/windows/Environment.cpp
 src/core/process/ProcessHandler.cpp
 src/core/ipc/Pipe.cpp
 src/core/ipc/NamedPipe.cpp
@@ -87,6 +90,9 @@ add_executable(runner
 src/runner.cpp
 
 src/core/Paths.cpp
+src/core/utils/Conversion.cpp
+src/core/utils/windows/WindowsUtils.cpp
+src/core/utils/windows/Environment.cpp
 src/core/process/ProcessHandler.cpp
 src/core/ipc/Pipe.cpp
 src/core/ipc/NamedPipe.cpp
@@ -107,9 +113,12 @@ src/runner/runtime/Runtime.cpp
 
 target_include_directories(EasyScripts PRIVATE 
 src/main
-src/core/process
-src/core/ipc
 src/core
+src/core/process
+src/core/utils
+src/core/utils/windows
+
+src/core/ipc
 src/core/eventBus
 src/core/communication
 src/api
@@ -121,6 +130,8 @@ src/ui/main
 
 target_include_directories(runner PRIVATE 
 src/core
+src/core/utils
+src/core/utils/windows
 src/core/process
 src/core/ipc
 src/core/eventBus

@@ -8,6 +8,7 @@
 #include "../core/communication/Message.h"
 #include "../core/ipc/NamedPipeServer.h"
 #include "../core/ipc/NamedPipeClient.h"
+#include "../core/utils/windows/WindowsUtils.h"
 
 #include <spdlog/spdlog.h>
 
@@ -30,20 +31,17 @@ ScriptManager::ScriptManager(Paths &paths, EventBus &bus, APIRegister &apiRegist
 
 ScriptManager::~ScriptManager()
 {
-  mainPipe_.send({.type = "runner.shutdown"});
+  mainPipe_->send({.type = "runner.shutdown"});
 
   if (!runnerProcess_->waitFor(std::chrono::milliseconds(5000)))
   {
     runnerProcess_->terminate();
   }
-
-  mainPipe_.close();
-  runnerPipe_.close();
 }
 
 bool ScriptManager::startRunner()
 {
-  mainPipe_ = IPCConnection(std::make_unique<NamedPipeServer>("easyscripts"));
+  mainPipe_ = std::make_unique<IPCConnection>(std::make_unique<NamedPipeServer>("easyscripts"));
 
   runnerProcess_ = std::make_unique<Process>(
       std::filesystem::absolute(paths_.runner()),
@@ -54,14 +52,14 @@ bool ScriptManager::startRunner()
                                                exit(exitCode); });
   runnerProcess_->start();
 
-  if (!mainPipe_.waitForConnection())
+  if (!mainPipe_->waitForConnection())
   {
-    spdlog::error("ScriptManager(startRunner): Failed to recieve connection from runner {}", GetLastError());
+    spdlog::error("ScriptManager(startRunner): Failed to recieve connection from runner {}", Utils::Windows::GetError());
   }
 
-  runnerPipe_ = IPCConnection(std::make_unique<NamedPipeClient>("runner"));
-  runnerPipe_.onMessage([this](const Message &message)
-                        { bus_.publish(message.type, message); });
+  runnerPipe_ = std::make_unique<IPCConnection>(std::make_unique<NamedPipeClient>("runner"));
+  runnerPipe_->onMessage([this](const Message &message)
+                         { bus_.publish(message.type, message); });
   bus_.subscribe("files.filepicker", [this](const Message &message)
                  {
                   spdlog::debug("testing filepicker {}({})::{}", message.scriptName, message.promiseID, message.type);
@@ -72,7 +70,7 @@ bool ScriptManager::startRunner()
 
                    APIResponse response = method({});
 
-                   mainPipe_.send({.type = "runtime.response", .scriptName = message.scriptName, .promiseID = message.promiseID, .data = response.result}); });
+                   mainPipe_->send({.type = "runtime.response", .scriptName = message.scriptName, .promiseID = message.promiseID, .data = response.result}); });
   return true;
 }
 
@@ -110,11 +108,11 @@ void ScriptManager::run(std::string scriptName, const std::vector<std::string> &
 
   spdlog::debug("Running script {} {}", language, file);
 
-  mainPipe_.send({.type = "scripts.run",
-                  .scriptName = scriptInfo.get("name"),
-                  .data = {
-                      {"file", file},
-                      {"language", language}}});
+  mainPipe_->send({.type = "scripts.run",
+                   .scriptName = scriptInfo.get("name"),
+                   .data = {
+                       {"file", file},
+                       {"language", language}}});
   spdlog::debug("ScriptManager(run): Ran script", language, file);
 }
 
@@ -128,7 +126,7 @@ void ScriptManager::registerEventListeners()
                    //  std::vector<std::string> args = message.data.value<std::vector<std::string>>("args", {});
                    run(name, {}); });
   bus_.subscribe("scripts.stop", [this](const Message &message)
-                 { mainPipe_.send(message); });
+                 { mainPipe_->send(message); });
   bus_.subscribe("scripts.state", [this](const Message &message)
                  {
                    std::string state = message.data.at("state");

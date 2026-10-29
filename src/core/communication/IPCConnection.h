@@ -8,6 +8,7 @@
 #include <memory>
 #include <functional>
 #include <thread>
+#include <atomic>
 
 class IPCConnection
 {
@@ -17,13 +18,17 @@ public:
 
     void send(const Message &message);
     void write(std::string_view message);
+
     void onMessage(std::function<void(const Message &)> callback);
     void onData(std::function<void(std::string_view)> callback);
     void readLoop();
+    void startReading();
+    void waitForReader();
 
     bool waitForConnection();
     void closeRead();
     void closeWrite();
+    void requestStop();
 
 private:
     std::unique_ptr<Pipe> ipcPipe_;
@@ -33,6 +38,6 @@ private:
     std::function<void(std::string_view)> onDataCallback_;
 
     std::thread readLoopThread__;
-
+    std::atomic_bool stopped{false};
     void processBytes(std::span<const std::byte> bytes);
 };

@@ -14,22 +14,19 @@
 
 class NamedPipe : public Pipe
 {
-private:
-    std::atomic_bool threadLoop_{true};
-    std::function<void(std::string_view)> readyReadCallBack_;
-    std::thread readyReadThread_;
-
-protected:
-    HANDLE pipeHandle_ = INVALID_HANDLE_VALUE;
-    std::string pipeName_;
 
 public:
     ~NamedPipe();
 
-    std::string read() override;
-    void write(std::string_view message) override;
-    bool readyRead(std::function<void(std::string_view)> readCallBack);
-    bool waitForConnection() override;
-    void close() override;
-    bool isNull();
+    HANDLE getReadHandle() const override;
+    HANDLE getWriteHandle() const override;
+
+    void closeReadHandle() override;
+    void closeWriteHandle() override;
+
+protected:
+    HANDLE pipeHandle_ = INVALID_HANDLE_VALUE;
+
+private:
+    void closeHandle();
 };

@@ -1,19 +1,20 @@
 #include "NamedPipeServer.h"
 #include "NamedPipe.h"
-#include "../process/Utils.h"
+#include "../utils/windows/WindowsUtils.h"
+#include "../utils/Conversion.h"
+
 #include <spdlog/spdlog.h>
 
 #include <windows.h>
 #include <string>
 
-NamedPipeServer::NamedPipeServer(std::string pipeName)
+NamedPipeServer::NamedPipeServer(const std::string &pipeName)
 {
-    pipeName_ = pipeName;
-    pipeHandle_ = CreateNamedPipeW(toWstring(PIPE_PREFIX + pipeName_).c_str(), PIPE_ACCESS_DUPLEX, PIPE_TYPE_MESSAGE | PIPE_READMODE_MESSAGE | PIPE_WAIT, PIPE_UNLIMITED_INSTANCES, 512, 512, 0, NULL);
+    pipeHandle_ = CreateNamedPipeW(Utils::Conversion::toWstring(PIPE_PREFIX + pipeName).c_str(), PIPE_ACCESS_DUPLEX, PIPE_TYPE_MESSAGE | PIPE_READMODE_MESSAGE | PIPE_WAIT, PIPE_UNLIMITED_INSTANCES, 512, 512, 0, NULL);
 
     if (pipeHandle_ == INVALID_HANDLE_VALUE)
     {
-        spdlog::error("NamedPipeServer(): Failed to create pipe. Error: {}\n", GetLastError());
+        spdlog::error("NamedPipeServer(): Failed to create pipe. Error: {}\n", Utils::Windows::GetError());
     }
 }
 
@@ -37,6 +38,6 @@ bool NamedPipeServer::waitForConnection()
         return true;
     }
 
-    spdlog::error("NamedPipe(waitForConnection): ConnectNamedPipe failed: {}", error);
+    spdlog::error("NamedPipe(waitForConnection): ConnectNamedPipe failed: {}", Utils::Windows::GetErrorFromCode(error));
     return false;
 }

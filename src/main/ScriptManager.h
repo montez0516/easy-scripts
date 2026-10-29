@@ -33,9 +33,11 @@ public:
 private:
   std::vector<ScriptInfo> scripts_;
   std::vector<Process> runtimes_;
-  IPCConnection mainPipe_;
-  IPCConnection runnerPipe_;
+
+  std::unique_ptr<IPCConnection> mainPipe_;
+  std::unique_ptr<IPCConnection> runnerPipe_;
   std::unique_ptr<Process> runnerProcess_;
+
   Paths &paths_;
   EventBus &bus_;
   APIRegister &apiRegister_;
