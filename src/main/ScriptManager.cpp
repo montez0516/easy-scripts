@@ -60,17 +60,6 @@ bool ScriptManager::startRunner()
   runnerPipe_ = std::make_unique<IPCConnection>(std::make_unique<NamedPipeClient>("runner"));
   runnerPipe_->onMessage([this](const Message &message)
                          { bus_.publish(message.type, message); });
-  bus_.subscribe("files.filepicker", [this](const Message &message)
-                 {
-                  spdlog::debug("testing filepicker {}({})::{}", message.scriptName, message.promiseID, message.type);
-                   auto method = apiRegister_.getMethod("files.filepicker");
-
-                   if (!method)
-                     return;
-
-                   APIResponse response = method({});
-
-                   mainPipe_->send({.type = "runtime.response", .scriptName = message.scriptName, .promiseID = message.promiseID, .data = response.result}); });
   return true;
 }
 
@@ -140,6 +129,21 @@ void ScriptManager::registerEventListeners()
                    {
                      scriptInfo.running = false;
                    } });
+
+  bus_.subscribe("scripts.api", [this](const Message &message)
+                 {
+                  std::string apiMethod = message.data.value("method", "");
+                  
+                  spdlog::debug("ScriptManager::registerEventListeners getting api method {}", apiMethod);
+
+                  auto method = apiRegister_.getMethod(apiMethod);
+
+                   if (!method)
+                     return;
+
+                   APIResponse response = method({});
+
+                   mainPipe_->send({.type = "runtime.response", .scriptName = message.scriptName, .promiseID = message.promiseID, .data = response.result}); });
 }
 
 APIResponse ScriptManager::list(APIRequest request)
