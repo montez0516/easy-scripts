@@ -149,6 +149,10 @@ target_compile_definitions(EasyScripts PRIVATE
     $<$<CONFIG:Debug>:BUILD_DEV=1>
 )
 
+target_compile_definitions(EasyScripts PRIVATE
+    JSON_USE_IMPLICIT_CONVERSIONS=0
+)
+
 target_compile_definitions(runner PRIVATE 
     $<$<CONFIG:Debug>:BUILD_DEV=1>
 )

@@ -10,9 +10,13 @@
 #include <QWidget>
 #include <QLabel>
 #include <QVBoxLayout>
-#include <QEvent>
+#include <QMouseEvent>
+#include <QDragEnterEvent>
+#include <QDropEvent>
 
 #include <string_view>
+#include <vector>
+#include <string>
 
 class ScriptCard : public QWidget
 {
@@ -22,7 +26,8 @@ public:
 
 protected:
     void mousePressEvent(QMouseEvent *event) override;
-
+    void dragEnterEvent(QDragEnterEvent *event) override;
+    void dropEvent(QDropEvent *event) override;
 public slots:
     void handleStartButtonClick();
 
@@ -41,6 +46,7 @@ private:
     bool running{false};
 
     void registerListeners();
+    void requestStart(std::vector<std::string> args);
     void handleStart();
     void handleFinished();
     void handleError(const Message &message);

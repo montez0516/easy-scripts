@@ -87,10 +87,7 @@ void ScriptManager::run(std::string scriptName, const std::vector<std::string> &
   ScriptInfo &scriptInfo = getScript(scriptName);
 
   if (scriptInfo.running)
-  {
-    spdlog::debug("ScriptManager(run): script already running {}", scriptInfo.get("name"));
     return;
-  }
 
   std::string file = scriptInfo.get("file");
   std::string language = scriptInfo.get("language");
@@ -101,7 +98,8 @@ void ScriptManager::run(std::string scriptName, const std::vector<std::string> &
                    .scriptName = scriptInfo.get("name"),
                    .data = {
                        {"file", file},
-                       {"language", language}}});
+                       {"language", language},
+                       {"args", args}}});
   spdlog::debug("ScriptManager(run): Ran script", language, file);
 }
 
@@ -112,13 +110,13 @@ void ScriptManager::registerEventListeners()
   bus_.subscribe("scripts.run", [this](const Message &message)
                  {
                    std::string name = message.scriptName;
-                   //  std::vector<std::string> args = message.data.value<std::vector<std::string>>("args", {});
-                   run(name, {}); });
+                   std::vector<std::string> args = message.data.value<std::vector<std::string>>("args", {});
+                   run(name, args); });
   bus_.subscribe("scripts.stop", [this](const Message &message)
                  { mainPipe_->send(message); });
   bus_.subscribe("scripts.state", [this](const Message &message)
                  {
-                   std::string state = message.data.at("state");
+                   std::string state = message.data.at("state").get<std::string>();
                    ScriptInfo &scriptInfo = getScript(message.scriptName);
 
                    if (state == "scripts.started")

@@ -23,10 +23,12 @@ Message MessageCodec::decode(std::string_view data)
 
         nlohmann::json json = nlohmann::json::parse(data);
         return {
-            .type = json.at("type"),
-            .scriptName = json.at("scriptName"),
-            .promiseID = json.value("promiseID", ""),
-            .data = json.value("data", nlohmann::json::object())};
+            .type = json.at("type").get<std::string>(),
+            .scriptName = json.at("scriptName").get<std::string>(),
+            .promiseID = json.value("promiseID", std::string{}),
+            .data = json.value("data", nlohmann::json::object())
+
+        };
     }
     catch (nlohmann::json::exception &e)
     {

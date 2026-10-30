@@ -1,10 +1,10 @@
 #include "ScriptCard.h"
-#include "IconButton.h"
 #include "../../core/Paths.h"
 #include "../utils/ThemeManager.h"
 #include "../utils/IconManager.h"
 #include "../../core/eventBus/EventBus.h"
 #include "../../core/communication/Message.h"
+#include "IconButton.h"
 
 #include <nlohmann/json.hpp>
 
@@ -14,6 +14,12 @@
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QIcon>
+#include <QDragEnterEvent>
+#include <QDropEvent>
+#include <QMimeData>
+
+#include <string>
+#include <vector>
 
 ScriptCard::ScriptCard(nlohmann::json scriptInfo, EventBus &bus, QWidget *parent) : QWidget(parent), scriptInfo_(scriptInfo), bus_(bus)
 {
@@ -24,6 +30,8 @@ ScriptCard::ScriptCard(nlohmann::json scriptInfo, EventBus &bus, QWidget *parent
     setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 
     setAttribute(Qt::WA_StyledBackground);
+
+    setAcceptDrops(true);
 
     registerListeners();
 
@@ -79,11 +87,22 @@ void ScriptCard::registerListeners()
                            handleError(message); });
 }
 
+void ScriptCard::requestStart(std::vector<std::string> args)
+{
+    std::string id = scriptInfo_.value("name", "");
+
+    if (!running && !id.empty())
+    {
+        emit requestDetailsPage(scriptInfo_);
+        emit requestScriptStart(id, args);
+    }
+}
+
 void ScriptCard::handleStartButtonClick()
 {
     std::string id = scriptInfo_.value("name", "");
     if (!running)
-        emit requestScriptStart(id, {});
+        requestStart({});
     else
         emit requestScriptStop(id);
 }
@@ -112,4 +131,35 @@ void ScriptCard::handleError(const Message &message)
     QString errorIcon = IconManager::getIcon("error");
     startButton_->setIcon(errorIcon);
     spdlog::error("Error occured in script {}", message.data.value<std::string>("error", ""));
+}
+
+void ScriptCard::dragEnterEvent(QDragEnterEvent *event)
+{
+    if (event->mimeData()->hasText() || event->mimeData()->hasUrls())
+    {
+        event->acceptProposedAction();
+    }
+}
+
+void ScriptCard::dropEvent(QDropEvent *event)
+{
+    std::vector<std::string> args;
+
+    const QMimeData *data = event->mimeData();
+
+    if (data->hasUrls())
+    {
+        args.push_back("--urls");
+        for (const auto &url : data->urls())
+        {
+            args.push_back(url.toString().toStdString());
+        }
+    }
+    else if (data->hasText())
+    {
+        args.push_back("--text");
+        args.push_back(data->text().toStdString());
+    }
+
+    requestStart(args);
 }

@@ -1,10 +1,10 @@
 #include "ScriptPage.h"
 
-#include "ScriptCard.h"
-#include "../UIContext.h"
-#include "../reuseables/FlowLayout.h"
 #include "../../core/eventBus/EventBus.h"
 #include "../../core/communication/Message.h"
+#include "../UIContext.h"
+#include "../reuseables/FlowLayout.h"
+#include "ScriptCard.h"
 #include "DetailsPage.h"
 
 #include <QWidget>
@@ -50,7 +50,7 @@ ScriptPage::ScriptPage(UIContext &uiContext, QWidget *parent) : QWidget(parent),
         connect(scriptCard, &ScriptCard::requestScriptStop, this, &ScriptPage::sendStopRequest);
 
         scriptLayout_->addWidget(scriptCard);
-        scriptLookup_[scriptInfo.at("name")] = scriptCard;
+        scriptLookup_[scriptInfo.at("name").get<std::string>()] = scriptCard;
     }
 }
 

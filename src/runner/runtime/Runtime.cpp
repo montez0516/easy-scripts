@@ -82,8 +82,7 @@ void Runtime::registerListener()
                            return;
                        spdlog::debug("Writing message to process {}::{}()", message.scriptName, message.type, message.data.dump());
                        process->write(message);
-                       spdlog::debug("Wrote message to process {}", message.scriptName);
-                   });
+                       spdlog::debug("Wrote message to process {}", message.scriptName); });
     bus_.subscribe("runtime.shutdown", [this](const Message &message)
                    { shutdown(); });
     bus_.subscribe("scripts.stop", [this](const Message &message)
