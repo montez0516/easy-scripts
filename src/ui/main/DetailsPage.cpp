@@ -66,6 +66,7 @@ void DetailsPage::changeInfo(const nlohmann::json &info)
     scriptName_->setText(QString::fromStdString(info.value<std::string>("name", "")));
 
     fileEdit_->setText(getScriptFileContents(QString::fromStdString(info.value<std::string>("file", ""))));
+    stdoutBrowser_->clear();
 }
 
 QString DetailsPage::getScriptFileContents(const QString &path)
