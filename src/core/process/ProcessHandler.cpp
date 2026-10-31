@@ -30,8 +30,11 @@ Process::~Process()
     if (waitThread_.joinable())
         waitThread_.join();
 
-    stdoutPipe_->waitForReader();
-    stderrPipe_->waitForReader();
+    if (captureHandles_)
+    {
+        stdoutPipe_->waitForReader();
+        stderrPipe_->waitForReader();
+    }
 }
 
 bool Process::start()
@@ -136,8 +139,11 @@ void Process::t_wait()
     processInformation_.hProcess = nullptr;
     processInformation_.hThread = nullptr;
 
-    stdoutPipe_->waitForReader();
-    stderrPipe_->waitForReader();
+    if (captureHandles_)
+    {
+        stdoutPipe_->waitForReader();
+        stderrPipe_->waitForReader();
+    }
 
     exitCV_.notify_all();
 

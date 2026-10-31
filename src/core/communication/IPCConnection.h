@@ -15,7 +15,7 @@ class IPCConnection
 public:
     IPCConnection();
     explicit IPCConnection(std::unique_ptr<Pipe> ipcPipe);
-
+    ~IPCConnection();
     void send(const Message &message);
     void write(std::string_view message);
 

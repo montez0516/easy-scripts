@@ -25,6 +25,16 @@ IPCConnection::IPCConnection(std::unique_ptr<Pipe> ipcPipe) : ipcPipe_(std::move
         spdlog::debug("IPCConnection:: IPCPipe is nullptr ??");
 };
 
+IPCConnection::~IPCConnection()
+{
+    spdlog::debug(
+        "IPCConnection destructor: current thread={}, reader thread={}, joinable={}",
+        std::this_thread::get_id(),
+        readLoopThread__.get_id(),
+        readLoopThread__.joinable());
+    requestStop();
+}
+
 void IPCConnection::send(const Message &message)
 {
     if (!ipcPipe_)
@@ -158,6 +168,11 @@ void IPCConnection::requestStop()
 {
     if (!readLoopThread__.joinable())
         return;
+
+    spdlog::debug(
+        "IPCConnection(requestStop): current thread={}, reader thread={}",
+        std::this_thread::get_id(),
+        readLoopThread__.get_id());
 
     stopped.store(true);
 
