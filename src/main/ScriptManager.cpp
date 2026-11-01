@@ -48,8 +48,12 @@ bool ScriptManager::startRunner()
       std::vector<std::string>{});
   runnerProcess_->registerOnFinishedCallback([this](DWORD exitCode)
                                              {
-                                               spdlog::critical("ScriptManager(startRunnner): runner process exited with code {}\n{}", exitCode, runnerProcess_->error());
-                                               exit(exitCode); });
+                                               if (exitCode != 0)
+                                               {
+                                                 spdlog::critical("ScriptManager(startRunnner): runner process exited with code {}\n{}", exitCode, runnerProcess_->error());
+                                                 exit(exitCode);
+                                               }
+                                             });
   runnerProcess_->start();
 
   if (!mainPipe_->waitForConnection())

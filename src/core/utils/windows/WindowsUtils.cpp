@@ -116,6 +116,7 @@ namespace Utils::Windows
         if (!message.empty() && message.back() == L'\r')
             message.pop_back();
 
-        return Utils::Conversion::toString(message);
+        return Utils::Conversion::toString(
+            L"[" + std::to_wstring(code) + L"] " + message);
     }
 }

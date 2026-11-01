@@ -16,6 +16,7 @@
 #include <array>
 #include <span>
 #include <cstddef>
+#include <sstream>
 
 IPCConnection::IPCConnection() {};
 
@@ -27,11 +28,19 @@ IPCConnection::IPCConnection(std::unique_ptr<Pipe> ipcPipe) : ipcPipe_(std::move
 
 IPCConnection::~IPCConnection()
 {
+
+    std::ostringstream currentThread;
+    std::ostringstream readerThread;
+
+    currentThread << std::this_thread::get_id();
+    readerThread << readLoopThread__.get_id();
+
     spdlog::debug(
         "IPCConnection destructor: current thread={}, reader thread={}, joinable={}",
-        std::this_thread::get_id(),
-        readLoopThread__.get_id(),
+        currentThread.str(),
+        readerThread.str(),
         readLoopThread__.joinable());
+
     requestStop();
 }
 
@@ -108,6 +117,8 @@ void IPCConnection::readLoop()
         }
         case READ_ERROR:
         {
+            if (result.errorCode == ERROR_OPERATION_ABORTED)
+                return;
             spdlog::error("IPCConnection::readLoop Error while reading from pipe {}", Utils::Windows::GetErrorFromCode(result.errorCode));
             return;
         }
@@ -166,25 +177,30 @@ void IPCConnection::closeWrite()
 
 void IPCConnection::requestStop()
 {
+    stopped.store(true);
+
     if (!readLoopThread__.joinable())
         return;
 
-    spdlog::debug(
-        "IPCConnection(requestStop): current thread={}, reader thread={}",
-        std::this_thread::get_id(),
-        readLoopThread__.get_id());
-
-    stopped.store(true);
-
-    HANDLE threadHandle = reinterpret_cast<HANDLE>(readLoopThread__.native_handle());
-
-    BOOL success = CancelSynchronousIo(threadHandle);
-
-    if (!success)
+    if (std::this_thread::get_id() == readLoopThread__.get_id())
     {
-        DWORD error = GetLastError();
-        if (error != ERROR_NOT_FOUND)
-            spdlog::error("IPCConnection::terminate error while terminating connection readLoop thread {}", Utils::Windows::GetErrorFromCode(error));
+        spdlog::error("IPCConnection::requestStop called from reader thread");
+        return;
+    }
+
+    HANDLE readHandle = ipcPipe_->getReadHandle();
+
+    if (readHandle != nullptr && readHandle != INVALID_HANDLE_VALUE)
+    {
+        if (!CancelIoEx(readHandle, nullptr))
+        {
+            DWORD error = GetLastError();
+
+            if (error != ERROR_NOT_FOUND)
+            {
+                spdlog::error("IPCConnection::requestStop: CancelIoEx failed: {}", Utils::Windows::GetErrorFromCode(error));
+            }
+        }
     }
 
     readLoopThread__.join();

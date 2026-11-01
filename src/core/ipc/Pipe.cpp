@@ -28,7 +28,7 @@ ReadResult Pipe::read(std::span<std::byte> buffer)
     if (!success)
     {
         DWORD errorCode = GetLastError();
-        if (errorCode == ERROR_BROKEN_PIPE)
+        if (errorCode == ERROR_BROKEN_PIPE || errorCode == ERROR_PIPE_NOT_CONNECTED)
         {
             result.status = READ_EOF;
         }

@@ -39,10 +39,18 @@ HANDLE UnnamedPipe::getWriteHandle() const
 
 void UnnamedPipe::closeReadHandle()
 {
-    CloseHandle(readHandle_);
+    if (readHandle_ != nullptr && readHandle_ != INVALID_HANDLE_VALUE)
+    {
+        CloseHandle(readHandle_);
+        readHandle_ = INVALID_HANDLE_VALUE;
+    }
 }
 
 void UnnamedPipe::closeWriteHandle()
 {
-    CloseHandle(writeHandle_);
+    if (writeHandle_ != nullptr && writeHandle_ != INVALID_HANDLE_VALUE)
+    {
+        CloseHandle(writeHandle_);
+        writeHandle_ = INVALID_HANDLE_VALUE;
+    }
 }
