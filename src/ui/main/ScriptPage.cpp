@@ -33,14 +33,25 @@ ScriptPage::ScriptPage(UIContext &uiContext, QWidget *parent) : QWidget(parent),
 
     layout_->addWidget(detailsPage_);
 
-    auto method = uiContext_.apiRegister.getMethod("scripts.list");
+    APIResponse response;
 
-    if (!method)
+    try
+    {
+        response = uiContext_.apiRegister.call("scripts.list", {});
+    }
+    catch (std::exception &e)
+    {
+        spdlog::critical("Failed to get script list from ScriptManager {}", e.what());
         return;
+    }
 
-    APIResponse scriptResponse = method({});
+    if (response.status == false)
+    {
+        spdlog::critical("Failed to get script list from ScriptManager {}", response.error);
+        return;
+    }
 
-    auto scriptsList = scriptResponse.result.get<std::vector<nlohmann::json>>();
+    auto scriptsList = response.result.get<std::vector<nlohmann::json>>();
 
     for (nlohmann::json &scriptInfo : scriptsList)
     {

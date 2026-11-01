@@ -1,17 +1,19 @@
 #include "FileSystemAPI.h"
 #include "../../api/Register.h"
+#include "../../core/utils/Conversion.h"
+#include "../../core/utils/windows/WindowsUtils.h"
 
-#include <windows.h>
-#include <commdlg.h>
-#include <filesystem>
+#include <QFileDialog>
+#include <QString>
+#include <QWidget>
 
 FileAPI::FileAPI(APIRegister &apiRegister)
 {
-    apiRegister.registerMethod("files.filepicker", [this](APIRequest request)
+    apiRegister.registerMethod("files.filepicker", [this](const APIRequest &request)
                                { return openFilePicker(request); });
 }
 
-APIResponse FileAPI::openFilePicker(APIRequest request)
+APIResponse FileAPI::openFilePicker(const APIRequest &request)
 {
     wchar_t fileBuffer[MAX_PATH] = {};
 
@@ -32,16 +34,16 @@ APIResponse FileAPI::openFilePicker(APIRequest request)
         OFN_PATHMUSTEXIST |
         OFN_FILEMUSTEXIST;
 
-    APIResponse response;
-
     if (GetOpenFileNameW(&dialog))
     {
-        response.status = true;
-        response.result = std::filesystem::path(fileBuffer).string();
-        return response;
+        return APIResponse::success({{"path", Utils::Conversion::toString(std::filesystem::path(fileBuffer).wstring())}});
     }
 
-    response.status = false;
-    response.error = GetLastError();
-    return response;
+    DWORD error = CommDlgExtendedError();
+
+    if (error == 0)
+        return APIResponse::success({{"path", nullptr},
+                                     {"cancelled", true}});
+
+    return APIResponse::failure("File picker failed with code " + Utils::Windows::GetErrorFromCode(error));
 }

@@ -27,14 +27,6 @@ CentralWidget::CentralWidget(UIContext &uiContext, QWidget *parent) : QWidget(pa
 {
     setObjectName("CentralWidget");
 
-    auto method = uiContext.apiRegister.getMethod("scripts.list");
-
-    if (!method)
-        return;
-
-    APIResponse scriptsResponse = method({});
-    auto scriptsList = scriptsResponse.result.get<std::vector<nlohmann::json>>();
-
     layout_ = new QVBoxLayout(this);
     stackedLayout_ = new QStackedLayout(layout_);
 

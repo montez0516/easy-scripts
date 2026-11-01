@@ -7,5 +7,5 @@ class FileAPI
 public:
     FileAPI(APIRegister &apiRegister);
 
-    APIResponse openFilePicker(APIRequest request);
+    APIResponse openFilePicker(const APIRequest &request);
 };

@@ -4,31 +4,48 @@
 #include <nlohmann/json.hpp>
 
 #include <string>
+#include <string_view>
 #include <functional>
 #include <unordered_map>
 #include <utility>
 
+struct APIRequest
+{
+    nlohmann::json params = nlohmann::json::object();
+};
 struct APIResponse
 {
     bool status;
     nlohmann::json result;
     std::string error;
-    APIResponse() { result = ""; };
-};
+    static APIResponse success(nlohmann::json result = nullptr)
+    {
+        return {
+            .status = true,
+            .result = std::move(result),
+            .error = ""};
+    }
 
-struct APIRequest
-{
-    std::string params;
+    static APIResponse failure(std::string error)
+    {
+        return {
+            .status = false,
+            .result = nullptr,
+            .error = std::move(error)};
+    }
 };
 
 class APIRegister
 {
-private:
-    std::unordered_map<std::string, std::function<APIResponse(APIRequest)>> methods_;
 
 public:
-    bool registerMethod(std::string methodName, std::function<APIResponse(APIRequest)> method);
-    void unregisterMethod(std::string methodName);
-    std::function<APIResponse(APIRequest)> getMethod(std::string methodName);
-    bool hasMethod(std::string methodName);
+    using APIMethod = std::function<APIResponse(const APIRequest &)>;
+    bool registerMethod(std::string name, APIMethod method);
+    bool unregisterMethod(std::string_view name);
+    bool hasMethod(std::string_view name) const;
+
+    APIResponse call(std::string_view name, const APIRequest &request) const;
+
+private:
+    std::unordered_map<std::string, APIMethod> methods_;
 };

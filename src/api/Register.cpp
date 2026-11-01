@@ -1,30 +1,46 @@
 #include "Register.h"
 
-bool APIRegister::registerMethod(std::string methodName, std::function<APIResponse(APIRequest)> method)
+#include <string>
+#include <string_view>
+#include <functional>
+
+bool APIRegister::registerMethod(std::string name, APIMethod method)
 {
-    if (hasMethod(methodName))
-    {
-        spdlog::error("APIRegister(registerMethod): method with name already exists {}", methodName);
+    if (!method)
         return false;
+
+    return methods_.emplace(std::move(name), std::move(method)).second;
+}
+
+bool APIRegister::unregisterMethod(std::string_view name)
+{
+    return methods_.erase(std::string(name)) != 0;
+}
+
+bool APIRegister::hasMethod(std::string_view name) const
+{
+    return methods_.contains(std::string(name));
+}
+
+APIResponse APIRegister::call(std::string_view name, const APIRequest &request) const
+{
+    auto it = methods_.find(std::string(name));
+
+    if (it == methods_.end())
+    {
+        return APIResponse::failure("Unknown API method: " + std::string(name));
     }
 
-    methods_[methodName] = std::move(method);
-    return true;
-}
-
-void APIRegister::unregisterMethod(std::string methodName)
-{
-    methods_.erase(methodName);
-}
-
-std::function<APIResponse(APIRequest)> APIRegister::getMethod(std::string methodName)
-{
-    if (!hasMethod(methodName))
-        return {};
-    return methods_.at(methodName);
-}
-
-bool APIRegister::hasMethod(std::string methodName)
-{
-    return methods_.contains(methodName);
+    try
+    {
+        return it->second(request);
+    }
+    catch (const std::exception &e)
+    {
+        return APIResponse::failure(e.what());
+    }
+    catch (...)
+    {
+        return APIResponse::failure("Unknown API error");
+    }
 }

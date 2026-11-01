@@ -52,8 +52,7 @@ bool ScriptManager::startRunner()
                                                {
                                                  spdlog::critical("ScriptManager(startRunnner): runner process exited with code {}\n{}", exitCode, runnerProcess_->error());
                                                  exit(exitCode);
-                                               }
-                                             });
+                                               } });
   runnerProcess_->start();
 
   if (!mainPipe_->waitForConnection())
@@ -134,18 +133,25 @@ void ScriptManager::registerEventListeners()
 
   bus_.subscribe("scripts.api", [this](const Message &message)
                  {
-                  std::string apiMethod = message.data.value("method", "");
-                  
-                  spdlog::debug("ScriptManager::registerEventListeners getting api method {}", apiMethod);
+                   APIResponse response;
 
-                  auto method = apiRegister_.getMethod(apiMethod);
+                   try
+                   {
+                     std::string method = message.data.at("method").get<std::string>();
 
-                   if (!method)
-                     return;
+                     APIRequest request{.params = message.data};
+                     response = apiRegister_.call(method, request);
+                   }
+                   catch (const std::exception &e)
+                   {
+                     response = APIResponse::failure(e.what());
+                   }
 
-                   APIResponse response = method({});
-
-                   mainPipe_->send({.type = "runtime.response", .scriptName = message.scriptName, .promiseID = message.promiseID, .data = response.result}); });
+                   mainPipe_->send({.type = "runtime.response",
+                                    .scriptName = message.scriptName,
+                                    .promiseID = message.promiseID,
+                                    .data = response.result
+                                  }); });
 }
 
 APIResponse ScriptManager::list(APIRequest request)
