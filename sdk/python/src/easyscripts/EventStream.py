@@ -17,7 +17,7 @@ class EventStream:
 
             self._buffer = self._buffer[pos + 1:]
 
-            return len(text)
+        return len(text)
     def flush(self):
         if self._buffer:
             self._dispatcher.send("scripts.media", {"type":"text", "text": self._buffer + "\n"})
