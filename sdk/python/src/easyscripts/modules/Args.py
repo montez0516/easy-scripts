@@ -11,9 +11,7 @@ class Args:
 
         self._args = self._parser.parse_args()
 
-        with open("args.txt", "w") as f:
-            f.write(str(self._args))
     def getText(self):
-        return self._args.text
+        return self._args.text or ""
     def getUrls(self):
-        return self._args.urls
+        return self._args.urls or []

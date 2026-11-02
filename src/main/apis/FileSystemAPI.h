@@ -8,4 +8,5 @@ public:
     FileAPI(APIRegister &apiRegister);
 
     APIResponse openFilePicker(const APIRequest &request);
+    APIResponse openDirectoryPicker(const APIRequest &request);
 };

@@ -1,15 +1,21 @@
 #include "Register.h"
 
+#include <QApplication>
+#include <QMetaObject>
+#include <QThread>
+
 #include <string>
 #include <string_view>
 #include <functional>
 
-bool APIRegister::registerMethod(std::string name, APIMethod method)
+bool APIRegister::registerMethod(std::string name, APIMethod method, APIThread thread)
 {
     if (!method)
         return false;
 
-    return methods_.emplace(std::move(name), std::move(method)).second;
+    RegisteredMethod registeredMethod{.callback = std::move(method), .thread = thread};
+
+    return methods_.emplace(std::move(name), std::move(registeredMethod)).second;
 }
 
 bool APIRegister::unregisterMethod(std::string_view name)
@@ -33,8 +39,27 @@ APIResponse APIRegister::call(std::string_view name, const APIRequest &request) 
 
     try
     {
-        return it->second(request);
+        auto method = it->second;
+
+        if (method.thread == APIThread::Caller)
+            return method.callback(request);
+        if (QThread::currentThread() == qApp->thread())
+            return method.callback(request);
+
+        APIResponse response;
+
+        bool success = QMetaObject::invokeMethod(
+            qApp,
+            [&]()
+            { response = method.callback(request); },
+            Qt::BlockingQueuedConnection);
+
+        if (!success)
+            return APIResponse::failure("Failed to dispatch API method");
+
+        return response;
     }
+
     catch (const std::exception &e)
     {
         return APIResponse::failure(e.what());

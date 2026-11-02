@@ -9,10 +9,17 @@
 #include <unordered_map>
 #include <utility>
 
+enum class APIThread
+{
+    Caller,
+    GUI
+};
+
 struct APIRequest
 {
     nlohmann::json params = nlohmann::json::object();
 };
+
 struct APIResponse
 {
     bool status;
@@ -35,17 +42,23 @@ struct APIResponse
     }
 };
 
+struct RegisteredMethod
+{
+    std::function<APIResponse(const APIRequest &)> callback;
+    APIThread thread = APIThread::Caller;
+};
+
 class APIRegister
 {
 
 public:
     using APIMethod = std::function<APIResponse(const APIRequest &)>;
-    bool registerMethod(std::string name, APIMethod method);
+    bool registerMethod(std::string name, APIMethod method, APIThread thread = APIThread::Caller);
     bool unregisterMethod(std::string_view name);
     bool hasMethod(std::string_view name) const;
 
     APIResponse call(std::string_view name, const APIRequest &request) const;
 
 private:
-    std::unordered_map<std::string, APIMethod> methods_;
+    std::unordered_map<std::string, RegisteredMethod> methods_;
 };

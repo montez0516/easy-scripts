@@ -5,45 +5,47 @@
 
 #include <QFileDialog>
 #include <QString>
-#include <QWidget>
+#include <QThread>
+#include <QApplication>
 
 FileAPI::FileAPI(APIRegister &apiRegister)
 {
-    apiRegister.registerMethod("files.filepicker", [this](const APIRequest &request)
-                               { return openFilePicker(request); });
+    apiRegister.registerMethod(
+        "files.filepicker",
+        [this](const APIRequest &request)
+        { return openFilePicker(request); },
+        APIThread::GUI);
+    apiRegister.registerMethod(
+        "files.directorypicker",
+        [this](const APIRequest &request)
+        { return openDirectoryPicker(request); },
+        APIThread::GUI);
 }
 
 APIResponse FileAPI::openFilePicker(const APIRequest &request)
 {
-    wchar_t fileBuffer[MAX_PATH] = {};
+    QString filePath = QFileDialog::getOpenFileName(
+        nullptr,
+        "Select a File",
+        QString(),
+        "All Files (*.*);;Text Files (*.txt);;Images (*.png *.jpg *.jpeg)");
 
-    OPENFILENAMEW dialog{};
-    dialog.lStructSize = sizeof(dialog);
-    dialog.hwndOwner = nullptr;
-    dialog.lpstrFile = fileBuffer;
-    dialog.nMaxFile = MAX_PATH;
+    if (filePath.isEmpty())
+        return APIResponse::success({{"cancelled", true},
+                                     {"path", nullptr}});
 
-    dialog.lpstrFilter =
-        L"All Files\0*.*\0"
-        L"Text Files\0*.txt\0"
-        L"Images\0*.png;*.jpg;*.jpeg\0";
+    return APIResponse::success({{"cancelled", false},
+                                 {"path", filePath.toUtf8().toStdString()}});
+}
 
-    dialog.nFilterIndex = 1;
+APIResponse FileAPI::openDirectoryPicker(const APIRequest &request)
+{
+    std::string existingDir = request.params.value<std::string>("existingDir", "");
 
-    dialog.Flags =
-        OFN_PATHMUSTEXIST |
-        OFN_FILEMUSTEXIST;
+    QString directoryPath = QFileDialog::getExistingDirectory(nullptr, "Select a Directory", QString::fromStdString(existingDir));
 
-    if (GetOpenFileNameW(&dialog))
-    {
-        return APIResponse::success({{"path", Utils::Conversion::toString(std::filesystem::path(fileBuffer).wstring())}});
-    }
+    if (directoryPath.isEmpty())
+        return APIResponse::success({{"path", nullptr}});
 
-    DWORD error = CommDlgExtendedError();
-
-    if (error == 0)
-        return APIResponse::success({{"path", nullptr},
-                                     {"cancelled", true}});
-
-    return APIResponse::failure("File picker failed with code " + Utils::Windows::GetErrorFromCode(error));
+    return APIResponse::success({{"path", directoryPath.toUtf8().toStdString()}});
 }

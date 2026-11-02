@@ -8,8 +8,10 @@
 #include "ui/UIContext.h"
 
 #include <spdlog/spdlog.h>
+
 #include <QApplication>
 #include <QMainWindow>
+#include <QFileDialog>
 
 #include <chrono>
 #include <filesystem>
