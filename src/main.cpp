@@ -42,5 +42,11 @@ int main(int argc, char **argv)
 
   MainWindow window{uiContext};
 
-  return app.exec();
+  int code = app.exec();
+
+  spdlog::critical(
+      "EasyScripts: QApplication event loop returned {}",
+      code);
+
+  return code;
 }
