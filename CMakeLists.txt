@@ -40,6 +40,7 @@ src/core/Paths.cpp
 src/core/utils/Conversion.cpp
 src/core/utils/windows/WindowsUtils.cpp
 src/core/utils/windows/Environment.cpp
+src/core/parsing/DotEnv.cpp
 src/core/process/ProcessHandler.cpp
 src/core/ipc/Pipe.cpp
 src/core/ipc/NamedPipe.cpp
@@ -93,6 +94,7 @@ src/core/Paths.cpp
 src/core/utils/Conversion.cpp
 src/core/utils/windows/WindowsUtils.cpp
 src/core/utils/windows/Environment.cpp
+src/core/parsing/DotEnv.cpp
 src/core/process/ProcessHandler.cpp
 src/core/ipc/Pipe.cpp
 src/core/ipc/NamedPipe.cpp
@@ -117,10 +119,10 @@ src/core
 src/core/process
 src/core/utils
 src/core/utils/windows
-
 src/core/ipc
 src/core/eventBus
 src/core/communication
+src/core/parsing
 src/api
 src/main/apis
 src/ui
@@ -136,6 +138,7 @@ src/core/process
 src/core/ipc
 src/core/eventBus
 src/core/communication
+src/core/parsing
 src/runner
 src/runner/engine
 src/runner/runtime

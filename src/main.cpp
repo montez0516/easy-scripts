@@ -6,6 +6,7 @@
 #include "main/apis/MediaAPI.h"
 #include "ui/MainWindow.h"
 #include "ui/UIContext.h"
+#include "core/parsing/DotEnv.h"
 
 #include <spdlog/spdlog.h>
 
@@ -30,6 +31,11 @@ int main(int argc, char **argv)
   Paths paths{};
   EventBus bus;
   APIRegister apiRegister;
+
+  std::filesystem::path scripts = paths.resources();
+
+  DotEnv env((scripts / ".env").string());
+  spdlog::debug(env.getenv("TEST"));
 
   FileAPI{apiRegister};
   MediaAPI{apiRegister};
