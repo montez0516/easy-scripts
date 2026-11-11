@@ -12,7 +12,7 @@ class EasyScriptsAPI:
         self.monitor = EventMonitor(self.dispatcher)
         self.files : FileAPI = FileAPI(self.dispatcher)
         self.media : MediaAPI = MediaAPI(self.dispatcher)
-        self.input : DialogAPI = DialogAPI(self.dispatcher)
+        self.dialog : DialogAPI = DialogAPI(self.dispatcher)
         self.args : Args = Args()
 
     def wait(self, timeout : float | None = None):

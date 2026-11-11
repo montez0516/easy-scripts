@@ -11,7 +11,7 @@ class Args:
 
         self._args = self._parser.parse_args()
 
-    def getText(self):
+    def getText(self) -> str:
         return self._args.text or ""
-    def getUrls(self):
+    def getUrls(self) -> list[str]:
         return self._args.urls or []
