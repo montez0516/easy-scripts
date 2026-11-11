@@ -40,7 +40,7 @@ src/core/Paths.cpp
 src/core/utils/Conversion.cpp
 src/core/utils/windows/WindowsUtils.cpp
 src/core/utils/windows/Environment.cpp
-src/core/parsing/DotEnv.cpp
+# src/core/parsing/DotEnv.cpp
 src/core/process/ProcessHandler.cpp
 src/core/ipc/Pipe.cpp
 src/core/ipc/NamedPipe.cpp
@@ -56,6 +56,7 @@ src/main/ScriptManager.cpp
 src/main/ScriptInfo.cpp
 src/main/apis/FileSystemAPI.cpp
 src/main/apis/MediaAPI.cpp
+src/main/apis/DialogAPI.cpp
 
 src/api/Register.cpp
 
@@ -94,7 +95,7 @@ src/core/Paths.cpp
 src/core/utils/Conversion.cpp
 src/core/utils/windows/WindowsUtils.cpp
 src/core/utils/windows/Environment.cpp
-src/core/parsing/DotEnv.cpp
+# src/core/parsing/DotEnv.cpp
 src/core/process/ProcessHandler.cpp
 src/core/ipc/Pipe.cpp
 src/core/ipc/NamedPipe.cpp

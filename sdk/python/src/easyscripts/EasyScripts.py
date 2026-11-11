@@ -3,7 +3,7 @@ import threading
 import sys
 from .EventDispatcher import EventDispatcher
 from .EventMonitor import EventMonitor
-from .modules import FileAPI, MediaAPI, Args
+from .modules import FileAPI, MediaAPI, Args, DialogAPI
 import time
 class EasyScriptsAPI:
     
@@ -12,6 +12,7 @@ class EasyScriptsAPI:
         self.monitor = EventMonitor(self.dispatcher)
         self.files : FileAPI = FileAPI(self.dispatcher)
         self.media : MediaAPI = MediaAPI(self.dispatcher)
+        self.input : DialogAPI = DialogAPI(self.dispatcher)
         self.args : Args = Args()
 
     def wait(self, timeout : float | None = None):
