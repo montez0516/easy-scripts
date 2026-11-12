@@ -150,9 +150,12 @@ void ScriptCard::dropEvent(QDropEvent *event)
     if (data->hasUrls())
     {
         args.push_back("--urls");
-        for (const auto &url : data->urls())
+        for (const QUrl &url : data->urls())
         {
-            args.push_back(url.toString().toStdString());
+            if (!url.isLocalFile())
+                args.push_back(url.toString().toStdString());
+            else
+                args.push_back(url.toLocalFile().toStdString());
         }
     }
     else if (data->hasText())
