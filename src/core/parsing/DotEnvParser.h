@@ -17,8 +17,8 @@ private:
 
     std::string parseKey();
     std::string parseValue();
-    bool isCharAllowed(char c);
-
+    bool isCharAllowed(int c);
+    bool eof = false;
     std::ifstream envFile_;
     std::string envPath_;
 };

@@ -11,6 +11,7 @@ public:
     explicit DotEnv(std::string path);
     bool load();
     std::string getenv(const std::string &key);
+    void print();
 
 private:
     std::string envPath_;

@@ -19,8 +19,6 @@ DialogAPI::DialogAPI(APIRegister &apiRegister, QWidget *parent) : parent_(parent
         spdlog::error("DialogAPI parent is null");
     }
 
-    spdlog::debug("DialogAPI parent is not null registering methods");
-
     apiRegister.registerMethod(
         "dialog.input",
         [this](const APIRequest &request)

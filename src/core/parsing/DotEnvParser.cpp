@@ -21,6 +21,14 @@ std::unordered_map<std::string, std::string> DotEnvParser::parse()
         return envMap;
     }
 
+    while (!eof)
+    {
+        std::string key = parseKey();
+        std::string value = parseValue();
+        if (!key.empty() && !value.empty())
+            envMap.emplace(key, value);
+    }
+
     envFile_.close();
 
     return envMap;
@@ -28,7 +36,14 @@ std::unordered_map<std::string, std::string> DotEnvParser::parse()
 
 int DotEnvParser::read()
 {
-    return envFile_.get();
+    if (eof)
+        return eof;
+
+    int c = envFile_.get();
+    if (c == std::char_traits<char>::eof())
+        eof = true;
+
+    return c;
 }
 
 void DotEnvParser::unread()
@@ -39,53 +54,56 @@ void DotEnvParser::unread()
 void DotEnvParser::readWhiteSpace()
 {
     int c = read();
-    while (c != std::char_traits<char>::eof() && c != '\n' && std::isspace(c))
+    while (!eof && c != '\n' && std::isspace(c))
     {
         c = read();
     }
 
-    if (c != std::char_traits<char>::eof())
+    if (!eof)
         unread();
 }
 
-bool DotEnvParser::isCharAllowed(char c)
+bool DotEnvParser::isCharAllowed(int c)
 {
-    return (std::isalpha(c) || std::isdigit(c) || std::ispunct(c));
+    return (!std::isspace(c) && c != '\'' && c != '"' && c != '=');
 }
 
 std::string DotEnvParser::parseKey()
 {
-    spdlog::debug("DotEnv::parseKey");
-
     std::string key;
     int c;
 
     readWhiteSpace();
 
-    while (c = read())
+    while (!eof)
     {
+        c = read();
+
+        if (std::isspace(c))
+            continue;
+
+        if (!isCharAllowed(c))
+            break;
+
         if (isCharAllowed(c))
         {
             key += c;
         }
-
-        if (std::isspace(c))
-            break;
     }
 
-    readWhiteSpace();
-
-    c = read();
+    if (eof)
+        return key;
 
     if (c != '=')
+    {
         return "";
+    }
 
     return key;
 }
 
 std::string DotEnvParser::parseValue()
 {
-    spdlog::debug("DotEnvParser::parseValue");
 
     bool enclosed = false;
     std::string value;
@@ -97,18 +115,21 @@ std::string DotEnvParser::parseValue()
 
     if (c == '\'' || c == '"')
         enclosed = true;
+    else
+        unread();
 
-    while (c = read())
+    while (!eof)
     {
+        c = read();
 
-        if (isCharAllowed(c))
+        if (!eof && isCharAllowed(c))
         {
             if ((c == '\'' || c == '"') && enclosed)
                 return value;
             value += c;
         }
 
-        if (std::isspace(c))
+        if (c == '\n')
             return value;
     }
 

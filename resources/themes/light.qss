@@ -1,19 +1,22 @@
-*{
+*
+{
     color:black;
     font-family:"Arial", sans-serif;
 }
 
-QMainWindow{
+QMainWindow
+{
     background-color:white;
-    
 }
 
-#CentralWidget{
+#CentralWidget
+{
     background-color:white;
     border: 2px solid black;
 }
 
-#ScriptCard{
+#ScriptCard
+{
     border-radius: 10px;
 }
 
@@ -22,22 +25,26 @@ QMainWindow{
     font-size:20pt;
 }
 
-#CentralNavBar{
+#CentralNavBar
+{
     background: lightgrey;
     border-radius:10px;
 }
 
-QPushButton {
+QPushButton 
+{
     border: none;
     border-radius: 6px;
     padding: 8px;
 }
 
-#NavBar > QPushButton:hover{
+#NavBar > QPushButton:hover
+{
     background: #e5e5e5;
 }
 
-#NavBar > QPushButton:pressed{
+#NavBar > QPushButton:pressed
+{
     background: #cccccc;
 }
 
@@ -52,8 +59,28 @@ QPushButton {
     font-size:25pt;
 }
 
-#DetailsPage > QTextBrowser, QTextEdit{
+#DetailsPage > QTextBrowser, QTextEdit
+{
     background:white;
     border:1px solid dimgrey;
     border-radius:5px;
+}
+
+QInputDialog
+{
+    background:white;
+    color:black;
+}
+
+QInputDialog QLineEdit,
+QInputDialog QComboBox
+{
+    background:lightgrey;
+}
+
+QInputDialog QLineEdit:focus,
+QInputDialog QComboBox:focus
+{
+    border: 1px solid lightgrey;
+    border-radius: 5px;
 }

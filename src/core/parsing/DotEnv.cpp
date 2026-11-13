@@ -9,6 +9,7 @@
 #include <utility>
 #include <unordered_map>
 #include <limits>
+#include <iostream>
 
 DotEnv::DotEnv(std::string path) : envPath_(std::move(path)) {}
 
@@ -28,9 +29,17 @@ std::string DotEnv::getenv(const std::string &key)
 {
     if (!envMap_.contains(key))
     {
-        spdlog::debug("Could not find key {} in envMap", key);
         return "";
     }
 
     return envMap_.at(key);
+}
+
+void DotEnv::print()
+{
+
+    for (const auto &[key, value] : envMap_)
+    {
+        std::cout << key << ":" << value << std::endl;
+    }
 }
