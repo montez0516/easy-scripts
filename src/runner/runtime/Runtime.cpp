@@ -38,14 +38,14 @@ void Runtime::run(const Message &message)
 
     prepareArguments(absFile, args);
 
-    std::unique_ptr<Process> process = std::make_unique<Process>(executable(absFile), args);
+    std::unique_ptr<ProcessHandler> process = std::make_unique<ProcessHandler>(executable(absFile), args);
     process->setCurrentDirectory(absFile.parent_path());
     process->setCaptureHandles(true);
 
     process->registerReadyReadCallback([this, name](const Message &message)
                                        { bus_.publish("script.event", message); });
 
-    Process *processPtr = process.get();
+    ProcessHandler *processPtr = process.get();
     process->registerOnFinishedCallback([this, name, processPtr](DWORD code)
                                         {
                                             std::string errorMsg = processPtr->error();
@@ -77,7 +77,7 @@ void Runtime::registerListener()
 
     bus_.subscribe("runtime.response", [this](const Message &message)
                    {
-                       Process *process = getRuntimeProcess(message.scriptName);
+                       ProcessHandler *process = getRuntimeProcess(message.scriptName);
                        if (process == nullptr)
                            return;
                        spdlog::debug("Writing message to process {}::{}()", message.scriptName, message.type, message.data.dump());
@@ -87,7 +87,7 @@ void Runtime::registerListener()
                    { shutdown(); });
     bus_.subscribe("scripts.stop", [this](const Message &message)
                    {
-                       Process *process = getRuntimeProcess(message.scriptName);
+                       ProcessHandler *process = getRuntimeProcess(message.scriptName);
                        if (process == nullptr)
                            return;
 
@@ -97,7 +97,7 @@ void Runtime::registerListener()
                            process->terminate(); });
 }
 
-Process *Runtime::getRuntimeProcess(const std::string &name)
+ProcessHandler *Runtime::getRuntimeProcess(const std::string &name)
 {
     if (runtimes_.find(name) == runtimes_.end())
         return nullptr;

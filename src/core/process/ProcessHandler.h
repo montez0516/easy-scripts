@@ -1,5 +1,6 @@
 #pragma once
 
+#include "ChildProcess.h"
 #include "../ipc/UnnamedPipe.h"
 #include "../communication/IPCConnection.h"
 #include "../communication/Message.h"
@@ -19,20 +20,20 @@
 
 namespace fs = std::filesystem;
 
-class Process
+class ProcessHandler
 {
 
 public:
-  Process(fs::path executable, std::vector<std::string> arguments);
-  ~Process();
+  ProcessHandler(fs::path executable, std::vector<std::string> arguments);
+  ~ProcessHandler();
   bool start();
 
   DWORD wait();
   bool waitFor(std::chrono::milliseconds timeout);
 
   bool terminate();
+  bool shutdown();
 
-  std::string read();
   void write(const Message &message);
   std::string error();
 
@@ -42,23 +43,15 @@ public:
   void setCurrentDirectory(const std::wstring &dir);
   void clearCurrentDirectory();
 
-  void setCaptureHandles(bool value);
-
   void registerReadyReadCallback(std::function<void(const Message &)> readCallBack);
   void registerOnFinishedCallback(std::function<void(DWORD)> finishCallBack);
 
 private:
-  std::unique_ptr<IPCConnection> stdinPipe_;
-  std::unique_ptr<IPCConnection> stdoutPipe_;
-  std::unique_ptr<IPCConnection> stderrPipe_;
+  std::unique_ptr<ChildProcess> childProcess_;
 
   fs::path exe_;
   std::vector<std::string> args_;
 
-  bool captureHandles_ = false;
-
-  STARTUPINFOW startupInfo_{};
-  PROCESS_INFORMATION processInformation_{};
   std::optional<std::vector<wchar_t>> processEnvironment_;
   std::wstring cwd_;
 
@@ -67,14 +60,9 @@ private:
   std::function<void(const Message &)> readyReadCallBack_;
 
   std::wstring buildCommandLine();
-  void t_wait();
-  bool captureProcessHandles();
-
-  std::mutex exitMutex_;
-  std::condition_variable exitCV_;
-  bool exited_ = false;
-  DWORD exitCode_ = STILL_ACTIVE;
 
   std::string stderrBuffer_;
   std::mutex stderrMutex_;
+
+  void t_wait();
 };

@@ -1,5 +1,6 @@
 #include "ProcessHandler.h"
 
+#include "ChildProcess.h"
 #include "../communication/Message.h"
 #include "../communication/IPCConnection.h"
 #include "../utils/Conversion.h"
@@ -17,89 +18,44 @@
 #include <mutex>
 #include <condition_variable>
 
-static constexpr DWORD FORCED_TERMINATION = 1;
-
 namespace fs = std::filesystem;
 
-Process::Process(fs::path executable, std::vector<std::string> arguments) : exe_(std::move(executable)), args_(std::move(arguments))
+ProcessHandler::ProcessHandler(fs::path executable, std::vector<std::string> arguments) : exe_(std::move(executable)), args_(std::move(arguments))
 {
 }
 
-Process::~Process()
+ProcessHandler::~ProcessHandler()
 {
+    if (childProcess_)
+    {
+        if (!childProcess_->waitFor(std::chrono::milliseconds(3000)))
+            childProcess_->terminate();
+    }
+
     if (waitThread_.joinable())
         waitThread_.join();
-
-    if (captureHandles_)
-    {
-        stdoutPipe_->waitForReader();
-        stderrPipe_->waitForReader();
-    }
 }
 
-bool Process::start()
+bool ProcessHandler::start()
 {
+    childProcess_ = std::make_unique<ChildProcess>();
 
-    startupInfo_ = {};
-    processInformation_ = {};
+    std::wstring commandLine = buildCommandLine();
 
-    startupInfo_.cb = sizeof(startupInfo_);
-
-    if (captureHandles_)
-    {
-        if (!captureProcessHandles())
-            return false;
-    }
-
-    std::wstring command = buildCommandLine();
-
-    LPVOID environmentBlock = nullptr;
-
-    if (processEnvironment_.has_value())
-    {
-        environmentBlock = processEnvironment_->data();
-    }
-
-    if (!CreateProcessW(NULL,
-                        command.data(),
-                        NULL,
-                        NULL,
-                        captureHandles_ ? TRUE : FALSE,
-                        CREATE_UNICODE_ENVIRONMENT,
-                        environmentBlock,
-                        cwd_.empty() ? NULL : cwd_.c_str(),
-                        &startupInfo_,
-                        &processInformation_))
-    {
-        spdlog::error("Process(start): CreateProcessW failed {} {}", Utils::Windows::GetError(), exe_.string());
+    if (!childProcess_->start(commandLine, cwd_, processEnvironment_.value()))
         return false;
-    }
 
-    if (captureHandles_)
-    {
-        stdinPipe_->closeRead();
-        stdoutPipe_->closeWrite();
-        stderrPipe_->closeWrite();
-
-        if (readyReadCallBack_)
-            stdoutPipe_->onMessage(readyReadCallBack_);
-
-        stderrPipe_->onData([this](std::string_view message)
-                            {
-                               std::lock_guard lock(stderrMutex_);
-                               stderrBuffer_.append(message); });
-    }
-
-    waitThread_ = std::thread(&Process::t_wait, this);
+    waitThread_ = std::thread(&ProcessHandler::t_wait, this);
     return true;
 }
 
-void Process::write(const Message &message)
+void ProcessHandler::write(const Message &message)
 {
-    stdinPipe_->send(message);
+    if (childProcess_)
+        childProcess_->write(message);
 }
 
-std::wstring Process::buildCommandLine()
+std::wstring ProcessHandler::buildCommandLine()
 {
     std::wstring cmd = Utils::Windows::quoteWindowsArgument(exe_.wstring());
 
@@ -112,82 +68,51 @@ std::wstring Process::buildCommandLine()
     return cmd;
 }
 
-void Process::t_wait()
+void ProcessHandler::t_wait()
 {
-    if (processInformation_.hProcess == nullptr)
-    {
-        spdlog::error("Process(t_wait): hProcess handle null");
+    if (!childProcess_)
         return;
-    }
+    DWORD code = childProcess_->wait();
 
-    WaitForSingleObject(processInformation_.hProcess, INFINITE);
-
-    if (!GetExitCodeProcess(processInformation_.hProcess, &exitCode_))
-    {
-        spdlog::error("Process(t_wait): GetExitCodeProcess failed ({})", Utils::Windows::GetError());
-    }
-
-    {
-        std::lock_guard lock(exitMutex_);
-
-        exited_ = true;
-    }
-
-    CloseHandle(processInformation_.hProcess);
-    CloseHandle(processInformation_.hThread);
-
-    processInformation_.hProcess = nullptr;
-    processInformation_.hThread = nullptr;
-
-    if (captureHandles_)
-    {
-        stdoutPipe_->waitForReader();
-        stderrPipe_->waitForReader();
-    }
-
-    exitCV_.notify_all();
-
-    spdlog::debug("Calling finished callback");
     if (finishCallBack_)
-        finishCallBack_(exitCode_);
+        finishCallBack_(code);
 }
 
-DWORD Process::wait()
+DWORD ProcessHandler::wait()
 {
-    if (waitThread_.joinable())
-        waitThread_.join();
-    return exitCode_;
+    if (!childProcess_)
+        return -1;
+
+    return childProcess_->wait();
 }
 
-bool Process::waitFor(std::chrono::milliseconds timeout)
+bool ProcessHandler::waitFor(std::chrono::milliseconds timeout)
 {
-    if (processInformation_.hProcess == nullptr)
+    if (!childProcess_)
         return true;
 
-    std::unique_lock lock(exitMutex_);
-
-    return exitCV_.wait_for(lock, timeout, [this]()
-                            { return exited_; });
+    return childProcess_->waitFor(timeout);
 }
 
-bool Process::terminate()
+bool ProcessHandler::terminate()
 {
-    if (processInformation_.hProcess == nullptr)
-    {
-        return false;
-    }
+    if (!childProcess_)
+        return true;
 
-    if (!TerminateProcess(processInformation_.hProcess, FORCED_TERMINATION))
-    {
-        spdlog::error("Process(terminate): Failed to terminate process {}", Utils::Windows::GetError());
-
-        return false;
-    }
-
-    return true;
+    return childProcess_->terminate();
 }
 
-void Process::setEnvironment(
+bool ProcessHandler::shutdown()
+{
+    if (!childProcess_)
+        return true;
+
+    childProcess_->write({.type = "scripts.shutdown"});
+
+    return childProcess_->waitFor(std::chrono::milliseconds(3000));
+}
+
+void ProcessHandler::setEnvironment(
     const std::unordered_map<std::wstring, std::wstring> &overrides)
 {
     std::unordered_map<std::wstring, std::wstring> variables = Utils::Windows::Environment::getCurrent();
@@ -209,60 +134,32 @@ void Process::setEnvironment(
     processEnvironment_ = std::move(block);
 }
 
-void Process::clearEnvironment()
+void ProcessHandler::clearEnvironment()
 {
     processEnvironment_.reset();
 }
 
-void Process::setCurrentDirectory(const std::wstring &dir)
+void ProcessHandler::setCurrentDirectory(const std::wstring &dir)
 {
     cwd_ = dir;
 }
 
-void Process::clearCurrentDirectory()
+void ProcessHandler::clearCurrentDirectory()
 {
     cwd_.clear();
 }
 
-std::string Process::error()
+std::string ProcessHandler::error()
 {
     return stderrBuffer_;
 }
 
-void Process::registerReadyReadCallback(std::function<void(const Message &)> callback)
+void ProcessHandler::registerReadyReadCallback(std::function<void(const Message &)> callback)
 {
     readyReadCallBack_ = std::move(callback);
 }
 
-void Process::registerOnFinishedCallback(std::function<void(DWORD)> callback)
+void ProcessHandler::registerOnFinishedCallback(std::function<void(DWORD)> callback)
 {
     finishCallBack_ = std::move(callback);
-}
-
-bool Process::captureProcessHandles()
-{
-    std::unique_ptr stdinPipe = std::make_unique<UnnamedPipe>();
-    std::unique_ptr stdoutPipe = std::make_unique<UnnamedPipe>();
-    std::unique_ptr stderrPipe = std::make_unique<UnnamedPipe>();
-
-    startupInfo_.dwFlags = STARTF_USESTDHANDLES;
-
-    startupInfo_.hStdInput = stdinPipe->getReadHandle();
-    startupInfo_.hStdOutput = stdoutPipe->getWriteHandle();
-    startupInfo_.hStdError = stderrPipe->getWriteHandle();
-
-    SetHandleInformation(stdinPipe->getWriteHandle(), HANDLE_FLAG_INHERIT, 0);
-    SetHandleInformation(stdoutPipe->getReadHandle(), HANDLE_FLAG_INHERIT, 0);
-    SetHandleInformation(stderrPipe->getReadHandle(), HANDLE_FLAG_INHERIT, 0);
-
-    stdinPipe_ = std::make_unique<IPCConnection>(std::move(stdinPipe));
-    stdoutPipe_ = std::make_unique<IPCConnection>(std::move(stdoutPipe));
-    stderrPipe_ = std::make_unique<IPCConnection>(std::move(stderrPipe));
-
-    return true;
-}
-
-void Process::setCaptureHandles(bool value)
-{
-    captureHandles_ = value;
 }

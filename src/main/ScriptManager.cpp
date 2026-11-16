@@ -43,7 +43,7 @@ bool ScriptManager::startRunner()
 {
   mainPipe_ = std::make_unique<IPCConnection>(std::make_unique<NamedPipeServer>("easyscripts"));
 
-  runnerProcess_ = std::make_unique<Process>(
+  runnerProcess_ = std::make_unique<ProcessHandler>(
       std::filesystem::absolute(paths_.runner()),
       std::vector<std::string>{});
   runnerProcess_->registerOnFinishedCallback([this](DWORD exitCode)

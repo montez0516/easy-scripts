@@ -16,10 +16,10 @@ namespace fs = std::filesystem;
 class Runtime
 {
 private:
-    Process *getRuntimeProcess(const std::string &name);
+    ProcessHandler *getRuntimeProcess(const std::string &name);
 
 protected:
-    std::map<std::string, std::unique_ptr<Process>> runtimes_;
+    std::map<std::string, std::unique_ptr<ProcessHandler>> runtimes_;
 
     Paths &paths_;
     EventBus &bus_;

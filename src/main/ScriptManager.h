@@ -32,11 +32,11 @@ public:
 
 private:
   std::vector<ScriptInfo> scripts_;
-  std::vector<Process> runtimes_;
+  std::vector<ProcessHandler> runtimes_;
 
   std::unique_ptr<IPCConnection> mainPipe_;
   std::unique_ptr<IPCConnection> runnerPipe_;
-  std::unique_ptr<Process> runnerProcess_;
+  std::unique_ptr<ProcessHandler> runnerProcess_;
 
   Paths &paths_;
   EventBus &bus_;
