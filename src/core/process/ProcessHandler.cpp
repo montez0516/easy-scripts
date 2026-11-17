@@ -51,18 +51,10 @@ bool ProcessHandler::start()
         return false;
 
     if (stdoutCallback_)
-        if (!childProcess_->registerStdoutMessageReader(stdoutCallback_))
-            spdlog::debug("Failed to register stdout message reader callback");
-        else
-            spdlog::debug("Register stdout message reader");
-    else
-        spdlog::debug("stdout callback is null");
+        childProcess_->registerStdoutMessageReader(stdoutCallback_);
 
     if (stderrCallback_)
-        if (childProcess_->registerStderrDataReader(stderrCallback_))
-            spdlog::debug("Failed to register stderr data reader callback");
-        else
-            spdlog::debug("Register stderr message reader");
+        childProcess_->registerStderrDataReader(stderrCallback_);
 
     waitThread_ = std::thread(&ProcessHandler::t_wait, this);
     return true;
