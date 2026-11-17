@@ -37,12 +37,15 @@ void Runtime::run(const Message &message)
     prepareArguments(absFile, args);
 
     std::unique_ptr<ProcessHandler> process = std::make_unique<ProcessHandler>(executable(absFile), args);
+
     process->setCurrentDirectory(absFile.parent_path());
     process->setCapturePipes(true);
+
+    ProcessHandler *processPtr = process.get();
+
     process->registerStdoutMessageReader([this, name](const Message &message)
                                          { bus_.publish("script.event", message); });
 
-    ProcessHandler *processPtr = process.get();
     process->registerOnFinishedCallback([this, name, processPtr](DWORD code)
                                         {
                                             std::string errorMsg = processPtr->error();
@@ -51,12 +54,15 @@ void Runtime::run(const Message &message)
                                                                           .data = {
                                                                               {"state", code != 0 ? "scripts.error" : "scripts.finished"},
                                                                               {"code", code},
-                                                                              {"error", errorMsg}}}); });
+                                                                              {"error", errorMsg}}});
+                                            runtimes_.erase(name); });
 
     if (!process->start())
     {
-        spdlog::debug("Runtime::run Failed to start process");
+        bus_.publish("script.event", {.type = "scripts.state", .scriptName = name, .data = {{"state", "scripts.error"}, {"error", "Failed to start process"}}});
+        return;
     }
+
     runtimes_[name] = (std::move(process));
     bus_.publish("script.event", {.type = "scripts.state", .scriptName = name, .data = {{"state", "scripts.started"}}});
 }
@@ -73,15 +79,12 @@ void Runtime::prepareArguments(const std::filesystem::path &script, std::vector<
 
 void Runtime::registerListener()
 {
-
     bus_.subscribe("runtime.response", [this](const Message &message)
                    {
                        ProcessHandler *process = getRuntimeProcess(message.scriptName);
                        if (process == nullptr)
                            return;
-                       spdlog::debug("Writing message to process {}::{}()", message.scriptName, message.type, message.data.dump());
-                       process->write(message);
-                       spdlog::debug("Wrote message to process {}", message.scriptName); });
+                       process->write(message); });
     bus_.subscribe("runtime.shutdown", [this](const Message &message)
                    { shutdown(); });
     bus_.subscribe("scripts.stop", [this](const Message &message)
@@ -90,10 +93,9 @@ void Runtime::registerListener()
                        if (process == nullptr)
                            return;
 
-                       process->write({.type = "scripts.shutdown"});
-
-                       if (!process->waitFor(std::chrono::milliseconds(3000)))
-                           process->terminate(); });
+                       if (!process->shutdown())
+                           process->terminate();
+                       runtimes_.erase(message.scriptName); });
 }
 
 ProcessHandler *Runtime::getRuntimeProcess(const std::string &name)
@@ -109,7 +111,6 @@ void Runtime::shutdown()
 
     for (const auto &[id, runtime] : runtimes_)
     {
-
         runtime->write({.type = "scripts.shutdown"});
     }
 
@@ -119,6 +120,7 @@ void Runtime::shutdown()
         {
             runtime->terminate();
         }
+        runtimes_.erase(id);
     }
 }
 
