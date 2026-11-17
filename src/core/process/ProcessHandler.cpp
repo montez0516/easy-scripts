@@ -40,10 +40,29 @@ bool ProcessHandler::start()
 {
     childProcess_ = std::make_unique<ChildProcess>();
 
+    if (!childProcess_)
+        return false;
+
     std::wstring commandLine = buildCommandLine();
 
-    if (!childProcess_->start(commandLine, cwd_, processEnvironment_.value()))
+    childProcess_->setCapturePipes(capturePipes_);
+
+    if (!childProcess_->start(commandLine, cwd_, processEnvironment_))
         return false;
+
+    if (stdoutCallback_)
+        if (!childProcess_->registerStdoutMessageReader(stdoutCallback_))
+            spdlog::debug("Failed to register stdout message reader callback");
+        else
+            spdlog::debug("Register stdout message reader");
+    else
+        spdlog::debug("stdout callback is null");
+
+    if (stderrCallback_)
+        if (childProcess_->registerStderrDataReader(stderrCallback_))
+            spdlog::debug("Failed to register stderr data reader callback");
+        else
+            spdlog::debug("Register stderr message reader");
 
     waitThread_ = std::thread(&ProcessHandler::t_wait, this);
     return true;
@@ -136,7 +155,7 @@ void ProcessHandler::setEnvironment(
 
 void ProcessHandler::clearEnvironment()
 {
-    processEnvironment_.reset();
+    processEnvironment_.clear();
 }
 
 void ProcessHandler::setCurrentDirectory(const std::wstring &dir)
@@ -154,12 +173,31 @@ std::string ProcessHandler::error()
     return stderrBuffer_;
 }
 
-void ProcessHandler::registerReadyReadCallback(std::function<void(const Message &)> callback)
+void ProcessHandler::registerStdoutMessageReader(std::function<void(const Message &)> callback)
 {
-    readyReadCallBack_ = std::move(callback);
+    if (stdoutCallback_)
+        return;
+
+    stdoutCallback_ = std::move(callback);
+}
+
+void ProcessHandler::registerStderrDataReader(std::function<void(std::string_view)> callback)
+{
+    if (stderrCallback_)
+        return;
+
+    stderrCallback_ = std::move(callback);
 }
 
 void ProcessHandler::registerOnFinishedCallback(std::function<void(DWORD)> callback)
 {
+    if (finishCallBack_)
+        return;
+
     finishCallBack_ = std::move(callback);
+}
+
+void ProcessHandler::setCapturePipes(bool value)
+{
+    capturePipes_ = value;
 }

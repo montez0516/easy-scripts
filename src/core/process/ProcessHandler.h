@@ -43,7 +43,10 @@ public:
   void setCurrentDirectory(const std::wstring &dir);
   void clearCurrentDirectory();
 
-  void registerReadyReadCallback(std::function<void(const Message &)> readCallBack);
+  void setCapturePipes(bool value);
+
+  void registerStdoutMessageReader(std::function<void(const Message &)> readCallBack);
+  void registerStderrDataReader(std::function<void(std::string_view)> callback);
   void registerOnFinishedCallback(std::function<void(DWORD)> finishCallBack);
 
 private:
@@ -52,12 +55,16 @@ private:
   fs::path exe_;
   std::vector<std::string> args_;
 
-  std::optional<std::vector<wchar_t>> processEnvironment_;
+  std::vector<wchar_t> processEnvironment_;
   std::wstring cwd_;
 
   std::thread waitThread_;
+
+  bool capturePipes_ = false;
+
   std::function<void(DWORD)> finishCallBack_;
-  std::function<void(const Message &)> readyReadCallBack_;
+  std::function<void(const Message &)> stdoutCallback_;
+  std::function<void(std::string_view)> stderrCallback_;
 
   std::wstring buildCommandLine();
 

@@ -43,8 +43,9 @@ bool ChildProcess::start(std::wstring &cmd, std::wstring &cwd, std::vector<wchar
 
     startupInfo_.cb = sizeof(startupInfo_);
 
-    if (!createPipes())
-        return false;
+    if (capturePipes_)
+        if (!createPipes())
+            return false;
 
     BOOL success = CreateProcessW(
         NULL,
@@ -61,9 +62,12 @@ bool ChildProcess::start(std::wstring &cmd, std::wstring &cwd, std::vector<wchar
     if (!success)
         return false;
 
-    stdinPipe_->closeRead();
-    stdoutPipe_->closeWrite();
-    stderrPipe_->closeWrite();
+    if (capturePipes_)
+    {
+        stdinPipe_->closeRead();
+        stdoutPipe_->closeWrite();
+        stderrPipe_->closeWrite();
+    }
 
     return true;
 }
@@ -106,6 +110,8 @@ bool ChildProcess::terminate()
 
 void ChildProcess::write(const Message &message)
 {
+    if (!stdinPipe_ || !capturePipes_)
+        return;
     stdinPipe_->send(message);
 }
 
@@ -131,4 +137,27 @@ bool ChildProcess::waitFor(std::chrono::milliseconds timeout)
     DWORD result = WaitForSingleObject(processInformation_.hProcess, static_cast<DWORD>(timeout.count()));
 
     return result == WAIT_OBJECT_0;
+}
+
+bool ChildProcess::registerStdoutMessageReader(std::function<void(const Message &)> callback)
+{
+    if (!stdoutPipe_ || !capturePipes_)
+        return false;
+
+    stdoutPipe_->onMessage(callback);
+    return true;
+}
+
+bool ChildProcess::registerStderrDataReader(std::function<void(std::string_view)> callback)
+{
+    if (!stderrPipe_ || !CaptureStackBackTrace)
+        return false;
+
+    stderrPipe_->onData(callback);
+    return true;
+}
+
+void ChildProcess::setCapturePipes(bool value)
+{
+    capturePipes_ = value;
 }

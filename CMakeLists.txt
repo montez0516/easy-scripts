@@ -41,6 +41,7 @@ src/core/utils/Conversion.cpp
 src/core/utils/windows/WindowsUtils.cpp
 src/core/utils/windows/Environment.cpp
 # src/core/parsing/DotEnv.cpp
+src/core/process/ChildProcess.cpp
 src/core/process/ProcessHandler.cpp
 src/core/ipc/Pipe.cpp
 src/core/ipc/NamedPipe.cpp
@@ -96,6 +97,7 @@ src/core/utils/Conversion.cpp
 src/core/utils/windows/WindowsUtils.cpp
 src/core/utils/windows/Environment.cpp
 # src/core/parsing/DotEnv.cpp
+src/core/process/ChildProcess.cpp
 src/core/process/ProcessHandler.cpp
 src/core/ipc/Pipe.cpp
 src/core/ipc/NamedPipe.cpp

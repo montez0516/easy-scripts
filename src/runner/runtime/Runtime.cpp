@@ -32,18 +32,15 @@ void Runtime::run(const Message &message)
     std::string file = messageData.at("file");
     std::vector<std::string> args = messageData.value<std::vector<std::string>>("args", {});
 
-    spdlog::debug("PYTHON: {}", file);
-
     fs::path absFile = fs::absolute(file);
 
     prepareArguments(absFile, args);
 
     std::unique_ptr<ProcessHandler> process = std::make_unique<ProcessHandler>(executable(absFile), args);
     process->setCurrentDirectory(absFile.parent_path());
-    process->setCaptureHandles(true);
-
-    process->registerReadyReadCallback([this, name](const Message &message)
-                                       { bus_.publish("script.event", message); });
+    process->setCapturePipes(true);
+    process->registerStdoutMessageReader([this, name](const Message &message)
+                                         { bus_.publish("script.event", message); });
 
     ProcessHandler *processPtr = process.get();
     process->registerOnFinishedCallback([this, name, processPtr](DWORD code)
@@ -56,8 +53,10 @@ void Runtime::run(const Message &message)
                                                                               {"code", code},
                                                                               {"error", errorMsg}}}); });
 
-    process->start();
-
+    if (!process->start())
+    {
+        spdlog::debug("Runtime::run Failed to start process");
+    }
     runtimes_[name] = (std::move(process));
     bus_.publish("script.event", {.type = "scripts.state", .scriptName = name, .data = {{"state", "scripts.started"}}});
 }

@@ -10,6 +10,7 @@
 #include <unordered_map>
 #include <memory>
 #include <chrono>
+#include <functional>
 
 class ChildProcess
 {
@@ -23,11 +24,16 @@ public:
     bool waitFor(std::chrono::milliseconds timeout);
 
     void write(const Message &message);
+    bool registerStdoutMessageReader(std::function<void(const Message &)> callback);
+    bool registerStderrDataReader(std::function<void(std::string_view)> callback);
+    void setCapturePipes(bool value);
 
 private:
     std::unique_ptr<IPCConnection> stdinPipe_;
     std::unique_ptr<IPCConnection> stdoutPipe_;
     std::unique_ptr<IPCConnection> stderrPipe_;
+
+    bool capturePipes_ = false;
 
     STARTUPINFOW startupInfo_{};
     PROCESS_INFORMATION processInformation_{};
